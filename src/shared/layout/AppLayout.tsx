@@ -15,7 +15,7 @@ export function AppLayout() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <strong>CDA Putumayo - Frontend Web</strong>
+        <strong>CDA Putumayo</strong>
         <div>
           <span className="badge">{user?.role ?? 'SIN ROL'}</span>
           <button onClick={logout}>Cerrar sesion</button>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Frontend CDA Putumayo</string>
+    <string name="title_activity_main">Frontend CDA Putumayo</string>
+    <string name="package_name">com.cda.putumayo.frontend</string>
+    <string name="custom_url_scheme">com.cda.putumayo.frontend</string>
+</resources>

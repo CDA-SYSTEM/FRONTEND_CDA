@@ -54,6 +54,9 @@ VITE_APP_NAME=Frontend CDA Putumayo
 - `npm run lint`: ejecuta lint
 - `npm run test`: ejecuta pruebas unitarias
 - `npm run test:watch`: pruebas en modo watch
+- `npm run cap:sync`: build web + sincronizacion de plataformas Capacitor
+- `npm run android:sync`: build web + sincronizacion solo Android
+- `npm run android:open`: abrir proyecto Android en Android Studio
 
 ## Estructura de Carpetas
 
@@ -97,8 +100,45 @@ src/
   - Borra `node_modules` y `package-lock.json`.
   - Ejecuta `npm install` nuevamente.
 
-## Proximo Hito (Despues de Subir a GitHub)
+## Hito Android Completado
 
-- Integracion Android con Capacitor
-- Sincronizacion web -> Android
-- Build de APK y pruebas en emulador/dispositivo
+Capacitor ya fue integrado y la plataforma Android ya fue creada en la carpeta android.
+
+Archivos Android base generados:
+
+- android/
+- capacitor.config.ts
+
+### Flujo Android (desde este repositorio)
+
+1. Compilar y sincronizar Android:
+
+```bash
+npm run android:sync
+```
+
+2. Abrir proyecto nativo:
+
+```bash
+npm run android:open
+```
+
+3. En Android Studio:
+
+- Esperar sincronizacion de Gradle.
+- Seleccionar emulador o dispositivo.
+- Ejecutar app en modo debug.
+
+### Nota importante de backend para emulador
+
+Si el backend corre en tu maquina local y pruebas en emulador Android, no uses localhost en el frontend.
+Usa esta URL en tu archivo .env:
+
+```env
+VITE_API_URL=http://10.0.2.2:3000/api
+```
+
+### Build APK (Android Studio)
+
+- Menu Build > Build Bundle(s)/APK(s) > Build APK(s)
+- APK debug se genera en android/app/build/outputs/apk/debug/

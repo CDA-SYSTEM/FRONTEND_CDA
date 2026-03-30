@@ -33,7 +33,7 @@ select {
 button {
   border: 0;
   border-radius: 10px;
-  background: #0f766e;
+  background: #155DFC;
   color: #fff;
   cursor: pointer;
   padding: 0.65rem 1rem;
@@ -105,7 +105,7 @@ label span {
 }
 
 .tab.active {
-  background: #0f766e;
+  background: #155DFC;
   color: #fff;
 }
 
@@ -136,7 +136,7 @@ label span {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
+  background: linear-gradient(135deg, #155DFC );
   padding: 1rem;
 }
 

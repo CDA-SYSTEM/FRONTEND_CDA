@@ -16,10 +16,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    buildTypes {
+    signingConfigs {
         release {
-            minifyEnabled false
+            // Keystore generado en android/keystore
+            storeFile file("${rootProject.projectDir}/keystore/cda_release_key.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "changeme"
+            keyAlias System.getenv("KEY_ALIAS") ?: "cda_key"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "changeme"
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

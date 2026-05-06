@@ -105,10 +105,7 @@ export function LoginPage() {
           </button>
         </form>
 
-        {/* Link a recuperación de contraseña (futuro) */}
-        <p className="forgot-password">
-          <a href="#forgot-password">¿Olvidó su contraseña?</a>
-        </p>
+       
       </section>
     </main>
   )

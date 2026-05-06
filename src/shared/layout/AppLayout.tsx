@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Dashboard' },
+  { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
   { to: '/recepcion', label: 'Recepcion' },
   { to: '/inspeccion', label: 'Inspeccion' },
   { to: '/facturacion', label: 'Facturacion' },
@@ -42,16 +43,18 @@ export function AppLayout() {
       </header>
 
       <nav className="tabs">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === '/'}
-            className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
-          >
-            {link.label}
-          </NavLink>
-        ))}
+        {links
+          .filter((link) => !link.roles || (user?.role && link.roles.includes(user.role)))
+          .map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === '/'}
+              className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
+            >
+              {link.label}
+            </NavLink>
+          ))}
       </nav>
 
       <section className="content">

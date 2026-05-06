@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 import { usuarioService } from '../usuarioService'
 import type { CrearUsuarioDTO, RolUsuario, RolUsuarioForm, Usuario } from '../usuario.types'
 
@@ -240,7 +241,21 @@ export function UsuariosPage() {
                   {ROLES.map(rol => <option key={rol} value={rol}>{rol}</option>)}
                 </select>
               </td>
-              <td>{user.isActive ? 'Activo ✅' : 'Inactivo ❌'}</td>
+              <td>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
+                  {user.isActive ? (
+                    <>
+                      <CheckCircle2 size={16} color="#16a34a" />
+                      <span style={{ color: '#166534' }}>Activo</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={16} color="#dc2626" />
+                      <span style={{ color: '#991b1b' }}>Inactivo</span>
+                    </>
+                  )}
+                </span>
+              </td>
               <td style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={() => handleToggleEstado(user)}>{user.isActive ? 'Desactivar' : 'Activar'}</button>
                 <button

@@ -41,8 +41,10 @@ export const authService = {
    * (el backend puede invalidar sesión si es necesario)
    */
   async logout(): Promise<void> {
-    // Opcional: llamar a /auth/logout si el backend requiere notificación
-    // await apiClient.post('/auth/logout')
-    // Por ahora solo se borra el token client-side
+    try {
+      await apiClient.post('/auth/logout')
+    } catch (err) {
+      // Ignorar errores; el logout debe limpiar el cliente incluso si el servidor falla
+    }
   },
 }

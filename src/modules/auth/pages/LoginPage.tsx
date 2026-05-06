@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { Car } from 'lucide-react'
 import { loginSchema, type LoginSchema } from '@/modules/auth/schemas/loginSchema'
 import { useAuthStore } from '@/modules/auth/store/authStore'
 import './LoginPage.css'
@@ -67,10 +68,7 @@ export function LoginPage() {
       <div className="auth-panel">
         <div className="auth-header">
           <div className="logo-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
+            <Car size={42} strokeWidth={2.2} />
           </div>
           <h1>CDA del Putumayo</h1>
           <p className="auth-subtitle">Sistema de Control de Acceso</p>

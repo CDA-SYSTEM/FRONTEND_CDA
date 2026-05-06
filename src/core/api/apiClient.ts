@@ -8,9 +8,14 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
+  const apiKey = import.meta.env.VITE_API_KEY_FRONT
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+
+  if (apiKey) {
+    config.headers['X-API-Key'] = apiKey
   }
 
   return config

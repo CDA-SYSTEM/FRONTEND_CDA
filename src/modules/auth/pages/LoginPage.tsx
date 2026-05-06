@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { Car } from 'lucide-react'
 import { loginSchema, type LoginSchema } from '@/modules/auth/schemas/loginSchema'
 import { useAuthStore } from '@/modules/auth/store/authStore'
 import './LoginPage.css'
@@ -64,52 +65,56 @@ export function LoginPage() {
 
   return (
     <main className="auth-shell">
-      <section className="auth-card">
-        <h1>Ingreso CDA Putumayo</h1>
-        <p>Accede al modulo de recepcion e inspeccion vehicular.</p>
-
-        {/* Mostrar error genérico del servidor */}
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
+      <div className="auth-panel">
+        <div className="auth-header">
+          <div className="logo-circle">
+            <Car size={42} strokeWidth={2.2} />
           </div>
-        )}
+          <h1>CDA del Putumayo</h1>
+          <p className="auth-subtitle">Sistema de Control de Acceso</p>
+        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="form-grid">
-          <label>
-            Correo
-            <input
-              type="email"
-              placeholder="usuario@cda.com"
-              {...register('email')}
-              disabled={isLoading}
-            />
-            {errors.email ? <span className="field-error">{errors.email.message}</span> : null}
-          </label>
+        <section className="auth-card">
+          <h2>Iniciar Sesión</h2>
 
-          <label>
-            Contraseña
-            <input
-              type="password"
-              placeholder="******"
-              {...register('password')}
-              disabled={isLoading}
-            />
-            {errors.password ? (
-              <span className="field-error">{errors.password.message}</span>
-            ) : null}
-          </label>
+          {/* Mostrar error genérico del servidor */}
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+            </div>
+          )}
 
-          <button type="submit" disabled={isSubmitting || isLoading}>
-            {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit(onSubmit)} className="form-grid">
+            <label>
+              Correo Electrónico
+              <input
+                type="email"
+                placeholder="usuario@cda.com"
+                {...register('email')}
+                disabled={isLoading}
+              />
+              {errors.email ? <span className="field-error">{errors.email.message}</span> : null}
+            </label>
 
-        {/* Link a recuperación de contraseña (futuro) */}
-        <p className="forgot-password">
-          <a href="#forgot-password">¿Olvidó su contraseña?</a>
-        </p>
-      </section>
+            <label>
+              Contraseña
+              <input
+                type="password"
+                placeholder="******"
+                {...register('password')}
+                disabled={isLoading}
+              />
+              {errors.password ? (
+                <span className="field-error">{errors.password.message}</span>
+              ) : null}
+            </label>
+
+            <button type="submit" disabled={isSubmitting || isLoading}>
+              {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
+            </button>
+          </form>
+        </section>
+      </div>
     </main>
   )
 }

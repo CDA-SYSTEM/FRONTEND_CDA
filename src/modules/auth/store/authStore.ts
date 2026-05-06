@@ -14,7 +14,7 @@ interface AuthState {
   login: (token: string, user: AuthUser) => void
   loginWithCredentials: (credentials: LoginFormData) => Promise<void>
   loginAsDemo: (role?: UserRole) => void
-  logout: () => void
+  logout: () => Promise<void>
   clearError: () => void
 }
 
@@ -92,7 +92,14 @@ export const useAuthStore = create<AuthState>((set) => {
 
       set({ token: demoToken, user: demoUser, isAuthenticated: true, error: null })
     },
-    logout: () => {
+    logout: async () => {
+      try {
+        // Intentar invalidar sesión en el backend; si falla, igual limpiar local
+        await authService.logout()
+      } catch {
+        // Ignorar errores de red/servidor
+      }
+
       storage.removeItem(TOKEN_KEY)
       storage.removeItem(USER_KEY)
       set({ token: null, user: null, isAuthenticated: false, error: null })

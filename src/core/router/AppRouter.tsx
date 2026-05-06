@@ -5,6 +5,7 @@ import { DashboardPage } from '@/modules/dashboard/pages/DashboardPage'
 import { FacturacionPage } from '@/modules/facturacion/pages/FacturacionPage'
 import { InspeccionPage } from '@/modules/inspeccion/pages/InspeccionPage'
 import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
+import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/modules/auth/store/authStore'
 
@@ -44,6 +45,7 @@ export function AppRouter() {
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/inspeccion" element={<InspeccionPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
+            <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>
         </Route>
 

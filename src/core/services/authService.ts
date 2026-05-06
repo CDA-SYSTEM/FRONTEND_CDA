@@ -3,7 +3,47 @@ import type { AuthUser, LoginFormData } from '@/modules/auth/types/auth.types'
 
 interface LoginResponse {
   token: string
-  user: AuthUser
+  user: AuthUser | null
+}
+
+function safeJsonBase64Decode(str: string) {
+  try {
+    // add padding if necessary
+    const s = str.replace(/-/g, '+').replace(/_/g, '/')
+    const pad = s.length % 4
+    const padded = pad === 0 ? s : s + '='.repeat(4 - pad)
+    const decoded = atob(padded)
+    return JSON.parse(decoded)
+  } catch {
+    return null
+  }
+}
+
+function extractUserFromToken(token: string | null): AuthUser | null {
+  if (!token) return null
+  const parts = token.split('.')
+  if (parts.length < 2) return null
+  const payload = safeJsonBase64Decode(parts[1])
+  if (!payload) return null
+
+  // Try common claim names for role and user info
+  const role =
+    payload.role || payload.roles || payload['role'] || payload['roles'] || null
+
+  let resolvedRole: string | undefined
+  if (Array.isArray(role)) resolvedRole = role[0]
+  else if (typeof role === 'string') resolvedRole = role
+
+  const id = payload.sub || payload.id || payload.userId || null
+  const name = payload.name || payload.preferred_username || payload.email || ''
+
+  if (!resolvedRole) return null
+
+  return {
+    id: id ?? String(name),
+    name: String(name),
+    role: String(resolvedRole).toUpperCase() as any,
+  }
 }
 
 export const authService = {
@@ -14,12 +54,22 @@ export const authService = {
    */
   async login(credentials: LoginFormData): Promise<LoginResponse> {
     try {
-      const response = await apiClient.post<LoginResponse>('/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         email: credentials.email,
         password: credentials.password,
       })
 
-      return response.data
+      const data = response.data as any
+
+      // Normalize token field (support accessToken / token / access_token)
+      const token = data.token || data.accessToken || data.access_token || null
+
+      // If backend returned explicit user, use it. Otherwise try to decode token.
+      let user: AuthUser | null = null
+      if (data.user) user = data.user
+      else if (token) user = extractUserFromToken(token)
+
+      return { token, user }
     } catch (error: any) {
       // Error genérico sin revelar si el usuario existe
       if (error.response?.status === 401 || error.response?.status === 400) {

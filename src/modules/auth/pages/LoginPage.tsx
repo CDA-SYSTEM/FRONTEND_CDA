@@ -3,8 +3,11 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Car } from 'lucide-react'
-import { loginSchema, type LoginSchema } from '@/modules/auth/schemas/loginSchema'
-import { useAuthStore } from '@/modules/auth/store/authStore'
+import {
+  loginSchema,
+  type LoginSchema,
+} from '@/modules/auth/domain/auth.schema'
+import { useAuthStore } from '@/core/store/authStore'
 import './LoginPage.css'
 
 /**
@@ -22,7 +25,9 @@ export function LoginPage() {
   const user = useAuthStore((state) => state.user)
   const error = useAuthStore((state) => state.error)
   const isLoading = useAuthStore((state) => state.isLoading)
-  const loginWithCredentials = useAuthStore((state) => state.loginWithCredentials)
+  const loginWithCredentials = useAuthStore(
+    (state) => state.loginWithCredentials,
+  )
   const clearError = useAuthStore((state) => state.clearError)
 
   const {
@@ -58,7 +63,7 @@ export function LoginPage() {
         password: data.password,
       })
       // La redirección ocurre automáticamente en el useEffect cuando user cambia
-    } catch (err) {
+    } catch {
       // El error ya está en el store, se mostrará en el formulario
     }
   }
@@ -93,7 +98,9 @@ export function LoginPage() {
                 {...register('email')}
                 disabled={isLoading}
               />
-              {errors.email ? <span className="field-error">{errors.email.message}</span> : null}
+              {errors.email ? (
+                <span className="field-error">{errors.email.message}</span>
+              ) : null}
             </label>
 
             <label>

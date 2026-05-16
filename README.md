@@ -1,144 +1,203 @@
-# FRONTEND_CDA - Hito Web
+# FRONTEND_CDA — CDA del Putumayo
 
-Frontend base del sistema de recepcion e inspeccion del CDA Putumayo.
+Frontend del sistema de gestión del Centro de Diagnóstico Automotor del Putumayo.
+Construido con React 18 + TypeScript, arquitectura **Híbrida Modular + Clean Architecture**.
 
-Este hito cubre solo web y deja el proyecto listo para continuar con Android en una segunda etapa.
+---
 
-## Objetivo del Hito 1
+## Stack Técnico
 
-- Tener una base frontend funcional y modular para que el equipo inicie desarrollo.
-- Validar flujo minimo: login, rutas protegidas y modulos iniciales.
-- Dejar documentacion y scripts listos para publicar en GitHub.
+| Herramienta | Uso |
+|---|---|
+| React 18 + TypeScript | UI y tipado estático |
+| Vite 5 | Bundler y servidor de desarrollo |
+| React Router DOM v7 | Enrutamiento |
+| Zustand | Estado global de autenticación |
+| TanStack Query | Estado de servidor (cache, refetch) |
+| React Hook Form + Zod | Formularios y validaciones |
+| Axios | Cliente HTTP con interceptores de token y API Key |
+| Capacitor 8 | Empaquetado Android |
+| ESLint + Prettier | Linting y formato |
+| Vitest | Pruebas unitarias |
 
-## Stack Tecnico
-
-- React 18 + TypeScript
-- Vite 5
-- React Router DOM
-- Zustand (estado de autenticacion)
-- TanStack Query (estado de servidor)
-- React Hook Form + Zod (formularios y validaciones)
-- Axios (cliente HTTP con interceptores)
-- ESLint + Prettier
-- Vitest
+---
 
 ## Prerrequisitos
 
-- Node.js 20.19+ o 22.12+
+- Node.js **20.19+** o **22.12+**
 - npm 10+
 
-Nota: en este entorno se detecto Node 22.11, por lo que se fijo Vite 5 para mantener compatibilidad del hito web.
+> Si tienes Node 22.11, usa Vite 5 (ya configurado en este proyecto).
 
-## Instalacion
+---
+
+## Instalación
 
 ```bash
 npm install
 ```
 
+---
+
 ## Variables de Entorno
 
-Crear archivo `.env` con base en `.env.example`.
-
-Ejemplo:
+Crea el archivo `.env` con base en `.env.example`:
 
 ```env
 VITE_API_URL=http://localhost:3000/api
-VITE_APP_NAME=Frontend CDA Putumayo
+VITE_API_KEY_FRONT=tu_api_key_aqui
+VITE_APP_NAME=CDA Putumayo
 ```
+
+> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000/api`
+
+---
 
 ## Scripts Disponibles
 
-- `npm run dev`: inicia servidor local
-- `npm run build`: compila para produccion
-- `npm run preview`: sirve build local
-- `npm run lint`: ejecuta lint
-- `npm run test`: ejecuta pruebas unitarias
-- `npm run test:watch`: pruebas en modo watch
-- `npm run cap:sync`: build web + sincronizacion de plataformas Capacitor
-- `npm run android:sync`: build web + sincronizacion solo Android
-- `npm run android:open`: abrir proyecto Android en Android Studio
+| Script | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Compilación para producción |
+| `npm run preview` | Sirve el build local |
+| `npm run lint` | Ejecuta ESLint |
+| `npm run test` | Pruebas unitarias (una vez) |
+| `npm run test:watch` | Pruebas en modo watch |
+| `npm run cap:sync` | Build + sync Capacitor (todas las plataformas) |
+| `npm run android:sync` | Build + sync solo Android |
+| `npm run android:open` | Abre el proyecto en Android Studio |
 
-## Estructura de Carpetas
+---
 
-```text
+## Arquitectura Híbrida Modular + Clean
+
+El proyecto combina **arquitectura modular** (cada dominio de negocio es independiente) con los principios de **Clean Architecture** aplicados *dentro* de cada módulo.
+
+### Capas globales (`src/`)
+
+```
 src/
-  core/
-    api/          # cliente axios
-    router/       # rutas de la app
-  modules/
-    auth/         # login, guard, store, schema
-    dashboard/    # vista principal
-    recepcion/    # formulario base cliente/vehiculo
-    inspeccion/   # checklist base NTC 5375
-    facturacion/  # cola base de facturacion
-  shared/
-    layout/       # layout principal
-  test/           # setup de pruebas
+├── core/                        # Infraestructura transversal
+│   ├── api/                     # Cliente Axios (interceptores de token y API Key)
+│   ├── router/                  # React Router — rutas y guard de sesión
+│   └── store/                   # Estado global (authStore con Zustand)
+│
+├── modules/                     # Módulos de dominio (uno por área de negocio)
+│   └── <modulo>/
+│       ├── domain/              # Tipos TS y esquemas Zod (reglas puras, sin React)
+│       ├── hooks/               # Casos de uso: custom hooks que orquestan servicios
+│       ├── services/            # Adaptadores HTTP: llaman a core/api/apiClient
+│       ├── components/          # Componentes UI reutilizables del módulo
+│       └── pages/               # Vistas completas (solo JSX, sin lógica de negocio)
+│
+└── shared/                      # Piezas compartidas entre módulos
+    ├── layout/                  # AppLayout: topbar, navegación, modal de logout
+    ├── components/              # Componentes UI globales reutilizables
+    └── hooks/                   # Hooks globales reutilizables
 ```
 
-## Flujo Web Minimo
+### Capas internas de cada módulo
 
-1. Abrir `/login`.
-2. Ingresar correo y contrasena validos (demo local).
-3. Acceder a dashboard y navegar modulos.
-4. Probar cierre de sesion y redireccion al login.
+| Capa | Carpeta | Qué contiene | Puede importar de |
+|---|---|---|---|
+| **Dominio** | `domain/` | Interfaces, tipos, schemas Zod | Nada externo (TypeScript puro) |
+| **Aplicación** | `hooks/` | Custom hooks con lógica y estado | `domain/` + `services/` |
+| **Adaptadores** | `services/` | Llamadas HTTP al backend | `core/api/` + `domain/` |
+| **Presentación** | `components/` + `pages/` | JSX puro, sin lógica | `hooks/` + `domain/` |
 
-## Checklist de Validacion Antes de GitHub
+### Módulos actuales
 
-1. Ejecutar `npm run dev` y revisar vistas en desktop y viewport movil.
-2. Ejecutar `npm run lint` sin errores.
-3. Ejecutar `npm run test` sin fallas.
-4. Ejecutar `npm run build` sin errores.
-5. Verificar flujo: login, rutas protegidas, logout y modulos base.
+| Módulo | Descripción | Backend destino |
+|---|---|---|
+| `auth` | Login, guard de sesión, store global | `/auth/*` |
+| `recepcion` | Registro de clientes y vehículos | PostgreSQL |
+| `inspeccion` | Checklist NTC 5375 | Cassandra |
+| `facturacion` | Cola y emisión de facturas | Tiempo real |
+| `dashboard` | Panel de resumen | Agregado |
+| `usuarios` | Gestión de usuarios y roles (solo ADMIN) | `/auth/users/*` |
+
+### Flujo de datos típico
+
+```
+Page (JSX)
+  └── useXxx() hook     ← caso de uso, maneja estado
+        └── xxxService  ← adaptador HTTP
+              └── apiClient (Axios + token + API Key)
+                    └── Backend REST
+```
+
+---
+
+## Flujo Web Mínimo
+
+1. Abrir `/login` e ingresar credenciales.
+2. El sistema redirige según rol: `ADMIN → /dashboard`, `RECEPCIONISTA → /recepcion`, etc.
+3. Navegar los módulos habilitados para el rol.
+4. Cerrar sesión desde el topbar.
+
+### Roles del sistema
+
+| Rol | Ruta inicial | Módulos accesibles |
+|---|---|---|
+| `ADMIN` | `/dashboard` | Todos + Usuarios |
+| `RECEPCIONISTA` | `/recepcion` | Recepción, Inspección, Facturación |
+| `INSPECTOR` | `/inspeccion` | Inspección |
+| `FACTURADOR` | `/facturacion` | Facturación |
+
+---
+
+## Pruebas
+
+```bash
+npm run test
+```
+
+Pruebas unitarias cubiertas:
+
+| Archivo | Qué prueba |
+|---|---|
+| `core/store/authStore.test.ts` | Login demo, logout, persistencia en localStorage |
+| `modules/auth/domain/auth.schema.test.ts` | Validación del schema Zod de login |
+| `modules/auth/components/guard.test.ts` | Lógica pura del guard de sesión |
+
+---
+
+## Android (Capacitor)
+
+### Sincronizar y abrir
+
+```bash
+npm run android:sync   # build web + sync
+npm run android:open   # abre Android Studio
+```
+
+### Generar APK debug
+
+En Android Studio: `Build > Build Bundle(s)/APK(s) > Build APK(s)`
+
+El APK queda en: `android/app/build/outputs/apk/debug/`
+
+---
+
+## Checklist antes de hacer push
+
+- [ ] `npm run dev` — sin errores en consola
+- [ ] `npm run lint` — sin advertencias ni errores
+- [ ] `npm run test` — todos los tests pasan
+- [ ] `npm run build` — compilación exitosa
+
+---
 
 ## Troubleshooting
 
-- Error de version Node con Vite:
-  - Verifica version con `node -v`.
-  - Usa Node 20.19+ o 22.12+ para Vite mas reciente.
-- Si falla `npm install` por dependencias opcionales:
-  - Borra `node_modules` y `package-lock.json`.
-  - Ejecuta `npm install` nuevamente.
+**Error de versión de Node con Vite**
+Verifica con `node -v`. Usa Node 20.19+ o 22.12+.
 
-## Hito Android Completado
+**Falla `npm install` por dependencias opcionales**
+Borra `node_modules` y `package-lock.json`, luego ejecuta `npm install` nuevamente.
 
-Capacitor ya fue integrado y la plataforma Android ya fue creada en la carpeta android.
+**El emulador Android no conecta al backend local**
+Usa `VITE_API_URL=http://10.0.2.2:3000/api` en el `.env`.
 
-Archivos Android base generados:
-
-- android/
-- capacitor.config.ts
-
-### Flujo Android (desde este repositorio)
-
-1. Compilar y sincronizar Android:
-
-```bash
-npm run android:sync
-```
-
-2. Abrir proyecto nativo:
-
-```bash
-npm run android:open
-```
-
-3. En Android Studio:
-
-- Esperar sincronizacion de Gradle.
-- Seleccionar emulador o dispositivo.
-- Ejecutar app en modo debug.
-
-### Nota importante de backend para emulador
-
-Si el backend corre en tu maquina local y pruebas en emulador Android, no uses localhost en el frontend.
-Usa esta URL en tu archivo .env:
-
-```env
-VITE_API_URL=http://10.0.2.2:3000/api
-```
-
-### Build APK (Android Studio)
-
-- Menu Build > Build Bundle(s)/APK(s) > Build APK(s)
-- APK debug se genera en android/app/build/outputs/apk/debug/
+**El token no se envía en las peticiones**
+Verifica que `VITE_API_KEY_FRONT` esté definido en el `.env`.

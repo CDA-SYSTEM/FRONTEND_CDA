@@ -29,3 +29,6 @@ dist-ssr
 # Android / Gradle local artifacts
 android/.gradle/
 android/local.properties
+android/keystore/
+android/**/*.jks
+android/**/*.keystore

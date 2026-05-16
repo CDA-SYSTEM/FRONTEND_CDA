@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="none"/>
+
+  <g id="Isotipo_Opcion1" transform="translate(40, 40)">
+    <path d="M60 0 C75 0, 95 10, 110 25 C120 35, 120 50, 120 70 V120 C100 135, 80 140, 60 140 C40 140, 20 135, 0 120 V70 C0 50, 0 35, 10 25 C25 10, 45 0, 60 0Z" fill="#1A3B5A" opacity="0.15"/>
+
+    <path d="M10 80 Q30 65, 50 80 Q70 65, 90 80 T130 80" stroke="#2D6A4F" stroke-width="6" stroke-linecap="round"/>
+    <path d="M5 95 Q30 85, 55 95 Q80 85, 105 95 T135 95" stroke="#2D6A4F" stroke-width="4" stroke-linecap="round"/>
+
+    <path d="M0 115 Q30 110, 60 115 Q90 110, 120 115 T150 115" stroke="#2D6A4F" stroke-width="8" stroke-linecap="round"/>
+
+    <line x1="20" y1="20" x2="40" y2="20" stroke="#1A3B5A" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="45" cy="20" r="5" fill="#1A3B5A"/>
+    <line x1="100" y1="20" x2="80" y2="20" stroke="#1A3B5A" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="75" cy="20" r="5" fill="#1A3B5A"/>
+    <line x1="20" y1="50" x2="100" y2="50" stroke="#1A3B5A" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="105" cy="50" r="5" fill="#1A3B5A"/>
+    
+    <circle cx="60" cy="50" r="10" fill="#99CC33"/>
+    <circle cx="60" cy="50" r="12" fill="#99CC33" opacity="0.3"/>
+  </g>
+</svg>

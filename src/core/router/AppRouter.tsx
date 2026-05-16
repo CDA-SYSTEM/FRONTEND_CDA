@@ -5,7 +5,32 @@ import { DashboardPage } from '@/modules/dashboard/pages/DashboardPage'
 import { FacturacionPage } from '@/modules/facturacion/pages/FacturacionPage'
 import { InspeccionPage } from '@/modules/inspeccion/pages/InspeccionPage'
 import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
+import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
+import { useAuthStore } from '@/core/store/authStore'
+
+/**
+ * Componente que redirija "/" al módulo correcto según el rol del usuario
+ */
+function RoleBasedRedirect() {
+  const user = useAuthStore((state) => state.user)
+
+  // Si no hay usuario, redirigir a login
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  // Mapeo de roles a sus rutas
+  const roleRoutes: Record<string, string> = {
+    ADMIN: '/dashboard',
+    RECEPCIONISTA: '/recepcion',
+    INSPECTOR: '/inspeccion',
+    FACTURADOR: '/facturacion',
+  }
+
+  const route = roleRoutes[user.role] || '/dashboard'
+  return <Navigate to={route} replace />
+}
 
 export function AppRouter() {
   return (
@@ -15,10 +40,12 @@ export function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/" element={<RoleBasedRedirect />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/inspeccion" element={<InspeccionPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
+            <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>
         </Route>
 

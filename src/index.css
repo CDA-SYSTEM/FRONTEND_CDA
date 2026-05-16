@@ -8,6 +8,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -15,6 +21,36 @@
 body {
   margin: 0;
   min-width: 320px;
+  width: 100%;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.global-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 1rem 0;
+  color: #e0e7ff;
+  font-size: 0.9rem;
+  background: #155dfc;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 1rem 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  background: transparent;
 }
 
 h1,
@@ -33,7 +69,7 @@ select {
 button {
   border: 0;
   border-radius: 10px;
-  background: #0f766e;
+  background: #155DFC;
   color: #fff;
   cursor: pointer;
   padding: 0.65rem 1rem;
@@ -62,6 +98,7 @@ label span {
 
 .app-shell {
   min-height: 100vh;
+  padding-bottom: 60px;
 }
 
 .topbar {
@@ -70,7 +107,7 @@ label span {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #0f172a;
+  background: #155DFC;
   color: #fff;
 }
 
@@ -105,7 +142,7 @@ label span {
 }
 
 .tab.active {
-  background: #0f766e;
+  background: #155DFC;
   color: #fff;
 }
 
@@ -128,23 +165,6 @@ label span {
 }
 
 .form-grid {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.auth-shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%);
-  padding: 1rem;
-}
-
-.auth-card {
-  width: min(100%, 420px);
-  background: #fff;
-  border-radius: 14px;
-  padding: 1.2rem;
   display: grid;
   gap: 0.8rem;
 }

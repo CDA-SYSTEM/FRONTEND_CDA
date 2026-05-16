@@ -5,25 +5,29 @@ import type {
   UserRole,
 } from '@/modules/auth/domain/auth.types'
 
-// Lazy import para evitar dependencia circular con apiClient
+// Lazy import para romper la circular: authStore → apiClient → authStore
 const getAuthService = () =>
   import('@/modules/auth/services/authService').then((m) => m.authService)
 
 const TOKEN_KEY = 'cda_auth_token'
+const REFRESH_KEY = 'cda_auth_refresh'
 const USER_KEY = 'cda_auth_user'
 
 interface AuthState {
   token: string | null
+  refreshToken: string | null
   user: AuthUser | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  login: (token: string, user: AuthUser) => void
+  login: (token: string, user: AuthUser, refreshToken?: string) => void
   loginWithCredentials: (credentials: LoginFormData) => Promise<void>
   loginAsDemo: (role?: UserRole) => void
   logout: () => Promise<void>
   clearError: () => void
 }
+
+// ── Helpers de almacenamiento ─────────────────────────────────────────────────
 
 const storage = {
   getItem: (key: string) =>
@@ -39,6 +43,7 @@ const storage = {
 }
 
 const getStoredToken = () => storage.getItem(TOKEN_KEY)
+const getStoredRefresh = () => storage.getItem(REFRESH_KEY)
 
 const getStoredUser = (): AuthUser | null => {
   const raw = storage.getItem(USER_KEY)
@@ -51,35 +56,58 @@ const getStoredUser = (): AuthUser | null => {
   }
 }
 
+// ── Store ─────────────────────────────────────────────────────────────────────
+
 export const useAuthStore = create<AuthState>((set) => {
   const token = getStoredToken()
+  const refreshToken = getStoredRefresh()
   const user = getStoredUser()
 
   return {
     token,
+    refreshToken,
     user,
     isAuthenticated: Boolean(token),
     isLoading: false,
     error: null,
-    login: (newToken, newUser) => {
+
+    login: (newToken, newUser, newRefresh) => {
       storage.setItem(TOKEN_KEY, newToken)
       storage.setItem(USER_KEY, JSON.stringify(newUser))
+      if (newRefresh) storage.setItem(REFRESH_KEY, newRefresh)
       set({
         token: newToken,
+        refreshToken: newRefresh ?? null,
         user: newUser,
         isAuthenticated: true,
         error: null,
       })
     },
+
     loginWithCredentials: async (credentials: LoginFormData) => {
       set({ isLoading: true, error: null })
       try {
         const svc = await getAuthService()
         const response = await svc.login(credentials)
+
+        if (!response.token) {
+          throw new Error('El servidor no devolvió un token de acceso.')
+        }
+        if (!response.user) {
+          throw new Error(
+            'No se pudo determinar el rol del usuario. Contacte al administrador.',
+          )
+        }
+
         storage.setItem(TOKEN_KEY, response.token)
         storage.setItem(USER_KEY, JSON.stringify(response.user))
+        if (response.refreshToken) {
+          storage.setItem(REFRESH_KEY, response.refreshToken)
+        }
+
         set({
           token: response.token,
+          refreshToken: response.refreshToken,
           user: response.user,
           isAuthenticated: true,
           isLoading: false,
@@ -92,6 +120,7 @@ export const useAuthStore = create<AuthState>((set) => {
         throw err
       }
     },
+
     loginAsDemo: (role = 'RECEPCIONISTA') => {
       const demoUser: AuthUser = {
         id: 'demo-user',
@@ -103,22 +132,34 @@ export const useAuthStore = create<AuthState>((set) => {
       storage.setItem(USER_KEY, JSON.stringify(demoUser))
       set({
         token: demoToken,
+        refreshToken: null,
         user: demoUser,
         isAuthenticated: true,
         error: null,
       })
     },
+
     logout: async () => {
       try {
         const svc = await getAuthService()
-        await svc.logout()
+        // Enviar el refreshToken al backend para invalidar la sesión en servidor
+        const rt = getStoredRefresh()
+        await svc.logout(rt)
       } catch {
-        // Ignorar errores de red/servidor
+        // Ignorar errores de red — el logout local siempre procede
       }
       storage.removeItem(TOKEN_KEY)
+      storage.removeItem(REFRESH_KEY)
       storage.removeItem(USER_KEY)
-      set({ token: null, user: null, isAuthenticated: false, error: null })
+      set({
+        token: null,
+        refreshToken: null,
+        user: null,
+        isAuthenticated: false,
+        error: null,
+      })
     },
+
     clearError: () => {
       set({ error: null })
     },

@@ -1,5 +1,11 @@
 import { apiClient } from '@/core/api/apiClient'
-import type { ActualizarUsuarioDTO, CrearUsuarioDTO, RolUsuario, RolUsuarioForm, Usuario } from './usuario.types'
+import type {
+  ActualizarUsuarioDTO,
+  CrearUsuarioDTO,
+  RolUsuario,
+  RolUsuarioForm,
+  Usuario,
+} from '@/modules/usuarios/domain/usuario.types'
 
 function normalizeRole(role: string): RolUsuario {
   return role.toUpperCase() as RolUsuario
@@ -9,15 +15,16 @@ function toFormRole(role: RolUsuario): RolUsuarioForm {
   return role.toLowerCase() as RolUsuarioForm
 }
 
-function normalizeUsuario(raw: any): Usuario {
+function normalizeUsuario(raw: unknown): Usuario {
+  const r = raw as Record<string, unknown>
   return {
-    id: String(raw.id),
-    name: raw.name,
-    firstName: raw.firstName,
-    lastName: raw.lastName,
-    email: raw.email,
-    role: normalizeRole(raw.role),
-    isActive: Boolean(raw.isActive),
+    id: String(r['id']),
+    name: r['name'] != null ? String(r['name']) : undefined,
+    firstName: r['firstName'] != null ? String(r['firstName']) : undefined,
+    lastName: r['lastName'] != null ? String(r['lastName']) : undefined,
+    email: String(r['email']),
+    role: normalizeRole(String(r['role'])),
+    isActive: Boolean(r['isActive']),
   }
 }
 
@@ -41,7 +48,6 @@ export const usuarioService = {
       await apiClient.patch(`/auth/users/${id}/inactivate`)
       return
     }
-
     await apiClient.patch(`/auth/users/${id}`, { isActive: true })
   },
 
@@ -55,12 +61,17 @@ export const usuarioService = {
   },
 
   async buscarUsuarios(q: string): Promise<Usuario[]> {
-    const response = await apiClient.get('/auth/users/search', { params: { q } })
+    const response = await apiClient.get('/auth/users/search', {
+      params: { q },
+    })
     const data = Array.isArray(response.data) ? response.data : []
     return data.map(normalizeUsuario)
   },
 
-  async actualizarUsuario(id: string, payload: ActualizarUsuarioDTO): Promise<void> {
+  async actualizarUsuario(
+    id: string,
+    payload: ActualizarUsuarioDTO,
+  ): Promise<void> {
     await apiClient.patch(`/auth/users/${id}`, payload)
   },
 

@@ -7,7 +7,7 @@ import { InspeccionPage } from '@/modules/inspeccion/pages/InspeccionPage'
 import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
 import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
-import { useAuthStore } from '@/modules/auth/store/authStore'
+import { useAuthStore } from '@/core/store/authStore'
 
 /**
  * Componente que redirija "/" al módulo correcto según el rol del usuario

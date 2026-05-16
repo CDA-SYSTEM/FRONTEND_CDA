@@ -1,6 +1,13 @@
 import { create } from 'zustand'
-import type { AuthUser, LoginFormData, UserRole } from '@/modules/auth/types/auth.types'
-import { authService } from '@/core/services/authService'
+import type {
+  AuthUser,
+  LoginFormData,
+  UserRole,
+} from '@/modules/auth/domain/auth.types'
+
+// Lazy import para evitar dependencia circular con apiClient
+const getAuthService = () =>
+  import('@/modules/auth/services/authService').then((m) => m.authService)
 
 const TOKEN_KEY = 'cda_auth_token'
 const USER_KEY = 'cda_auth_user'
@@ -36,7 +43,6 @@ const getStoredToken = () => storage.getItem(TOKEN_KEY)
 const getStoredUser = (): AuthUser | null => {
   const raw = storage.getItem(USER_KEY)
   if (!raw) return null
-
   try {
     return JSON.parse(raw) as AuthUser
   } catch {
@@ -58,12 +64,18 @@ export const useAuthStore = create<AuthState>((set) => {
     login: (newToken, newUser) => {
       storage.setItem(TOKEN_KEY, newToken)
       storage.setItem(USER_KEY, JSON.stringify(newUser))
-      set({ token: newToken, user: newUser, isAuthenticated: true, error: null })
+      set({
+        token: newToken,
+        user: newUser,
+        isAuthenticated: true,
+        error: null,
+      })
     },
     loginWithCredentials: async (credentials: LoginFormData) => {
       set({ isLoading: true, error: null })
       try {
-        const response = await authService.login(credentials)
+        const svc = await getAuthService()
+        const response = await svc.login(credentials)
         storage.setItem(TOKEN_KEY, response.token)
         storage.setItem(USER_KEY, JSON.stringify(response.user))
         set({
@@ -74,7 +86,8 @@ export const useAuthStore = create<AuthState>((set) => {
           error: null,
         })
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido'
         set({ isLoading: false, error: errorMessage })
         throw err
       }
@@ -85,21 +98,23 @@ export const useAuthStore = create<AuthState>((set) => {
         name: 'Usuario Demo CDA',
         role,
       }
-
       const demoToken = 'demo-token-web'
       storage.setItem(TOKEN_KEY, demoToken)
       storage.setItem(USER_KEY, JSON.stringify(demoUser))
-
-      set({ token: demoToken, user: demoUser, isAuthenticated: true, error: null })
+      set({
+        token: demoToken,
+        user: demoUser,
+        isAuthenticated: true,
+        error: null,
+      })
     },
     logout: async () => {
       try {
-        // Intentar invalidar sesión en el backend; si falla, igual limpiar local
-        await authService.logout()
+        const svc = await getAuthService()
+        await svc.logout()
       } catch {
         // Ignorar errores de red/servidor
       }
-
       storage.removeItem(TOKEN_KEY)
       storage.removeItem(USER_KEY)
       set({ token: null, user: null, isAuthenticated: false, error: null })

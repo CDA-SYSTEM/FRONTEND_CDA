@@ -1,17 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import {
+  recepcionSchema,
+  type RecepcionSchema,
+} from '@/modules/recepcion/domain/recepcion.schema'
 
-const recepcionSchema = z.object({
-  cliente: z.string().min(3, 'Nombre de cliente requerido'),
-  placa: z
-    .string()
-    .regex(/^[A-Z]{3}\d{3}$|^[A-Z]{3}\d{2}[A-Z]$/, 'Formato de placa invalido'),
-  tipoVehiculo: z.string().min(1, 'Selecciona tipo de vehiculo'),
-})
-
-type RecepcionSchema = z.infer<typeof recepcionSchema>
-
+/**
+ * Página de recepción de vehículos.
+ * Validación de formulario delegada al schema de dominio (recepcion.schema.ts).
+ */
 export function RecepcionPage() {
   const {
     register,
@@ -59,7 +56,9 @@ export function RecepcionPage() {
             <option value="liviano">Liviano</option>
             <option value="pesado">Pesado</option>
           </select>
-          {errors.tipoVehiculo ? <span>{errors.tipoVehiculo.message}</span> : null}
+          {errors.tipoVehiculo ? (
+            <span>{errors.tipoVehiculo.message}</span>
+          ) : null}
         </label>
 
         <button type="submit">Guardar recepcion</button>

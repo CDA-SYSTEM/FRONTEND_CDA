@@ -1,5 +1,5 @@
-export type RolUsuario = 'ADMIN' | 'RECEPCIONISTA' | 'INSPECTOR' | 'FACTURADOR'
-export type RolUsuarioForm = 'admin' | 'recepcionista' | 'inspector' | 'facturador'
+export type RolUsuario = 'ADMIN' | 'RECEPCIONISTA' | 'INSPECTOR' | 'FACTURADOR' | 'MANAGER' | 'OPERARIO'
+export type RolUsuarioForm = 'admin' | 'manager' | 'inspector' | 'operario'
 export type TipoIdentificacion = 'cc' | 'ce' | 'nit'
 
 export interface Usuario {

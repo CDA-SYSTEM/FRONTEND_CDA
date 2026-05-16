@@ -353,9 +353,9 @@ export function UsuariosPage() {
                   style={{ width: '100%', padding: '8px', marginTop: '4px' }}
                 >
                   <option value="admin">Administrador</option>
-                  <option value="recepcionista">Recepcionista</option>
+                  <option value="manager">Manager</option>
                   <option value="inspector">Inspector</option>
-                  <option value="facturador">Facturador</option>
+                  <option value="operario">Operario</option>
                 </select>
               </label>
 

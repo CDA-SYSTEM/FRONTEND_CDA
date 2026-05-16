@@ -1,0 +1,73 @@
+name: Deploy Frontend Docker
+
+on:
+  push:
+    branches: [ "develop", "feat/config-deploy" ]
+  pull_request:
+    branches: [ "main", 'develop' ]
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  deploy-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set repository name to lowercase
+        run: echo "REPO_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO_LC }}:latest
+            ghcr.io/${{ env.REPO_LC }}:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_API_KEY_FRONT=${{ secrets.VITE_API_KEY_FRONT }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.REMOTE_PORT }}
+          script: |
+            # Iniciar sesión en GHCR desde el servidor
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Descargar la última imagen
+            docker pull ghcr.io/${{ env.REPO_LC }}:latest
+
+            # Detener y eliminar contenedor existente
+            docker stop frontend-cda || true
+            docker rm frontend-cda || true
+
+            # Iniciar nuevo contenedor
+            docker run -d \
+              --name frontend-cda \
+              -p ${{ secrets.PORT }}:80 \
+              --restart unless-stopped \
+              ghcr.io/${{ env.REPO_LC }}:latest
+
+            # Limpiar imágenes antiguas
+            docker image prune -f

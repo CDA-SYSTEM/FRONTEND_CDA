@@ -39,13 +39,13 @@ export const clienteSchema = z.object({
 
   /** ID numérico del tipo de documento — viene de GET /api/v1/document-types */
   documentTypeId: z
-    .number({ invalid_type_error: 'Selecciona un tipo de documento' })
+    .number({ message: 'Selecciona un tipo de documento' })
     .int()
     .positive('Selecciona un tipo de documento'),
 
   /** ID numérico del tipo de persona — viene de GET /api/v1/person-types */
   personTypeId: z
-    .number({ invalid_type_error: 'Selecciona un tipo de persona' })
+    .number({ message: 'Selecciona un tipo de persona' })
     .int()
     .positive('Selecciona un tipo de persona'),
 

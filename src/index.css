@@ -166,7 +166,25 @@ label span {
 
 .form-grid {
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.form-row-doc {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 .checklist {
@@ -210,5 +228,13 @@ td {
 
   .panel-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-row-doc {
+    grid-template-columns: 200px 1fr;
   }
 }

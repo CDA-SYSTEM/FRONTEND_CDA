@@ -40,6 +40,7 @@ export function ClienteConfirmacion({ cliente, onNuevoRegistro }: Props) {
       </p>
 
       <div
+        className="form-row-2"
         style={{
           background: '#f9fafb',
           border: '1px solid #e5e7eb',
@@ -47,8 +48,6 @@ export function ClienteConfirmacion({ cliente, onNuevoRegistro }: Props) {
           padding: '16px 20px',
           textAlign: 'left',
           marginBottom: 24,
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
           gap: '10px 24px',
         }}
       >

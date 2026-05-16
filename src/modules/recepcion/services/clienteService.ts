@@ -18,6 +18,17 @@ import type {
  * Duplicados: el backend devuelve 409 cuando ya existe un cliente
  * con el mismo `identity` (número de documento).
  */
+/**
+ * Extrae el array manejando tanto respuesta plana como envelope.
+ */
+function extractArray(responseData: unknown): any[] {
+  const body = responseData as Record<string, any>
+  if (body && body.data && body.data.data && Array.isArray(body.data.data)) return body.data.data
+  if (body && body.data && Array.isArray(body.data)) return body.data
+  if (Array.isArray(responseData)) return responseData
+  return []
+}
+
 export const clienteService = {
   /**
    * Registra un nuevo cliente persona natural.
@@ -36,8 +47,13 @@ export const clienteService = {
    * Se usa para poblar el <select> y obtener el ID numérico correcto.
    */
   async obtenerTiposDocumento(): Promise<DocumentType[]> {
-    const response = await apiClient.get<DocumentType[]>('/api/v1/document-types')
-    return Array.isArray(response.data) ? response.data : []
+    const response = await apiClient.get('/api/v1/document-types')
+    const items = extractArray(response.data)
+    return items.map((item) => ({
+      id: item.id,
+      nombre: item.type || item.nombre || item.name || String(item.id),
+      codigo: item.type || item.codigo || item.code,
+    }))
   },
 
   /**
@@ -45,8 +61,12 @@ export const clienteService = {
    * Para HU-005 solo se usa "Natural" (personTypeId correspondiente).
    */
   async obtenerTiposPersona(): Promise<PersonType[]> {
-    const response = await apiClient.get<PersonType[]>('/api/v1/person-types')
-    return Array.isArray(response.data) ? response.data : []
+    const response = await apiClient.get('/api/v1/person-types')
+    const items = extractArray(response.data)
+    return items.map((item) => ({
+      id: item.id,
+      nombre: item.type || item.nombre || item.name || String(item.id),
+    }))
   },
 
   /**

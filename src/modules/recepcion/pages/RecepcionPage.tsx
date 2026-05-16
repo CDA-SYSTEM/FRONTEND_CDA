@@ -123,16 +123,7 @@ export function RecepcionPage() {
 
       <form onSubmit={onSubmit} className="form-grid">
         {/* ── Nombre y Apellido ── */}
-        <fieldset
-          style={{
-            border: 'none',
-            padding: 0,
-            margin: 0,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 12,
-          }}
-        >
+        <fieldset className="form-row-2">
           <label>
             Nombre <span style={{ color: '#ef4444' }}>*</span>
             <input
@@ -159,16 +150,7 @@ export function RecepcionPage() {
         </fieldset>
 
         {/* ── Tipo de documento e Identity ── */}
-        <fieldset
-          style={{
-            border: 'none',
-            padding: 0,
-            margin: 0,
-            display: 'grid',
-            gridTemplateColumns: '200px 1fr',
-            gap: 12,
-          }}
-        >
+        <fieldset className="form-row-doc">
           <label>
             Tipo de documento <span style={{ color: '#ef4444' }}>*</span>
             <select

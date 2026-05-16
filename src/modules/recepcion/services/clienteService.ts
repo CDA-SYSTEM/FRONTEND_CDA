@@ -25,7 +25,7 @@ export const clienteService = {
    */
   async crearCliente(payload: CrearClienteDTO): Promise<ClientePersonaNatural> {
     const response = await apiClient.post<ClientePersonaNatural>(
-      '/clients',
+      '/api/v1/clients',
       payload,
     )
     return response.data
@@ -36,7 +36,7 @@ export const clienteService = {
    * Se usa para poblar el <select> y obtener el ID numérico correcto.
    */
   async obtenerTiposDocumento(): Promise<DocumentType[]> {
-    const response = await apiClient.get<DocumentType[]>('/document-types')
+    const response = await apiClient.get<DocumentType[]>('/api/v1/document-types')
     return Array.isArray(response.data) ? response.data : []
   },
 
@@ -45,7 +45,7 @@ export const clienteService = {
    * Para HU-005 solo se usa "Natural" (personTypeId correspondiente).
    */
   async obtenerTiposPersona(): Promise<PersonType[]> {
-    const response = await apiClient.get<PersonType[]>('/person-types')
+    const response = await apiClient.get<PersonType[]>('/api/v1/person-types')
     return Array.isArray(response.data) ? response.data : []
   },
 
@@ -58,7 +58,7 @@ export const clienteService = {
   ): Promise<ClientePersonaNatural | null> {
     try {
       const response = await apiClient.get<ClientePersonaNatural>(
-        `/clients/${id}`,
+        `/api/v1/clients/${id}`,
       )
       return response.data
     } catch (error: unknown) {

@@ -1,6 +1,8 @@
 import {
   AlertCircle,
+  Bike,
   CheckCircle,
+  Gauge,
   Loader2,
   Plus,
   Search,
@@ -30,6 +32,7 @@ export function RegistroVehiculoPage() {
     tiposVehiculo,
     tiposCombustible,
     tiposServicio,
+    esMotocicleta,
     queryCliente,
     setQueryCliente,
     resultadosCliente,
@@ -39,9 +42,12 @@ export function RegistroVehiculoPage() {
   const {
     register,
     formState: { errors },
+    watch,
   } = form
 
   const enviando = estado === 'enviando'
+  const tipoVehiculoId = watch('tipoVehiculoId')
+  const tipoVehiculoActual = tiposVehiculo.find((t) => t.id === tipoVehiculoId)
 
   // ── Cargando catálogos ─────────────────────────────────────────────────────
   if (estado === 'cargando') {
@@ -90,7 +96,8 @@ export function RegistroVehiculoPage() {
           <CheckCircle size={48} color="#16a34a" style={{ marginBottom: 16 }} />
           <h2 style={{ color: '#16a34a', marginBottom: 8 }}>Vehículo Registrado</h2>
           <p style={{ color: '#6b7280', marginBottom: 24 }}>
-            El vehículo con placa <strong>{vehiculoGuardado.placa}</strong> fue registrado exitosamente.
+            {esMotocicleta ? 'La motocicleta' : 'El vehículo'} con placa{' '}
+            <strong>{vehiculoGuardado.placa}</strong> fue registrado exitosamente.
           </p>
 
           <div
@@ -105,6 +112,16 @@ export function RegistroVehiculoPage() {
             }}
           >
             <strong>Placa:</strong> {vehiculoGuardado.placa}<br />
+            <strong>Tipo:</strong>{' '}
+            {typeof vehiculoGuardado.tipoVehiculo === 'object'
+              ? vehiculoGuardado.tipoVehiculo?.nombre
+              : vehiculoGuardado.tipoVehiculo}
+            <br />
+            {vehiculoGuardado.cilindraje && (
+              <>
+                <strong>Cilindraje:</strong> {vehiculoGuardado.cilindraje} cc<br />
+              </>
+            )}
             <strong>Marca:</strong>{' '}
             {typeof vehiculoGuardado.marca === 'object'
               ? vehiculoGuardado.marca?.nombre
@@ -151,7 +168,7 @@ export function RegistroVehiculoPage() {
             Registro de Vehículo
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-            Registre un vehículo liviano o pesado asociado a un cliente
+            Registre un vehículo liviano, pesado o motocicleta asociado a un cliente
           </p>
         </div>
       </div>
@@ -377,6 +394,60 @@ export function RegistroVehiculoPage() {
             </label>
           </fieldset>
 
+          {/* ── Indicador de formato de inspección ──────────────────────────── */}
+          {tipoVehiculoActual && tipoVehiculoId > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                background: esMotocicleta ? '#fefce8' : '#f0f9ff',
+                border: `1px solid ${esMotocicleta ? '#fde68a' : '#bae6fd'}`,
+                borderRadius: 8,
+                color: esMotocicleta ? '#854d0e' : '#075985',
+                fontSize: '0.9rem',
+              }}
+            >
+              {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
+              <span>
+                Formato de inspección:{' '}
+                <strong>
+                  {esMotocicleta ? 'Motocicleta (NTC 5385)' : 'Vehículo liviano/pesado (NTC 5375)'}
+                </strong>
+              </span>
+            </div>
+          )}
+
+          {/* ── Cilindraje (solo para motos) ────────────────────────────────── */}
+          {esMotocicleta && (
+            <label>
+              Cilindraje (cc) <span style={{ color: '#ef4444' }}>*</span>
+              <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#9ca3af',
+                  }}
+                >
+                  <Gauge size={18} />
+                </div>
+                <input
+                  placeholder="Ej: 150"
+                  style={{ paddingLeft: 40 }}
+                  {...register('cilindraje')}
+                  disabled={enviando}
+                />
+              </div>
+              {errors.cilindraje && (
+                <span className="field-error">{errors.cilindraje.message}</span>
+              )}
+            </label>
+          )}
+
           {/* ── Marca, Línea y Clase ─────────────────────────────────────────── */}
           <fieldset className="form-row-2">
             <label>
@@ -543,7 +614,7 @@ export function RegistroVehiculoPage() {
                 style={{ animation: 'spin 1s linear infinite' }}
               />
             )}
-            <Truck size={18} />
+            {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
             {enviando ? 'Guardando...' : 'Registrar vehículo'}
           </button>
         </form>

@@ -21,6 +21,17 @@ export const vehiculoSchema = z.object({
   tipoCombustibleId: z.number({ message: 'Seleccione un tipo' }).min(1, 'Seleccione un tipo de combustible'),
   tipoServicioId: z.number({ message: 'Seleccione un tipo' }).min(1, 'Seleccione un tipo de servicio'),
   certificadoNo: z.string().optional(),
+  cilindraje: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val.trim() === '') return true
+        const num = Number(val)
+        return !isNaN(num) && num > 0 && Number.isInteger(num)
+      },
+      { message: 'El cilindraje debe ser un número entero positivo (ej: 150)' },
+    ),
 })
 
 export type VehiculoSchema = z.infer<typeof vehiculoSchema>

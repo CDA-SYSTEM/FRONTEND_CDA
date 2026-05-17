@@ -16,6 +16,7 @@ export interface VehiculoResponse {
   tipoServicio?: CatalogoItem | string
   certificadoNo?: string
   clienteId?: string
+  cilindraje?: string
 }
 
 export interface CreateVehicleDto {
@@ -30,4 +31,5 @@ export interface CreateVehicleDto {
   tipoServicioId: number
   modelo: string
   certificadoNo: string
+  cilindraje?: string
 }

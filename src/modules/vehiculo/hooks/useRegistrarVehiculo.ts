@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -21,6 +21,12 @@ export type EstadoFormulario =
   | 'enviando'
   | 'exito'
   | 'error'
+
+function esMoto(tipo: CatalogoItem | undefined): boolean {
+  if (!tipo) return false
+  const nombre = tipo.nombre.toLowerCase()
+  return nombre.includes('moto') || nombre.includes('motocicleta')
+}
 
 export function useRegistrarVehiculo() {
   const [marcas, setMarcas] = useState<CatalogoItem[]>([])
@@ -52,10 +58,20 @@ export function useRegistrarVehiculo() {
       tipoCombustibleId: 0,
       tipoServicioId: 0,
       certificadoNo: '',
+      cilindraje: '',
     },
   })
 
-  const { reset, setValue } = form
+  const { reset, setValue, watch } = form
+
+  const tipoVehiculoId = watch('tipoVehiculoId')
+
+  const tipoVehiculoSeleccionado = useMemo(
+    () => tiposVehiculo.find((t) => t.id === tipoVehiculoId),
+    [tiposVehiculo, tipoVehiculoId],
+  )
+
+  const esMotocicleta = esMoto(tipoVehiculoSeleccionado)
 
   // ── Cargar catálogos al montar ─────────────────────────────────────────────
   useEffect(() => {
@@ -124,6 +140,13 @@ export function useRegistrarVehiculo() {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const onSubmit = form.handleSubmit(async (data: VehiculoSchema) => {
+    if (esMotocicleta && (!data.cilindraje || data.cilindraje.trim() === '')) {
+      form.setError('cilindraje', {
+        message: 'El cilindraje es obligatorio para motocicletas',
+      })
+      return
+    }
+
     setEstado('enviando')
     setErrorServidor(null)
 
@@ -140,6 +163,7 @@ export function useRegistrarVehiculo() {
         tipoServicioId: data.tipoServicioId,
         modelo: data.modelo,
         certificadoNo: data.certificadoNo?.trim() || '',
+        cilindraje: esMotocicleta ? data.cilindraje?.trim() : undefined,
       })
 
       setVehiculoGuardado(vehiculo)
@@ -210,6 +234,7 @@ export function useRegistrarVehiculo() {
     tiposVehiculo,
     tiposCombustible,
     tiposServicio,
+    esMotocicleta,
     queryCliente,
     setQueryCliente,
     resultadosCliente,

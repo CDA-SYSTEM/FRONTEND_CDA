@@ -35,15 +35,25 @@ function extractItem(responseData: unknown): unknown {
   return body
 }
 
+function normalizarCatalogo(raw: unknown[]): CatalogoItem[] {
+  return raw.map((item, i) => {
+    if (item && typeof item === 'object' && 'id' in (item as Record<string, unknown>) && 'nombre' in (item as Record<string, unknown>)) {
+      const obj = item as Record<string, unknown>
+      return { id: String(obj.id), nombre: String(obj.nombre) }
+    }
+    return { id: String(item), nombre: String(item) }
+  })
+}
+
 export const ordenServicioService = {
   async obtenerTiposRevision(): Promise<CatalogoItem[]> {
     const response = await apiClient.get('/api/v1/catalogs/revision-types')
-    return extractArray(response.data) as CatalogoItem[]
+    return normalizarCatalogo(extractArray(response.data) as unknown[])
   },
 
   async obtenerTiposCliente(): Promise<CatalogoItem[]> {
     const response = await apiClient.get('/api/v1/catalogs/customer-types')
-    return extractArray(response.data) as CatalogoItem[]
+    return normalizarCatalogo(extractArray(response.data) as unknown[])
   },
 
   async crearOrdenServicio(dto: CrearOrdenServicioDTO, adjuntos?: ArchivosAdjuntos): Promise<OrdenServicioResponse> {

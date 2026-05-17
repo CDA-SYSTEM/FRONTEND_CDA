@@ -1,13 +1,21 @@
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { AlertCircle, Loader2, Plus } from 'lucide-react'
 import { useRegistrarCliente } from '@/modules/recepcion/hooks/useRegistrarCliente'
+import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { ClienteConfirmacion } from '@/modules/recepcion/components/ClienteConfirmacion'
+import { ClienteBuscador } from '@/modules/recepcion/components/ClienteBuscador'
+import { ClienteDetalle } from '@/modules/recepcion/components/ClienteDetalle'
+import { Modal } from '@/core/components/Modal'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
-
+import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 /**
  * HU-005 — Registro de cliente persona natural.
  * Presentación pura: toda la lógica vive en useRegistrarCliente.
  */
 export function RecepcionPage() {
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const {
     form,
     estado,
@@ -40,6 +48,9 @@ export function RecepcionPage() {
         : codigoTipo === 'PAS'
           ? 'Ej: AB12345'
           : 'Número de documento'
+
+  // ── Hook de Búsqueda ───────────────────────────────────────────────────────
+  const buscador = useBuscarCliente()
 
   // ── Cargando catálogos ─────────────────────────────────────────────────────
   if (estado === 'cargando') {
@@ -90,10 +101,70 @@ export function RecepcionPage() {
     )
   }
 
-  // ── Formulario ─────────────────────────────────────────────────────────────
+
+
+  // ── Renderizado Principal ──────────────────────────────────────────────────
   return (
-    <article className="panel">
-      <h2>Registro de Cliente — Persona Natural</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* ── Cabecera Principal ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '1.5rem', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>Gestión de Clientes</h1>
+          <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>Registro y administración de clientes</p>
+        </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#2563eb',
+            color: '#fff',
+            padding: '10px 16px',
+            borderRadius: 8,
+            border: 'none',
+            fontWeight: 500,
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+        >
+          <Plus size={18} />
+          Nuevo Cliente
+        </button>
+      </div>
+
+      {/* ── Contenido Principal (Buscador o Detalle) ── */}
+      {clienteSeleccionado ? (
+        <ClienteDetalle
+          clienteInicial={clienteSeleccionado}
+          onVolver={() => setClienteSeleccionado(null)}
+          onActualizado={() => {
+            alert('Cliente actualizado con éxito')
+            setClienteSeleccionado(null)
+            buscador.refrescar()
+          }}
+        />
+      ) : (
+        <ClienteBuscador
+          query={buscador.query}
+          onQueryChange={buscador.setQuery}
+          resultados={buscador.resultados}
+          cargando={buscador.cargando}
+          error={buscador.error}
+          onSeleccionarCliente={setClienteSeleccionado}
+        />
+      )}
+
+      {/* ── Modal de Registro de Cliente ── */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Registro de Cliente"
+        maxWidth="800px"
+      >
       <p style={{ color: '#6b7280', marginBottom: 20 }}>
         Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son
         obligatorios.
@@ -290,6 +361,7 @@ export function RecepcionPage() {
           {enviando ? 'Guardando...' : 'Guardar cliente'}
         </button>
       </form>
-    </article>
+      </Modal>
+    </div>
   )
 }

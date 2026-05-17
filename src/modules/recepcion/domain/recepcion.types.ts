@@ -50,3 +50,15 @@ export interface BackendErrorBody {
   message?: string
   statusCode?: number
 }
+
+// ── Vehículos ───────────────────────────────────────────────────────────────
+
+export interface Vehiculo {
+  id: number | string
+  placa: string
+  marca?: { id: number; nombre: string; name?: string } | string
+  linea?: { id: number; nombre: string; name?: string } | string
+  modelo?: number
+  tipoVehiculo?: { id: number; nombre: string; name?: string } | string
+  // Agrega más campos si el backend los devuelve
+}

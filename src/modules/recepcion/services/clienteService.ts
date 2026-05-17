@@ -87,4 +87,33 @@ export const clienteService = {
       throw error
     }
   },
+
+  /**
+   * Busca clientes por nombre, documento o placa (si el backend lo soporta).
+   * Usa GET /api/v1/clients?search=...
+   */
+  async buscarClientes(query: string): Promise<ClientePersonaNatural[]> {
+    if (!query || query.trim().length < 3) return []
+    
+    const response = await apiClient.get('/api/v1/clients', {
+      params: { search: query.trim(), size: 50 },
+    })
+    
+    return extractArray(response.data)
+  },
+
+  /**
+   * Actualiza los datos de un cliente existente.
+   * Usa PUT /api/v1/clients/:id
+   */
+  async actualizarCliente(
+    id: number | string,
+    payload: Partial<CrearClienteDTO>,
+  ): Promise<ClientePersonaNatural> {
+    const response = await apiClient.put<ClientePersonaNatural>(
+      `/api/v1/clients/${id}`,
+      payload,
+    )
+    return response.data
+  },
 }

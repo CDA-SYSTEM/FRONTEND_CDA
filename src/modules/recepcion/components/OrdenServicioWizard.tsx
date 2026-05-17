@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Camera,
   Car,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
+  FileText,
+  Image,
   Loader2,
+  PenSquare,
   Search,
   User,
   UserPlus,
@@ -16,6 +20,7 @@ import {
 import { useCrearOrdenServicio, type PasoWizard } from '@/modules/recepcion/hooks/useCrearOrdenServicio'
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
+import { SignaturePad } from '@/shared/components/SignaturePad'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
 
@@ -27,6 +32,7 @@ const PASOS: { key: PasoWizard; label: string }[] = [
   { key: 'cliente', label: 'Cliente' },
   { key: 'vehiculo', label: 'Vehículo' },
   { key: 'detalle', label: 'Detalle' },
+  { key: 'condiciones', label: 'Condiciones' },
   { key: 'confirmacion', label: 'Confirmación' },
 ]
 
@@ -34,7 +40,8 @@ const INDICE_PASO: Record<PasoWizard, number> = {
   cliente: 0,
   vehiculo: 1,
   detalle: 2,
-  confirmacion: 3,
+  condiciones: 3,
+  confirmacion: 4,
 }
 
 export function OrdenServicioWizard({ onCancelar }: Props) {
@@ -190,6 +197,19 @@ export function OrdenServicioWizard({ onCancelar }: Props) {
           setCustomerType={wizard.setCustomerType}
           tiposRevision={wizard.tiposRevision}
           tiposCliente={wizard.tiposCliente}
+          onSiguiente={wizard.irACondiciones}
+          onVolver={wizard.volver}
+        />
+      ) : wizard.paso === 'condiciones' ? (
+        <PasoCondiciones
+          observations={wizard.observations}
+          setObservations={wizard.setObservations}
+          photoFile={wizard.photoFile}
+          setPhotoFile={wizard.setPhotoFile}
+          signatureBlob={wizard.signatureBlob}
+          setSignatureBlob={wizard.setSignatureBlob}
+          confirmacionAcuerdo={wizard.confirmacionAcuerdo}
+          setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
           estadoEnvio={wizard.estadoEnvio}
           errorEnvio={wizard.errorEnvio}
           onSubmit={wizard.enviar}
@@ -200,6 +220,9 @@ export function OrdenServicioWizard({ onCancelar }: Props) {
           orden={wizard.ordenCreada}
           cliente={wizard.cliente}
           vehiculo={wizard.vehiculo}
+          observations={wizard.observations}
+          tieneFoto={!!wizard.photoFile}
+          tieneFirma={!!wizard.signatureBlob}
           onNuevaOrden={wizard.reset}
           onSalir={onCancelar}
         />
@@ -439,15 +462,13 @@ interface PasoDetalleProps {
   setCustomerType: (v: string) => void
   tiposRevision: { id: number | string; nombre: string }[]
   tiposCliente: { id: number | string; nombre: string }[]
-  estadoEnvio: EstadoEnvio
-  errorEnvio: string | null
-  onSubmit: () => void
+  onSiguiente: () => void
   onVolver: () => void
 }
 
 function PasoDetalle({
   mileage, setMileage, revisionType, setRevisionType, customerType, setCustomerType,
-  tiposRevision, tiposCliente, estadoEnvio, errorEnvio, onSubmit, onVolver,
+  tiposRevision, tiposCliente, onSiguiente, onVolver,
 }: PasoDetalleProps) {
   return (
     <article className="panel">
@@ -458,13 +479,6 @@ function PasoDetalle({
         <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Detalle de la Orden</h2>
       </div>
 
-      {errorEnvio && (
-        <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#991b1b', fontSize: '0.9rem' }}>
-          <AlertCircle size={16} />
-          <span>{errorEnvio}</span>
-        </div>
-      )}
-
       <div className="form-grid">
         <label>
           Kilometraje actual (km)
@@ -474,7 +488,6 @@ function PasoDetalle({
             value={mileage}
             onChange={(e) => setMileage(e.target.value)}
             min={0}
-            disabled={estadoEnvio === 'enviando'}
           />
         </label>
 
@@ -483,7 +496,6 @@ function PasoDetalle({
           <select
             value={revisionType}
             onChange={(e) => setRevisionType(e.target.value)}
-            disabled={estadoEnvio === 'enviando'}
           >
             <option value="">Seleccione...</option>
             {tiposRevision.map((t) => (
@@ -497,7 +509,6 @@ function PasoDetalle({
           <select
             value={customerType}
             onChange={(e) => setCustomerType(e.target.value)}
-            disabled={estadoEnvio === 'enviando'}
           >
             <option value="">Seleccione...</option>
             {tiposCliente.map((t) => (
@@ -508,8 +519,8 @@ function PasoDetalle({
 
         <div style={{ marginTop: 8 }}>
           <button
-            onClick={onSubmit}
-            disabled={estadoEnvio === 'enviando' || !revisionType || !customerType}
+            onClick={onSiguiente}
+            disabled={!revisionType || !customerType}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -518,7 +529,203 @@ function PasoDetalle({
               width: '100%',
               padding: '12px 24px',
               fontSize: '1rem',
-              opacity: (estadoEnvio === 'enviando' || !revisionType || !customerType) ? 0.7 : 1,
+              opacity: (!revisionType || !customerType) ? 0.7 : 1,
+            }}
+          >
+            <ArrowRight size={18} />
+            Siguiente — Condiciones de ingreso
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+/* ── Paso 4: Condiciones de Ingreso ───────────────────────────────────────── */
+
+interface PasoCondicionesProps {
+  observations: string
+  setObservations: (v: string) => void
+  photoFile: File | null
+  setPhotoFile: (f: File | null) => void
+  signatureBlob: Blob | null
+  setSignatureBlob: (b: Blob | null) => void
+  confirmacionAcuerdo: boolean
+  setConfirmacionAcuerdo: (v: boolean) => void
+  estadoEnvio: 'idle' | 'enviando' | 'exito' | 'error'
+  errorEnvio: string | null
+  onSubmit: () => void
+  onVolver: () => void
+}
+
+function PasoCondiciones({
+  observations, setObservations,
+  photoFile, setPhotoFile,
+  signatureBlob, setSignatureBlob,
+  confirmacionAcuerdo, setConfirmacionAcuerdo,
+  estadoEnvio, errorEnvio,
+  onSubmit, onVolver,
+}: PasoCondicionesProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen no puede superar los 5 MB.')
+        return
+      }
+      if (!['image/jpeg', 'image/png', 'image/heic'].includes(file.type)) {
+        alert('Formato no permitido. Use JPG, PNG o HEIC.')
+        return
+      }
+      setPhotoFile(file)
+    }
+  }
+
+  return (
+    <article className="panel">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Condiciones de Ingreso</h2>
+      </div>
+
+      {errorEnvio && (
+        <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#991b1b', fontSize: '0.9rem' }}>
+          <AlertCircle size={16} />
+          <span>{errorEnvio}</span>
+        </div>
+      )}
+
+      <div className="form-grid">
+        {/* Observaciones */}
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <FileText size={16} color="#64748b" />
+            <span style={{ fontWeight: 500 }}>Observaciones del estado del vehículo</span>
+          </div>
+          <textarea
+            placeholder="Describa el estado visual del vehículo al ingreso (combustible, daños previos, accesorios, etc.)"
+            value={observations}
+            onChange={(e) => setObservations(e.target.value)}
+            rows={4}
+            style={{ width: '100%', resize: 'vertical', minHeight: 80 }}
+            disabled={estadoEnvio === 'enviando'}
+          />
+        </label>
+
+        {/* Foto de ingreso */}
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <Camera size={16} color="#64748b" />
+            <span style={{ fontWeight: 500 }}>Foto del estado de ingreso</span>
+            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(opcional — JPG, PNG, HEIC, máx 5 MB)</span>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={estadoEnvio === 'enviando'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+              }}
+            >
+              <Image size={16} />
+              {photoFile ? 'Cambiar foto' : 'Seleccionar archivo'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/heic"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            {photoFile && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    border: '1px solid #e2e8f0',
+                    flexShrink: 0,
+                  }}
+                >
+                  <img
+                    src={URL.createObjectURL(photoFile)}
+                    alt="Vista previa"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  {photoFile.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { setPhotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                  style={{ fontSize: '0.8rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                >
+                  X
+                </button>
+              </div>
+            )}
+          </div>
+        </label>
+
+        {/* Firma digital */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <SignaturePad
+            onSave={(blob) => setSignatureBlob(blob)}
+            height={140}
+          />
+        </div>
+
+        {/* Confirmación de acuerdo */}
+        <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={confirmacionAcuerdo}
+            onChange={(e) => setConfirmacionAcuerdo(e.target.checked)}
+            disabled={estadoEnvio === 'enviando'}
+            style={{ width: 18, height: 18, cursor: 'pointer' }}
+          />
+          <div>
+            <span style={{ fontWeight: 500, color: '#92400e', fontSize: '0.9rem' }}>
+              Confirmo que las condiciones de ingreso registradas reflejan el estado real del vehículo al momento de la recepción
+            </span>
+            <span style={{ color: '#a16207', fontSize: '0.8rem', display: 'block', marginTop: 2 }}>
+              Esta confirmación tiene validez como acuerdo entre el operario y el cliente
+            </span>
+          </div>
+        </label>
+
+        {/* Botón de envío */}
+        <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
+          <button
+            onClick={onSubmit}
+            disabled={estadoEnvio === 'enviando' || !confirmacionAcuerdo}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '12px 24px',
+              fontSize: '1rem',
+              opacity: (estadoEnvio === 'enviando' || !confirmacionAcuerdo) ? 0.7 : 1,
             }}
           >
             {estadoEnvio === 'enviando' ? (
@@ -539,17 +746,20 @@ function PasoDetalle({
   )
 }
 
-/* ── Paso 4: Confirmación ─────────────────────────────────────────────────── */
+/* ── Paso 5: Confirmación ─────────────────────────────────────────────────── */
 
 interface PasoConfirmacionProps {
   orden: { id: string; inspection_number?: string; createdAt?: string }
   cliente: { nombre: string; apellido: string } | null
   vehiculo: { placa: string } | null
+  observations?: string
+  tieneFoto?: boolean
+  tieneFirma?: boolean
   onNuevaOrden: () => void
   onSalir: () => void
 }
 
-function PasoConfirmacion({ orden, cliente, vehiculo, onNuevaOrden, onSalir }: PasoConfirmacionProps) {
+function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, tieneFirma, onNuevaOrden, onSalir }: PasoConfirmacionProps) {
   const fecha = orden.createdAt
     ? new Date(orden.createdAt).toLocaleDateString('es-CO', {
         year: 'numeric',
@@ -644,6 +854,32 @@ function PasoConfirmacion({ orden, cliente, vehiculo, onNuevaOrden, onSalir }: P
             </span>
           </p>
         </div>
+        {tieneFoto && (
+          <div>
+            <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Foto de ingreso
+            </span>
+            <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#16a34a' }}>✓ Adjuntada</p>
+          </div>
+        )}
+        {tieneFirma && (
+          <div>
+            <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Firma digital
+            </span>
+            <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#16a34a' }}>✓ Capturada</p>
+          </div>
+        )}
+        {observations && (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Observaciones
+            </span>
+            <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#111827', whiteSpace: 'pre-wrap' }}>
+              {observations}
+            </p>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>

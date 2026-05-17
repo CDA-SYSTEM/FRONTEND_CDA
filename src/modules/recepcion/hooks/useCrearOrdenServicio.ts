@@ -8,7 +8,7 @@ import type {
 } from '@/modules/recepcion/domain/ordenServicio.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
 
-export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'confirmacion'
+export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'condiciones' | 'confirmacion'
 
 export type EstadoEnvio = 'idle' | 'enviando' | 'exito' | 'error'
 
@@ -30,6 +30,11 @@ export function useCrearOrdenServicio() {
   const [mileage, setMileage] = useState('')
   const [revisionType, setRevisionType] = useState('')
   const [customerType, setCustomerType] = useState('')
+
+  const [observations, setObservations] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
+  const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
 
   const [estadoEnvio, setEstadoEnvio] = useState<EstadoEnvio>('idle')
   const [ordenCreada, setOrdenCreada] = useState<OrdenServicioResponse | null>(null)
@@ -84,6 +89,10 @@ export function useCrearOrdenServicio() {
     setPaso('detalle')
   }, [])
 
+  const irACondiciones = useCallback(() => {
+    setPaso('condiciones')
+  }, [])
+
   const volver = useCallback(() => {
     if (paso === 'vehiculo') {
       setCliente(null)
@@ -99,6 +108,8 @@ export function useCrearOrdenServicio() {
         setVehiculos([])
         setPaso('cliente')
       }
+    } else if (paso === 'condiciones') {
+      setPaso('detalle')
     } else if (paso === 'confirmacion') {
       reset()
     }
@@ -117,9 +128,13 @@ export function useCrearOrdenServicio() {
         vehicle_id: String(vehiculo?.id || ''),
         customer_type: customerType,
         revision_type: revisionType,
+        observations: observations || undefined,
       }
 
-      const response = await ordenServicioService.crearOrdenServicio(dto)
+      const response = await ordenServicioService.crearOrdenServicio(dto, {
+        photo: photoFile,
+        signature: signatureBlob,
+      })
       setOrdenCreada(response)
       setEstadoEnvio('exito')
       setPaso('confirmacion')
@@ -129,7 +144,7 @@ export function useCrearOrdenServicio() {
       setErrorEnvio(msg)
       setEstadoEnvio('error')
     }
-  }, [cliente, user, mileage, vehiculo, customerType, revisionType])
+  }, [cliente, user, mileage, vehiculo, customerType, revisionType, observations, photoFile, signatureBlob])
 
   const reset = useCallback(() => {
     setPaso('cliente')
@@ -137,6 +152,10 @@ export function useCrearOrdenServicio() {
     setVehiculos([])
     setVehiculo(null)
     setMileage('')
+    setObservations('')
+    setPhotoFile(null)
+    setSignatureBlob(null)
+    setConfirmacionAcuerdo(false)
     setOrdenCreada(null)
     setEstadoEnvio('idle')
     setErrorEnvio(null)
@@ -157,15 +176,24 @@ export function useCrearOrdenServicio() {
     mileage,
     revisionType,
     customerType,
+    observations,
+    photoFile,
+    signatureBlob,
+    confirmacionAcuerdo,
     estadoEnvio,
     ordenCreada,
     errorEnvio,
     setMileage,
     setRevisionType,
     setCustomerType,
+    setObservations,
+    setPhotoFile,
+    setSignatureBlob,
+    setConfirmacionAcuerdo,
     seleccionarCliente,
     seleccionarVehiculo,
     irADetalleSinVehiculo,
+    irACondiciones,
     enviar,
     volver,
     reset,

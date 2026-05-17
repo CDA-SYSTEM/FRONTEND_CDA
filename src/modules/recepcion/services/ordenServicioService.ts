@@ -79,8 +79,6 @@ export const ordenServicioService = {
 
     if (adjuntos?.photo) {
       formData.append('photo', adjuntos.photo)
-    } else {
-      formData.append('photo', new Blob([''], { type: 'image/jpeg' }), 'placeholder.jpg')
     }
 
     if (adjuntos?.signature) {

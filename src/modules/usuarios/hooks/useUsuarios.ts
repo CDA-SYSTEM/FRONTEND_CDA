@@ -26,7 +26,7 @@ export function useUsuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
-  const [filtroRol, setFiltroRol] = useState<'' | RolUsuario>('')
+  const [filtroRol, setFiltroRol] = useState<'' | RolUsuarioForm>('')
   const [busqueda, setBusqueda] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [errorMensaje, setErrorMensaje] = useState('')
@@ -38,7 +38,7 @@ export function useUsuarios() {
   }
 
   const cargarUsuarios = useCallback(
-    async (rol?: '' | RolUsuario) => {
+    async (rol?: '' | RolUsuarioForm) => {
       try {
         setLoading(true)
         setErrorMensaje('')

@@ -53,7 +53,7 @@ export const usuarioService = {
    * El parámetro role es requerido por el backend.
    * Si no se pasa rol, se hace una petición por cada rol conocido y se fusionan.
    */
-  async obtenerUsuarios(role?: RolUsuario): Promise<Usuario[]> {
+  async obtenerUsuarios(role?: string): Promise<Usuario[]> {
     if (role) {
       const response = await apiClient.get('/auth/users', {
         params: { role: role.toLowerCase() },

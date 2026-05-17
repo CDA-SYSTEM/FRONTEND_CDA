@@ -1,6 +1,6 @@
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
-import type { RolUsuario, RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
+import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -8,12 +8,12 @@ const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Inspector', value: 'inspector' },
   { label: 'Operario', value: 'operario' },
 ]
-const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuario }> = [
+const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuarioForm }> = [
   { label: 'Todos', value: '' },
-  { label: 'Admin', value: 'ADMIN' },
-  { label: 'Recepcionista', value: 'RECEPCIONISTA' },
-  { label: 'Inspector', value: 'INSPECTOR' },
-  { label: 'Facturador', value: 'FACTURADOR' },
+  { label: 'Administrador', value: 'admin' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Inspector', value: 'inspector' },
+  { label: 'Operario', value: 'operario' },
 ]
 
 /**
@@ -90,7 +90,7 @@ export function UsuariosPage() {
           </button>
           <select
             value={filtroRol}
-            onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuario)}
+            onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
             style={{ padding: '8px', borderRadius: '6px' }}
           >
             {ROLE_FILTERS.map((item) => (
@@ -171,7 +171,7 @@ export function UsuariosPage() {
                 <select
                   value={user.role.toLowerCase()}
                   onChange={(e) =>
-                    handleCambiarRol(user.id, e.target.value as RolUsuario)
+                    handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
                   }
                 >
                   {ROLES.map((rol) => (

@@ -10,6 +10,14 @@ export interface CrearOrdenServicioDTO {
   customer_type: string
   revision_type: string
   observations?: string
+  operator_id?: string
+  responsible_id?: string
+  customer_id?: string
+  tinted_windows?: string
+  armored_vehicle?: string
+  brake_fluid_sight_glass?: string
+  axles?: { index: number; axle_type: string }[]
+  tires?: { position: string; code: string; tire_pressure: number }[]
 }
 
 export interface OrdenServicioResponse {

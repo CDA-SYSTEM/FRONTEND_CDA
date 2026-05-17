@@ -65,6 +65,14 @@ export const ordenServicioService = {
       revision_type: dto.revision_type,
     }
     if (dto.observations) payload.observations = dto.observations
+    if (dto.operator_id) payload.operator_id = dto.operator_id
+    if (dto.responsible_id) payload.responsible_id = dto.responsible_id
+    if (dto.customer_id) payload.customer_id = dto.customer_id
+    if (dto.tinted_windows) payload.tinted_windows = dto.tinted_windows
+    if (dto.armored_vehicle) payload.armored_vehicle = dto.armored_vehicle
+    if (dto.brake_fluid_sight_glass) payload.brake_fluid_sight_glass = dto.brake_fluid_sight_glass
+    if (dto.axles) payload.axles = dto.axles
+    if (dto.tires) payload.tires = dto.tires
 
     const formData = new FormData()
     formData.append('data', JSON.stringify(payload))

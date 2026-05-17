@@ -36,6 +36,20 @@ export function useCrearOrdenServicio() {
   const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
   const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
 
+  const [tintedWindows, setTintedWindows] = useState('NO')
+  const [armoredVehicle, setArmoredVehicle] = useState('NO')
+  const [brakeFluidSightGlass, setBrakeFluidSightGlass] = useState('BUEN_ESTADO')
+  const [axles, setAxles] = useState<{ index: number; axle_type: string }[]>([
+    { index: 1, axle_type: 'DELANTERO' },
+    { index: 2, axle_type: 'TRASERO' },
+  ])
+  const [tires, setTires] = useState<{ position: string; code: string; tire_pressure: number }[]>([
+    { position: 'FRONT_LEFT', code: '', tire_pressure: 0 },
+    { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
+    { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
+    { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
+  ])
+
   const [estadoEnvio, setEstadoEnvio] = useState<EstadoEnvio>('idle')
   const [ordenCreada, setOrdenCreada] = useState<OrdenServicioResponse | null>(null)
   const [errorEnvio, setErrorEnvio] = useState<string | null>(null)
@@ -129,6 +143,16 @@ export function useCrearOrdenServicio() {
         customer_type: customerType,
         revision_type: revisionType,
         observations: observations || undefined,
+        operator_id: String(user.id),
+        responsible_id: String(user.id),
+        customer_id: String(cliente.id),
+        tinted_windows: tintedWindows,
+        armored_vehicle: armoredVehicle,
+        brake_fluid_sight_glass: brakeFluidSightGlass,
+        axles: axles.length > 0 ? axles : [{ index: 1, axle_type: 'DELANTERO' }],
+        tires: tires.length > 0
+          ? tires.map((t) => ({ position: t.position, code: t.code || 'PENDIENTE', tire_pressure: t.tire_pressure || 32 }))
+          : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32 }],
       }
 
       const response = await ordenServicioService.crearOrdenServicio(dto, {
@@ -156,6 +180,16 @@ export function useCrearOrdenServicio() {
     setPhotoFile(null)
     setSignatureBlob(null)
     setConfirmacionAcuerdo(false)
+    setTintedWindows('NO')
+    setArmoredVehicle('NO')
+    setBrakeFluidSightGlass('BUEN_ESTADO')
+    setAxles([{ index: 1, axle_type: 'DELANTERO' }, { index: 2, axle_type: 'TRASERO' }])
+    setTires([
+      { position: 'FRONT_LEFT', code: '', tire_pressure: 0 },
+      { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
+      { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
+      { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
+    ])
     setOrdenCreada(null)
     setEstadoEnvio('idle')
     setErrorEnvio(null)
@@ -190,6 +224,16 @@ export function useCrearOrdenServicio() {
     setPhotoFile,
     setSignatureBlob,
     setConfirmacionAcuerdo,
+    tintedWindows,
+    setTintedWindows,
+    armoredVehicle,
+    setArmoredVehicle,
+    brakeFluidSightGlass,
+    setBrakeFluidSightGlass,
+    axles,
+    setAxles,
+    tires,
+    setTires,
     seleccionarCliente,
     seleccionarVehiculo,
     irADetalleSinVehiculo,

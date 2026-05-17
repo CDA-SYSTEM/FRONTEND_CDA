@@ -84,6 +84,53 @@ describe('ordenServicioService', () => {
         }),
       ).rejects.toThrow()
     })
+
+    it('envía observaciones en el payload JSON', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: '1' } } })
+
+      await ordenServicioService.crearOrdenServicio({
+        mileage: 0,
+        client_id: '1',
+        vehicle_id: '1',
+        customer_type: 'PROPIETARIO',
+        revision_type: 'TECNICO_MECANICA',
+        observations: 'Golpe en puerta trasera izquierda',
+      })
+
+      const formData = vi.mocked(apiClient.post).mock.calls[0][1] as FormData
+      const dataStr = formData.get('data') as string
+      const parsed = JSON.parse(dataStr)
+      expect(parsed.observations).toBe('Golpe en puerta trasera izquierda')
+    })
+
+    it('adjunta foto si se proporciona', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: '1' } } })
+      const foto = new File(['foto'], 'ingreso.jpg', { type: 'image/jpeg' })
+
+      await ordenServicioService.crearOrdenServicio(
+        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        { photo: foto },
+      )
+
+      const formData = vi.mocked(apiClient.post).mock.calls[0][1] as FormData
+      expect(formData.get('photo')).toBe(foto)
+    })
+
+    it('adjunta firma si se proporciona', async () => {
+      vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: '1' } } })
+      const firma = new Blob(['firma'], { type: 'image/png' })
+
+      await ordenServicioService.crearOrdenServicio(
+        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        { signature: firma },
+      )
+
+      const formData = vi.mocked(apiClient.post).mock.calls[0][1] as FormData
+      const adjunto = formData.get('signature')
+      expect(adjunto).toBeTruthy()
+      expect((adjunto as Blob).size).toBe(5)
+      expect((adjunto as Blob).type).toBe('image/png')
+    })
   })
 
   describe('obtenerVehiculosCliente', () => {

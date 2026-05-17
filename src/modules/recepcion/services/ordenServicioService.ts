@@ -5,6 +5,11 @@ import type {
   OrdenServicioResponse,
 } from '@/modules/recepcion/domain/ordenServicio.types'
 
+export interface ArchivosAdjuntos {
+  photo?: File | null
+  signature?: File | Blob | null
+}
+
 function extractArray(responseData: unknown): unknown[] {
   const body = responseData as Record<string, unknown>
   if (Array.isArray(responseData)) return responseData
@@ -41,18 +46,28 @@ export const ordenServicioService = {
     return extractArray(response.data) as CatalogoItem[]
   },
 
-  async crearOrdenServicio(dto: CrearOrdenServicioDTO): Promise<OrdenServicioResponse> {
-    const payload = {
+  async crearOrdenServicio(dto: CrearOrdenServicioDTO, adjuntos?: ArchivosAdjuntos): Promise<OrdenServicioResponse> {
+    const payload: Record<string, unknown> = {
       mileage: dto.mileage,
       client_id: String(dto.client_id),
       vehicle_id: String(dto.vehicle_id),
       customer_type: dto.customer_type,
       revision_type: dto.revision_type,
     }
+    if (dto.observations) payload.observations = dto.observations
 
     const formData = new FormData()
     formData.append('data', JSON.stringify(payload))
-    formData.append('photo', new Blob([''], { type: 'image/jpeg' }), 'placeholder.jpg')
+
+    if (adjuntos?.photo) {
+      formData.append('photo', adjuntos.photo)
+    } else {
+      formData.append('photo', new Blob([''], { type: 'image/jpeg' }), 'placeholder.jpg')
+    }
+
+    if (adjuntos?.signature) {
+      formData.append('signature', adjuntos.signature)
+    }
 
     const response = await apiClient.post('/api/v1/inspections', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

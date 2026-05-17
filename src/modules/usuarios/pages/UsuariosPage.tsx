@@ -369,6 +369,7 @@ export function UsuariosPage() {
                     borderRadius: '6px',
                     border: '1px solid #ccc',
                     background: '#f3f4f6',
+                    color: '#374151',
                     cursor: 'pointer',
                   }}
                 >

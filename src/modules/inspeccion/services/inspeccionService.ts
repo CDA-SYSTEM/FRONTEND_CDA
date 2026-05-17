@@ -76,4 +76,19 @@ export const inspeccionService = {
       return null
     }
   },
+
+  async listarTodas(page = 1, size = 50): Promise<InspectionSummary[]> {
+    const response = await apiClient.get('/api/v1/inspections', {
+      params: { page, size },
+    })
+    return sortCronologico(extractArray(response.data) as InspectionSummary[])
+  },
+
+  async asignarInspector(inspectionId: string, operatorId: string): Promise<void> {
+    const formData = new FormData()
+    formData.append('data', JSON.stringify({ operator_id: operatorId }))
+    await apiClient.patch(`/api/v1/inspections/${inspectionId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }

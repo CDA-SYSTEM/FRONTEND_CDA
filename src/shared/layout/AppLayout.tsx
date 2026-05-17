@@ -9,6 +9,7 @@ const links = [
   { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
   { to: '/recepcion', label: 'Recepcion' },
   { to: '/inspeccion', label: 'Inspeccion' },
+  { to: '/vehiculo/registro', label: 'Vehículos' },
   { to: '/facturacion', label: 'Facturacion' },
 ]
 

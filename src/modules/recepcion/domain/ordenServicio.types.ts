@@ -9,6 +9,7 @@ export interface CrearOrdenServicioDTO {
   vehicle_id: string
   customer_type: string
   revision_type: string
+  observations?: string
 }
 
 export interface OrdenServicioResponse {

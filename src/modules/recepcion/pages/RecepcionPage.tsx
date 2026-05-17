@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import { AlertCircle, Loader2, Plus } from 'lucide-react'
+import { AlertCircle, ClipboardList, Loader2, Plus, Users } from 'lucide-react'
 import { useRegistrarCliente } from '@/modules/recepcion/hooks/useRegistrarCliente'
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { ClienteConfirmacion } from '@/modules/recepcion/components/ClienteConfirmacion'
 import { ClienteBuscador } from '@/modules/recepcion/components/ClienteBuscador'
 import { ClienteDetalle } from '@/modules/recepcion/components/ClienteDetalle'
+import { OrdenServicioWizard } from '@/modules/recepcion/components/OrdenServicioWizard'
 import { Modal } from '@/core/components/Modal'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
-/**
- * HU-005 — Registro de cliente persona natural.
- * Presentación pura: toda la lógica vive en useRegistrarCliente.
- */
+
 export function RecepcionPage() {
+  const [modo, setModo] = useState<'clientes' | 'orden'>('clientes')
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -109,35 +108,87 @@ export function RecepcionPage() {
       
       {/* ── Cabecera Principal ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '1.5rem', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>Gestión de Clientes</h1>
-          <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>Registro y administración de clientes</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+              {modo === 'clientes' ? 'Gestión de Clientes' : 'Orden de Servicio'}
+            </h1>
+            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+              {modo === 'clientes' ? 'Registro y administración de clientes' : 'Apertura de orden de revisión técnico-mecánica'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 4, background: '#f1f5f9', borderRadius: 8, padding: 3 }}>
+            <button
+              onClick={() => setModo('clientes')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                background: modo === 'clientes' ? '#fff' : 'transparent',
+                color: modo === 'clientes' ? '#1e293b' : '#64748b',
+                boxShadow: modo === 'clientes' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+              }}
+            >
+              <Users size={16} />
+              Clientes
+            </button>
+            <button
+              onClick={() => setModo('orden')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+                background: modo === 'orden' ? '#fff' : 'transparent',
+                color: modo === 'orden' ? '#1e293b' : '#64748b',
+                boxShadow: modo === 'orden' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+              }}
+            >
+              <ClipboardList size={16} />
+              Orden
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#2563eb',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: 8,
-            border: 'none',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
-        >
-          <Plus size={18} />
-          Nuevo Cliente
-        </button>
+        {modo === 'clientes' && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#2563eb',
+              color: '#fff',
+              padding: '10px 16px',
+              borderRadius: 8,
+              border: 'none',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+          >
+            <Plus size={18} />
+            Nuevo Cliente
+          </button>
+        )}
       </div>
 
-      {/* ── Contenido Principal (Buscador o Detalle) ── */}
-      {clienteSeleccionado ? (
+      {/* ── Contenido Principal ── */}
+      {modo === 'orden' ? (
+        <OrdenServicioWizard onCancelar={() => setModo('clientes')} />
+      ) : clienteSeleccionado ? (
         <ClienteDetalle
           clienteInicial={clienteSeleccionado}
           onVolver={() => setClienteSeleccionado(null)}

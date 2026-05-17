@@ -1,0 +1,683 @@
+import { useState } from 'react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Car,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  Loader2,
+  Search,
+  User,
+  UserPlus,
+  X,
+} from 'lucide-react'
+import { useCrearOrdenServicio, type PasoWizard } from '@/modules/recepcion/hooks/useCrearOrdenServicio'
+import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
+import { clienteService } from '@/modules/recepcion/services/clienteService'
+import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
+import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
+
+interface Props {
+  onCancelar: () => void
+}
+
+const PASOS: { key: PasoWizard; label: string }[] = [
+  { key: 'cliente', label: 'Cliente' },
+  { key: 'vehiculo', label: 'Vehículo' },
+  { key: 'detalle', label: 'Detalle' },
+  { key: 'confirmacion', label: 'Confirmación' },
+]
+
+const INDICE_PASO: Record<PasoWizard, number> = {
+  cliente: 0,
+  vehiculo: 1,
+  detalle: 2,
+  confirmacion: 3,
+}
+
+export function OrdenServicioWizard({ onCancelar }: Props) {
+  const wizard = useCrearOrdenServicio()
+  const buscador = useBuscarCliente()
+  const [clienteNuevoModal, setClienteNuevoModal] = useState(false)
+
+  const pasoActual = INDICE_PASO[wizard.paso]
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Cabecera */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: '#fff',
+          padding: '1.5rem',
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        }}
+      >
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+            Nueva Orden de Servicio
+          </h1>
+          <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+            Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
+          </p>
+        </div>
+        <button
+          onClick={onCancelar}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            background: '#f1f5f9',
+            color: '#475569',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+          }}
+        >
+          <X size={16} />
+          Cancelar
+        </button>
+      </div>
+
+      {/* Barra de progreso */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0,
+          background: '#fff',
+          borderRadius: 12,
+          padding: '12px 20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        }}
+      >
+        {PASOS.map((p, i) => (
+          <div
+            key={p.key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flex: 1,
+            }}
+          >
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                background: i <= pasoActual ? '#2563eb' : '#e2e8f0',
+                color: i <= pasoActual ? '#fff' : '#94a3b8',
+                flexShrink: 0,
+              }}
+            >
+              {i < pasoActual ? (
+                <CheckCircle2 size={16} />
+              ) : (
+                i + 1
+              )}
+            </div>
+            <span
+              style={{
+                fontSize: '0.85rem',
+                fontWeight: i === pasoActual ? 600 : 400,
+                color: i <= pasoActual ? '#1e293b' : '#94a3b8',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {p.label}
+            </span>
+            {i < PASOS.length - 1 && (
+              <ChevronRight size={16} color="#cbd5e1" style={{ marginLeft: 'auto' }} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Contenido según paso */}
+      {wizard.cargandoCatalogos ? (
+        <article className="panel" style={{ textAlign: 'center', padding: 40 }}>
+          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+          <p style={{ marginTop: 12, color: '#6b7280' }}>Cargando...</p>
+        </article>
+      ) : wizard.errorCatalogo ? (
+        <article className="panel">
+          <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', color: '#991b1b' }}>
+            <AlertCircle size={18} />
+            <span>{wizard.errorCatalogo}</span>
+          </div>
+        </article>
+      ) : wizard.paso === 'cliente' ? (
+        <PasoCliente
+          buscador={buscador}
+          onSeleccionar={wizard.seleccionarCliente}
+          onNuevoCliente={() => setClienteNuevoModal(true)}
+          clienteNuevoModal={clienteNuevoModal}
+          onCloseModal={() => setClienteNuevoModal(false)}
+            onClienteCreado={(c) => {
+            setClienteNuevoModal(false)
+            onSeleccionar(c)
+          }}
+        />
+      ) : wizard.paso === 'vehiculo' ? (
+        <PasoVehiculo
+          vehiculos={wizard.vehiculos}
+          cargando={wizard.cargandoVehiculos}
+          onSeleccionar={wizard.seleccionarVehiculo}
+          onSaltar={wizard.irADetalleSinVehiculo}
+          clienteNombre={`${wizard.cliente?.nombre || ''} ${wizard.cliente?.apellido || ''}`}
+          onVolver={wizard.volver}
+        />
+      ) : wizard.paso === 'detalle' ? (
+        <PasoDetalle
+          mileage={wizard.mileage}
+          setMileage={wizard.setMileage}
+          revisionType={wizard.revisionType}
+          setRevisionType={wizard.setRevisionType}
+          customerType={wizard.customerType}
+          setCustomerType={wizard.setCustomerType}
+          tiposRevision={wizard.tiposRevision}
+          tiposCliente={wizard.tiposCliente}
+          estadoEnvio={wizard.estadoEnvio}
+          errorEnvio={wizard.errorEnvio}
+          onSubmit={wizard.enviar}
+          onVolver={wizard.volver}
+        />
+      ) : wizard.paso === 'confirmacion' && wizard.ordenCreada ? (
+        <PasoConfirmacion
+          orden={wizard.ordenCreada}
+          cliente={wizard.cliente}
+          vehiculo={wizard.vehiculo}
+          onNuevaOrden={wizard.reset}
+          onSalir={onCancelar}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/* ── Paso 1: Seleccionar Cliente ──────────────────────────────────────────── */
+
+interface PasoClienteProps {
+  buscador: ReturnType<typeof useBuscarCliente>
+  onSeleccionar: (c: ClientePersonaNatural) => void
+  onNuevoCliente: () => void
+  clienteNuevoModal: boolean
+  onCloseModal: () => void
+  onClienteCreado: (c: ClientePersonaNatural) => void
+}
+
+function PasoCliente({ buscador, onSeleccionar, onNuevoCliente }: PasoClienteProps) {
+  return (
+    <article className="panel">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Cliente</h2>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+            Busque un cliente existente o registre uno nuevo
+          </p>
+        </div>
+        <button
+          onClick={onNuevoCliente}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.85rem',
+          }}
+        >
+          <UserPlus size={16} />
+          Nuevo Cliente
+        </button>
+      </div>
+
+      <div style={{ position: 'relative', marginBottom: 16 }}>
+        <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+          {buscador.cargando ? (
+            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Search size={18} />
+          )}
+        </div>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, documento o placa..."
+          value={buscador.query}
+          onChange={(e) => buscador.setQuery(e.target.value)}
+          style={{ paddingLeft: 42, height: 46, fontSize: '0.95rem', width: '100%' }}
+        />
+      </div>
+
+      {buscador.error && (
+        <div style={{ color: '#ef4444', marginBottom: 12, fontSize: '0.9rem' }}>{buscador.error}</div>
+      )}
+
+      {buscador.resultados.length > 0 ? (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ padding: '12px 16px' }}>Documento</th>
+                <th style={{ padding: '12px 16px' }}>Nombre</th>
+                <th style={{ padding: '12px 16px' }}>Celular</th>
+                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {buscador.resultados.map((c) => (
+                <tr key={c.id}>
+                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{c.identity}</td>
+                  <td style={{ padding: '12px 16px' }}>{c.nombre} {c.apellido}</td>
+                  <td style={{ padding: '12px 16px' }}>{c.celular}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button
+                      onClick={() => onSeleccionar(c)}
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: '0.8rem',
+                        background: '#e0e7ff',
+                        color: '#4f46e5',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Seleccionar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : buscador.query.length >= 3 && !buscador.cargando ? (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+          <User size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
+          <p>No se encontraron clientes. Puede registrar uno nuevo.</p>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+          <Search size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
+          <p>Escriba al menos 3 caracteres para buscar</p>
+        </div>
+      )}
+    </article>
+  )
+}
+
+/* ── Paso 2: Seleccionar Vehículo ─────────────────────────────────────────── */
+
+interface PasoVehiculoProps {
+  vehiculos: Vehiculo[]
+  cargando: boolean
+  onSeleccionar: (v: { id: number | string; placa: string }) => void
+  onSaltar: () => void
+  clienteNombre: string
+  onVolver: () => void
+}
+
+function PasoVehiculo({ vehiculos, cargando, onSeleccionar, onSaltar, clienteNombre, onVolver }: PasoVehiculoProps) {
+  return (
+    <article className="panel">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Vehículo</h2>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+            Cliente: <strong>{clienteNombre}</strong>
+          </p>
+        </div>
+      </div>
+
+      {cargando ? (
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+        </div>
+      ) : vehiculos.length > 0 ? (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style={{ padding: '12px 16px' }}>Placa</th>
+                <th style={{ padding: '12px 16px' }}>Marca</th>
+                <th style={{ padding: '12px 16px' }}>Línea</th>
+                <th style={{ padding: '12px 16px' }}>Modelo</th>
+                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vehiculos.map((v) => (
+                <tr key={v.id}>
+                  <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {typeof v.marca === 'object' ? (v.marca as Record<string, unknown>)?.nombre || (v.marca as Record<string, unknown>)?.name : v.marca}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    {typeof v.linea === 'object' ? (v.linea as Record<string, unknown>)?.nombre || (v.linea as Record<string, unknown>)?.name : v.linea}
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button
+                      onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: '0.8rem',
+                        background: '#e0e7ff',
+                        color: '#4f46e5',
+                        border: 'none',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Seleccionar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+          <Car size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
+          <p>Este cliente no tiene vehículos registrados.</p>
+        </div>
+      )}
+
+      <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <button
+          onClick={onSaltar}
+          style={{
+            padding: '8px 20px',
+            background: 'transparent',
+            color: '#2563eb',
+            border: '1px solid #2563eb',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.85rem',
+          }}
+        >
+          Registrar vehículo después
+        </button>
+      </div>
+    </article>
+  )
+}
+
+/* ── Paso 3: Detalle de la orden ──────────────────────────────────────────── */
+
+interface PasoDetalleProps {
+  mileage: string
+  setMileage: (v: string) => void
+  revisionType: string
+  setRevisionType: (v: string) => void
+  customerType: string
+  setCustomerType: (v: string) => void
+  tiposRevision: { id: number | string; nombre: string }[]
+  tiposCliente: { id: number | string; nombre: string }[]
+  estadoEnvio: EstadoEnvio
+  errorEnvio: string | null
+  onSubmit: () => void
+  onVolver: () => void
+}
+
+function PasoDetalle({
+  mileage, setMileage, revisionType, setRevisionType, customerType, setCustomerType,
+  tiposRevision, tiposCliente, estadoEnvio, errorEnvio, onSubmit, onVolver,
+}: PasoDetalleProps) {
+  return (
+    <article className="panel">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+          <ArrowLeft size={18} />
+        </button>
+        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Detalle de la Orden</h2>
+      </div>
+
+      {errorEnvio && (
+        <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#991b1b', fontSize: '0.9rem' }}>
+          <AlertCircle size={16} />
+          <span>{errorEnvio}</span>
+        </div>
+      )}
+
+      <div className="form-grid">
+        <label>
+          Kilometraje actual (km)
+          <input
+            type="number"
+            placeholder="Ej: 50000"
+            value={mileage}
+            onChange={(e) => setMileage(e.target.value)}
+            min={0}
+            disabled={estadoEnvio === 'enviando'}
+          />
+        </label>
+
+        <label>
+          Tipo de revisión <span style={{ color: '#ef4444' }}>*</span>
+          <select
+            value={revisionType}
+            onChange={(e) => setRevisionType(e.target.value)}
+            disabled={estadoEnvio === 'enviando'}
+          >
+            <option value="">Seleccione...</option>
+            {tiposRevision.map((t) => (
+              <option key={t.id} value={t.id}>{t.nombre}</option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Tipo de cliente <span style={{ color: '#ef4444' }}>*</span>
+          <select
+            value={customerType}
+            onChange={(e) => setCustomerType(e.target.value)}
+            disabled={estadoEnvio === 'enviando'}
+          >
+            <option value="">Seleccione...</option>
+            {tiposCliente.map((t) => (
+              <option key={t.id} value={t.id}>{t.nombre}</option>
+            ))}
+          </select>
+        </label>
+
+        <div style={{ marginTop: 8 }}>
+          <button
+            onClick={onSubmit}
+            disabled={estadoEnvio === 'enviando' || !revisionType || !customerType}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '12px 24px',
+              fontSize: '1rem',
+              opacity: (estadoEnvio === 'enviando' || !revisionType || !customerType) ? 0.7 : 1,
+            }}
+          >
+            {estadoEnvio === 'enviando' ? (
+              <>
+                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                Creando orden...
+              </>
+            ) : (
+              <>
+                <ClipboardList size={18} />
+                Abrir Orden de Servicio
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+/* ── Paso 4: Confirmación ─────────────────────────────────────────────────── */
+
+interface PasoConfirmacionProps {
+  orden: { id: string; inspection_number?: string; createdAt?: string }
+  cliente: { nombre: string; apellido: string } | null
+  vehiculo: { placa: string } | null
+  onNuevaOrden: () => void
+  onSalir: () => void
+}
+
+function PasoConfirmacion({ orden, cliente, vehiculo, onNuevaOrden, onSalir }: PasoConfirmacionProps) {
+  const fecha = orden.createdAt
+    ? new Date(orden.createdAt).toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : new Date().toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+
+  return (
+    <article className="panel" style={{ textAlign: 'center', padding: '32px 24px' }}>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          background: '#dcfce7',
+          color: '#16a34a',
+          marginBottom: 16,
+        }}
+      >
+        <CheckCircle2 size={36} strokeWidth={2} />
+      </div>
+
+      <h2 style={{ margin: '0 0 4px', color: '#15803d' }}>
+        Orden de Servicio Creada
+      </h2>
+      <p style={{ color: '#6b7280', marginBottom: 24 }}>
+        El vehículo ha sido registrado para revisión técnico-mecánica.
+      </p>
+
+      <div
+        style={{
+          background: '#f9fafb',
+          border: '1px solid #e5e7eb',
+          borderRadius: 10,
+          padding: '16px 20px',
+          textAlign: 'left',
+          marginBottom: 24,
+          display: 'grid',
+          gap: '10px 24px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        }}
+      >
+        <div>
+          <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            N° de Orden
+          </span>
+          <p style={{ margin: '2px 0 0', fontWeight: 700, color: '#2563eb', fontSize: '1.1rem' }}>
+            {orden.inspection_number ? `#${orden.inspection_number}` : orden.id.slice(0, 8).toUpperCase()}
+          </p>
+        </div>
+        <div>
+          <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Fecha de ingreso
+          </span>
+          <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#111827' }}>{fecha}</p>
+        </div>
+        <div>
+          <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Cliente
+          </span>
+          <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#111827' }}>
+            {cliente ? `${cliente.nombre} ${cliente.apellido}` : '—'}
+          </p>
+        </div>
+        <div>
+          <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Vehículo
+          </span>
+          <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#111827' }}>
+            {vehiculo?.placa || 'Pendiente'}
+          </p>
+        </div>
+        <div>
+          <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Estado
+          </span>
+          <p style={{ margin: '2px 0 0', fontWeight: 500, color: '#111827' }}>
+            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 999, background: '#fefce8', color: '#a16207', fontSize: '0.85rem' }}>
+              En recepción
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <button
+          onClick={onNuevaOrden}
+          style={{
+            padding: '10px 24px',
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.95rem',
+          }}
+        >
+          Nueva Orden
+        </button>
+        <button
+          onClick={onSalir}
+          style={{
+            padding: '10px 24px',
+            background: '#f1f5f9',
+            color: '#475569',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.95rem',
+          }}
+        >
+          Volver al inicio
+        </button>
+      </div>
+    </article>
+  )
+}

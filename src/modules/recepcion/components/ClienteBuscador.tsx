@@ -38,7 +38,7 @@ export function ClienteBuscador({
         </div>
         <input
           type="text"
-          placeholder="Buscar por nombre, apellido o documento..."
+          placeholder="Buscar por nombre, documento o placa..."
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           style={{ 

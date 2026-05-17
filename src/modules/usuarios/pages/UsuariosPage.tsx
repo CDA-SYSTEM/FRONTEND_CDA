@@ -1,12 +1,12 @@
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
-import type { RolUsuario } from '@/modules/usuarios/domain/usuario.types'
+import type { RolUsuario, RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 
-const ROLES: RolUsuario[] = [
-  'ADMIN',
-  'RECEPCIONISTA',
-  'INSPECTOR',
-  'FACTURADOR',
+const ROLES: { label: string; value: RolUsuarioForm }[] = [
+  { label: 'Administrador', value: 'admin' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Inspector', value: 'inspector' },
+  { label: 'Operario', value: 'operario' },
 ]
 const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuario }> = [
   { label: 'Todos', value: '' },
@@ -169,14 +169,14 @@ export function UsuariosPage() {
               <td>{user.email}</td>
               <td>
                 <select
-                  value={user.role}
+                  value={user.role.toLowerCase()}
                   onChange={(e) =>
                     handleCambiarRol(user.id, e.target.value as RolUsuario)
                   }
                 >
                   {ROLES.map((rol) => (
-                    <option key={rol} value={rol}>
-                      {rol}
+                    <option key={rol.value} value={rol.value}>
+                      {rol.label}
                     </option>
                   ))}
                 </select>

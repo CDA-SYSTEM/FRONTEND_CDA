@@ -59,11 +59,11 @@ export function useUsuarios() {
     cargarUsuarios(filtroRol)
   }, [filtroRol, cargarUsuarios])
 
-  const handleCambiarRol = async (id: string, nuevoRol: RolUsuario) => {
+  const handleCambiarRol = async (id: string, nuevoRol: string) => {
     if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
     try {
       clearFeedback()
-      await usuarioService.cambiarRol(id, { role: nuevoRol })
+      await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
       setMensaje('Rol actualizado correctamente.')
       cargarUsuarios()
     } catch {

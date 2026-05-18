@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ClipboardList,
   Loader2,
+  RefreshCw,
   Save,
   XCircle,
 } from 'lucide-react'
@@ -94,16 +95,43 @@ export function ChecklistPage() {
     )
   }
 
-  if (estado === 'error' || estado === 'plantilla_sin_asignar') {
+  if (estado === 'plantilla_sin_asignar') {
     return (
       <div className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-        <AlertCircle size={48} color="#dc2626" strokeWidth={1.5} style={{ marginBottom: 16 }} />
-        <h3 style={{ color: '#374151', marginBottom: 8 }}>Error</h3>
-        <p style={{ color: '#6b7280', marginBottom: 16 }}>{errorMensaje}</p>
+        <ClipboardList size={48} color="#f59e0b" strokeWidth={1.5} style={{ marginBottom: 16 }} />
+        <h3 style={{ color: '#374151', marginBottom: 8 }}>Plantilla no disponible</h3>
+        <p style={{ color: '#6b7280', marginBottom: 8 }}>{errorMensaje}</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: 16 }}>
+          El servicio de checklist no tiene plantillas cargadas para este tipo de vehículo.
+          Contacta al administrador para que agregue las plantillas NTC 5375 en el backend.
+        </p>
         <button onClick={() => navigate(-1)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px' }}>
           <ChevronLeft size={16} />
           Volver
         </button>
+      </div>
+    )
+  }
+
+  if (estado === 'error') {
+    return (
+      <div className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+        <AlertCircle size={48} color="#dc2626" strokeWidth={1.5} style={{ marginBottom: 16 }} />
+        <h3 style={{ color: '#374151', marginBottom: 8 }}>Error al cargar</h3>
+        <p style={{ color: '#6b7280', marginBottom: 8 }}>{errorMensaje || 'Ocurrió un error inesperado'}</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: 16 }}>
+          Verifica que el servicio de checklist esté disponible en el backend.
+        </p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <button onClick={() => navigate(-1)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer' }}>
+            <ChevronLeft size={16} />
+            Volver
+          </button>
+          <button onClick={() => window.location.reload()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px' }}>
+            <RefreshCw size={16} />
+            Reintentar
+          </button>
+        </div>
       </div>
     )
   }
@@ -130,10 +158,11 @@ export function ChecklistPage() {
           <ClipboardList size={24} color="#155DFC" />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 600, color: '#1e293b' }}>
-              Checklist NTC 5375
+              Checklist Técnico-Mecánica
             </h1>
             <p style={{ margin: '2px 0 0 0', color: '#64748b', fontSize: '0.9rem' }}>
               {plate ? `${plate} — ` : ''}Tipo: {nombreVehicleType(vehicleType)}
+              {template && <span style={{ marginLeft: 8, color: '#9ca3af' }}>— {template.sections.length} secciones</span>}
             </p>
           </div>
         </div>

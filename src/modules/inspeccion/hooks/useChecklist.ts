@@ -22,9 +22,10 @@ export type EstadoChecklist =
   | 'error_envio'
 
 function inferirVehicleType(tipoVehiculo: string): VehicleType {
-  const t = tipoVehiculo.toLowerCase()
+  const t = tipoVehiculo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   if (t.includes('moto')) return 'MOTO'
-  if (t.includes('pesad')) return 'PESADO'
+  if (t.includes('pesad') || t.includes('pesado')) return 'PESADO'
+  if (t.includes('livian') || t.includes('libian') || t.includes('liviano')) return 'LIVIANO'
   return 'LIVIANO'
 }
 
@@ -90,7 +91,6 @@ export function useChecklist(inspectionId: string) {
         setTemplate(plantilla)
 
         if (!createdRef.current && user) {
-          createdRef.current = true
           const creada = await checklistService.crearInspeccion({
             plate: plateStr,
             vehicle_id: vId,
@@ -100,7 +100,10 @@ export function useChecklist(inspectionId: string) {
           })
           if (!mounted) return
           if (creada) {
+            createdRef.current = true
             setChecklistInspection(creada)
+          } else {
+            console.warn('[Checklist] No se pudo crear la inspección en el servicio checklist. El backend podría no estar disponible.')
           }
         }
 

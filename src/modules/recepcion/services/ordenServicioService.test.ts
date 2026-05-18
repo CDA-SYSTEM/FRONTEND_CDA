@@ -13,13 +13,14 @@ describe('ordenServicioService', () => {
   })
 
   describe('obtenerTiposRevision', () => {
-    it('retorna lista de catálogo', async () => {
-      const mock = { data: { data: [{ id: 1, nombre: 'Técnico-Mecánica' }] } }
+    it('retorna catálogo desde array plano de strings', async () => {
+      const mock = { data: { data: ['TECNICO_MECANICA', 'PREVENTIVA'] } }
       vi.mocked(apiClient.get).mockResolvedValue(mock)
 
       const result = await ordenServicioService.obtenerTiposRevision()
-      expect(result).toHaveLength(1)
-      expect(result[0].nombre).toBe('Técnico-Mecánica')
+      expect(result).toHaveLength(2)
+      expect(result[0].id).toBe('TECNICO_MECANICA')
+      expect(result[0].nombre).toBe('TECNICO_MECANICA')
       expect(apiClient.get).toHaveBeenCalledWith('/api/v1/catalogs/revision-types')
     })
 
@@ -28,16 +29,25 @@ describe('ordenServicioService', () => {
       const result = await ordenServicioService.obtenerTiposRevision()
       expect(result).toEqual([])
     })
+
+    it('también soporta array de objetos { id, nombre }', async () => {
+      const mock = { data: { data: [{ id: 1, nombre: 'Técnico-Mecánica' }] } }
+      vi.mocked(apiClient.get).mockResolvedValue(mock)
+
+      const result = await ordenServicioService.obtenerTiposRevision()
+      expect(result).toHaveLength(1)
+      expect(result[0].nombre).toBe('Técnico-Mecánica')
+    })
   })
 
   describe('obtenerTiposCliente', () => {
-    it('retorna lista de catálogo', async () => {
-      const mock = { data: { data: [{ id: 1, nombre: 'Propietario' }] } }
+    it('retorna catálogo desde array plano de strings', async () => {
+      const mock = { data: { data: ['PROPIETARIO', 'TERCERO'] } }
       vi.mocked(apiClient.get).mockResolvedValue(mock)
 
       const result = await ordenServicioService.obtenerTiposCliente()
-      expect(result).toHaveLength(1)
-      expect(result[0].nombre).toBe('Propietario')
+      expect(result).toHaveLength(2)
+      expect(result[0].nombre).toBe('PROPIETARIO')
     })
   })
 

@@ -212,6 +212,12 @@ export function OrdenServicioWizard({ onCancelar }: Props) {
           setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
           estadoEnvio={wizard.estadoEnvio}
           errorEnvio={wizard.errorEnvio}
+          tintedWindows={wizard.tintedWindows}
+          setTintedWindows={wizard.setTintedWindows}
+          armoredVehicle={wizard.armoredVehicle}
+          setArmoredVehicle={wizard.setArmoredVehicle}
+          brakeFluidSightGlass={wizard.brakeFluidSightGlass}
+          setBrakeFluidSightGlass={wizard.setBrakeFluidSightGlass}
           onSubmit={wizard.enviar}
           onVolver={wizard.volver}
         />
@@ -554,6 +560,12 @@ interface PasoCondicionesProps {
   setConfirmacionAcuerdo: (v: boolean) => void
   estadoEnvio: 'idle' | 'enviando' | 'exito' | 'error'
   errorEnvio: string | null
+  tintedWindows: string
+  setTintedWindows: (v: string) => void
+  armoredVehicle: string
+  setArmoredVehicle: (v: string) => void
+  brakeFluidSightGlass: string
+  setBrakeFluidSightGlass: (v: string) => void
   onSubmit: () => void
   onVolver: () => void
 }
@@ -564,6 +576,9 @@ function PasoCondiciones({
   signatureBlob, setSignatureBlob,
   confirmacionAcuerdo, setConfirmacionAcuerdo,
   estadoEnvio, errorEnvio,
+  tintedWindows, setTintedWindows,
+  armoredVehicle, setArmoredVehicle,
+  brakeFluidSightGlass, setBrakeFluidSightGlass,
   onSubmit, onVolver,
 }: PasoCondicionesProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -600,6 +615,34 @@ function PasoCondiciones({
       )}
 
       <div className="form-grid">
+        {/* Condiciones del vehículo */}
+        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          <label>
+            <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
+            <select value={tintedWindows} onChange={(e) => setTintedWindows(e.target.value)} disabled={estadoEnvio === 'enviando'}>
+              <option value="NO">NO</option>
+              <option value="SI">SI</option>
+              <option value="NO_APLICA">NO APLICA</option>
+            </select>
+          </label>
+          <label>
+            <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
+            <select value={armoredVehicle} onChange={(e) => setArmoredVehicle(e.target.value)} disabled={estadoEnvio === 'enviando'}>
+              <option value="NO">NO</option>
+              <option value="SI">SI</option>
+              <option value="NO_APLICA">NO APLICA</option>
+            </select>
+          </label>
+          <label>
+            <span style={{ fontWeight: 500 }}>Depósito líquido frenos</span>
+            <select value={brakeFluidSightGlass} onChange={(e) => setBrakeFluidSightGlass(e.target.value)} disabled={estadoEnvio === 'enviando'}>
+              <option value="BUEN_ESTADO">BUEN ESTADO</option>
+              <option value="MAL_ESTADO">MAL ESTADO</option>
+              <option value="NO_APLICA">NO APLICA</option>
+            </select>
+          </label>
+        </div>
+
         {/* Observaciones */}
         <label style={{ gridColumn: '1 / -1' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>

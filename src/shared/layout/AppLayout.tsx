@@ -8,7 +8,8 @@ const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
   { to: '/recepcion', label: 'Recepcion' },
-  { to: '/inspeccion', label: 'Inspeccion' },
+  { to: '/inspeccion', label: 'Inspeccion', roles: ['ADMIN'] },
+  { to: '/inspeccion/asignacion', label: 'Inspeccion', roles: ['INSPECTOR'] },
   { to: '/vehiculo/registro', label: 'Vehículos' },
   { to: '/facturacion', label: 'Facturacion' },
 ]

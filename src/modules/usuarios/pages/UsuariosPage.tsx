@@ -1,19 +1,19 @@
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
-import type { RolUsuario } from '@/modules/usuarios/domain/usuario.types'
+import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 
-const ROLES: RolUsuario[] = [
-  'ADMIN',
-  'RECEPCIONISTA',
-  'INSPECTOR',
-  'FACTURADOR',
+const ROLES: { label: string; value: RolUsuarioForm }[] = [
+  { label: 'Administrador', value: 'admin' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Inspector', value: 'inspector' },
+  { label: 'Operario', value: 'operario' },
 ]
-const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuario }> = [
+const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuarioForm }> = [
   { label: 'Todos', value: '' },
-  { label: 'Admin', value: 'ADMIN' },
-  { label: 'Recepcionista', value: 'RECEPCIONISTA' },
-  { label: 'Inspector', value: 'INSPECTOR' },
-  { label: 'Facturador', value: 'FACTURADOR' },
+  { label: 'Administrador', value: 'admin' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Inspector', value: 'inspector' },
+  { label: 'Operario', value: 'operario' },
 ]
 
 /**
@@ -90,7 +90,7 @@ export function UsuariosPage() {
           </button>
           <select
             value={filtroRol}
-            onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuario)}
+            onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
             style={{ padding: '8px', borderRadius: '6px' }}
           >
             {ROLE_FILTERS.map((item) => (
@@ -169,14 +169,14 @@ export function UsuariosPage() {
               <td>{user.email}</td>
               <td>
                 <select
-                  value={user.role}
+                  value={user.role.toLowerCase()}
                   onChange={(e) =>
-                    handleCambiarRol(user.id, e.target.value as RolUsuario)
+                    handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
                   }
                 >
                   {ROLES.map((rol) => (
-                    <option key={rol} value={rol}>
-                      {rol}
+                    <option key={rol.value} value={rol.value}>
+                      {rol.label}
                     </option>
                   ))}
                 </select>
@@ -333,18 +333,6 @@ export function UsuariosPage() {
               </label>
 
               <label>
-                Contraseña
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  value={formData.password}
-                  onChange={handleFormChange}
-                  style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                />
-              </label>
-
-              <label>
                 Rol
                 <select
                   name="role"
@@ -369,6 +357,7 @@ export function UsuariosPage() {
                     borderRadius: '6px',
                     border: '1px solid #ccc',
                     background: '#f3f4f6',
+                    color: '#374151',
                     cursor: 'pointer',
                   }}
                 >

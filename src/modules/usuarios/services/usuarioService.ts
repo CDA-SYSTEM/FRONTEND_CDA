@@ -35,13 +35,17 @@ function normalizeUsuario(raw: unknown): Usuario {
 }
 
 /**
- * Extrae el array de usuarios manejando tanto respuesta plana como envelope.
- * Envelope: { statusCode, message, data: [...] }
+ * Extrae el array de usuarios manejando distintos formatos de respuesta.
+ * Soporta: plano [...], envelope { data: [...] }, { items: [...] },
+ *          { results: [...] }, { content: [...] }, { usuarios: [...] }
  */
 function extractArray(responseData: unknown): unknown[] {
-  const body = responseData as Record<string, unknown>
-  if (body['data'] && Array.isArray(body['data'])) return body['data']
   if (Array.isArray(responseData)) return responseData as unknown[]
+  const body = responseData as Record<string, unknown>
+  for (const key of ['data', 'items', 'results', 'content', 'usuarios', 'users']) {
+    const val = body[key]
+    if (Array.isArray(val)) return val
+  }
   return []
 }
 
@@ -53,7 +57,7 @@ export const usuarioService = {
    * El parámetro role es requerido por el backend.
    * Si no se pasa rol, se hace una petición por cada rol conocido y se fusionan.
    */
-  async obtenerUsuarios(role?: RolUsuario): Promise<Usuario[]> {
+  async obtenerUsuarios(role?: string): Promise<Usuario[]> {
     if (role) {
       const response = await apiClient.get('/auth/users', {
         params: { role: role.toLowerCase() },

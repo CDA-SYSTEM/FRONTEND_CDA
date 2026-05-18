@@ -3,6 +3,7 @@ import { ProtectedRoute } from '@/modules/auth/components/ProtectedRoute'
 import { LoginPage } from '@/modules/auth/pages/LoginPage'
 import { DashboardPage } from '@/modules/dashboard/pages/DashboardPage'
 import { FacturacionPage } from '@/modules/facturacion/pages/FacturacionPage'
+import { AsignacionPage } from '@/modules/inspeccion/pages/AsignacionPage'
 import { InspeccionPage } from '@/modules/inspeccion/pages/InspeccionPage'
 import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
 import { RegistroVehiculoPage } from '@/modules/vehiculo/pages/RegistroVehiculoPage'
@@ -25,7 +26,7 @@ function RoleBasedRedirect() {
   const roleRoutes: Record<string, string> = {
     ADMIN: '/dashboard',
     RECEPCIONISTA: '/recepcion',
-    INSPECTOR: '/inspeccion',
+    INSPECTOR: '/inspeccion/asignacion',
     FACTURADOR: '/facturacion',
   }
 
@@ -45,6 +46,7 @@ export function AppRouter() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/inspeccion" element={<InspeccionPage />} />
+            <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />

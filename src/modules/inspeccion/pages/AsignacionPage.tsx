@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
   Calendar,
   Car,
   CheckCircle,
+  ClipboardList,
   Clock,
   Loader2,
   RefreshCw,
@@ -388,6 +390,7 @@ function ContenidoMisAsignaciones({
   asignaciones: InspectionSummary[]
   onRefresh: () => void
 }) {
+  const navigate = useNavigate()
   if (asignaciones.length === 0) {
     return (
       <article className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
@@ -486,6 +489,27 @@ function ContenidoMisAsignaciones({
             <CheckCircle size={14} />
             Asignado
           </span>
+
+          <button
+            onClick={() => navigate(`/inspeccion/checklist/${insp.id}`)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              background: '#155DFC',
+              color: '#fff',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <ClipboardList size={14} />
+            Realizar Checklist
+          </button>
         </article>
       ))}
     </div>

@@ -5,6 +5,7 @@ import {
   Car,
   CheckCircle,
   Clock,
+  Eye,
   Loader2,
   RefreshCw,
   UserCheck,
@@ -13,9 +14,13 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
+import { Toast } from '@/shared/components/Toast'
 import type { InspectionSummary } from '@/modules/inspeccion/domain/inspeccion.types'
+import type { UserRole } from '@/modules/auth/domain/auth.types'
 
 type Tab = 'pendientes' | 'mis-asignaciones'
+
+const ROLES_PERMITIDOS: UserRole[] = ['ADMIN', 'INSPECTOR']
 
 function formatearFecha(fecha?: string) {
   if (!fecha) return '—'
@@ -61,10 +66,15 @@ export function AsignacionPage() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [asignandoId, setAsignandoId] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ tipo: 'exito' | 'error'; mensaje: string } | null>(null)
 
   const userId = user?.id
+  const esInspector = user?.role === 'INSPECTOR'
+  const esAdmin = user?.role === 'ADMIN'
+  const puedeAsignarse = esInspector
+  const tieneAcceso = ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
 
-  const pendientes = todas.filter((i) => !i.operator_id)
+  const pendientes = todas.filter((i) => !i.operator_id && (!i.result || i.result === 'SIN_RESULTADO'))
   const misAsignaciones = todas.filter(
     (i) => i.operator_id === userId && (!i.result || i.result === 'SIN_RESULTADO'),
   )
@@ -87,8 +97,9 @@ export function AsignacionPage() {
   }, [cargar])
 
   const handleAsignarse = async (inspectionId: string) => {
-    if (!userId) return
+    if (!userId || !esInspector) return
     setAsignandoId(inspectionId)
+    setError(null)
     try {
       await inspeccionService.asignarInspector(inspectionId, userId)
       setTodas((prev) =>
@@ -96,15 +107,37 @@ export function AsignacionPage() {
           i.id === inspectionId ? { ...i, operator_id: userId } : i,
         ),
       )
+      setToast({ tipo: 'exito', mensaje: 'Te has asignado la orden exitosamente' })
+      setTab('mis-asignaciones')
     } catch {
-      setError('No se pudo asignar la inspección. Intente de nuevo.')
+      setToast({ tipo: 'error', mensaje: 'No se pudo asignar la inspección. Intente de nuevo.' })
     } finally {
       setAsignandoId(null)
     }
   }
 
+  if (!tieneAcceso) {
+    return (
+      <div className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+        <Eye size={48} color="#dc2626" strokeWidth={1.5} style={{ marginBottom: 16 }} />
+        <h3 style={{ color: '#374151', marginBottom: 8 }}>Acceso denegado</h3>
+        <p style={{ color: '#6b7280' }}>
+          Solo los usuarios con rol de Inspector o Administrador pueden acceder a esta sección.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {toast && (
+        <Toast
+          tipo={toast.tipo}
+          mensaje={toast.mensaje}
+          onCerrar={() => setToast(null)}
+        />
+      )}
+
       {/* Cabecera */}
       <div
         style={{
@@ -122,27 +155,49 @@ export function AsignacionPage() {
             Asignación de Órdenes
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-            Seleccione una orden de servicio pendiente para asignarse
+            {esInspector
+              ? 'Seleccione una orden de servicio pendiente para asignarse'
+              : 'Visualización de órdenes de servicio'}
           </p>
         </div>
-        <button
-          onClick={cargar}
-          disabled={cargando}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            height: 40,
-            padding: '0 16px',
-            background: '#f8fafc',
-            color: '#475569',
-            border: '1px solid #e2e8f0',
-            borderRadius: 8,
-          }}
-        >
-          <RefreshCw size={16} className={cargando ? 'spin' : ''} />
-          Actualizar
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {esAdmin && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '4px 10px',
+                borderRadius: 6,
+                background: '#fefce8',
+                border: '1px solid #fde68a',
+                color: '#854d0e',
+                fontSize: '0.8rem',
+              }}
+            >
+              <Eye size={14} />
+              Solo lectura
+            </div>
+          )}
+          <button
+            onClick={cargar}
+            disabled={cargando}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              height: 40,
+              padding: '0 16px',
+              background: '#f8fafc',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+            }}
+          >
+            <RefreshCw size={16} className={cargando ? 'spin' : ''} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -256,6 +311,7 @@ export function AsignacionPage() {
         <ContenidoPendientes
           pendientes={pendientes}
           asignandoId={asignandoId}
+          puedeAsignarse={puedeAsignarse}
           onAsignarse={handleAsignarse}
         />
       ) : (
@@ -271,10 +327,12 @@ export function AsignacionPage() {
 function ContenidoPendientes({
   pendientes,
   asignandoId,
+  puedeAsignarse,
   onAsignarse,
 }: {
   pendientes: InspectionSummary[]
   asignandoId: string | null
+  puedeAsignarse: boolean
   onAsignarse: (id: string) => void
 }) {
   if (pendientes.length === 0) {
@@ -302,6 +360,7 @@ function ContenidoPendientes({
             justifyContent: 'space-between',
             gap: 16,
             flexWrap: 'wrap',
+            borderLeft: '4px solid #f59e0b',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 200 }}>
@@ -349,32 +408,51 @@ function ContenidoPendientes({
             </div>
           </div>
 
-          <button
-            onClick={() => onAsignarse(insp.id)}
-            disabled={asignandoId === insp.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 20px',
-              borderRadius: 8,
-              background: asignandoId === insp.id ? '#93c5fd' : '#155DFC',
-              color: '#fff',
-              fontWeight: 600,
-              border: 'none',
-              cursor: asignandoId === insp.id ? 'not-allowed' : 'pointer',
-              whiteSpace: 'nowrap',
-              minWidth: 140,
-              justifyContent: 'center',
-            }}
-          >
-            {asignandoId === insp.id ? (
-              <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-            ) : (
-              <UserPlus size={16} />
-            )}
-            {asignandoId === insp.id ? 'Asignando...' : 'Asignarme'}
-          </button>
+          {puedeAsignarse ? (
+            <button
+              onClick={() => onAsignarse(insp.id)}
+              disabled={asignandoId === insp.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 20px',
+                borderRadius: 8,
+                background: asignandoId === insp.id ? '#93c5fd' : '#155DFC',
+                color: '#fff',
+                fontWeight: 600,
+                border: 'none',
+                cursor: asignandoId === insp.id ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap',
+                minWidth: 140,
+                justifyContent: 'center',
+              }}
+            >
+              {asignandoId === insp.id ? (
+                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <UserPlus size={16} />
+              )}
+              {asignandoId === insp.id ? 'Asignando...' : 'Asignarme'}
+            </button>
+          ) : (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: '#fefce8',
+                color: '#a16207',
+                fontWeight: 500,
+                fontSize: '0.85rem',
+              }}
+            >
+              <Clock size={14} />
+              Pendiente
+            </span>
+          )}
         </article>
       ))}
     </div>

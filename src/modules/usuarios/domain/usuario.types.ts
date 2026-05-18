@@ -19,7 +19,7 @@ export interface CrearUsuarioDTO {
   lastName: string
   phoneNumber: string
   email: string
-  password: string
+  password?: string
   role: RolUsuarioForm
 }
 

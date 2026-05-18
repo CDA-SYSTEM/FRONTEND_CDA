@@ -14,7 +14,6 @@ const INITIAL_FORM: CrearUsuarioDTO = {
   lastName: '',
   phoneNumber: '',
   email: '',
-  password: '',
   role: 'inspector',
 }
 

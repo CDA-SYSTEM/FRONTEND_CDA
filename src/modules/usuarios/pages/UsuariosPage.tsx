@@ -333,18 +333,6 @@ export function UsuariosPage() {
               </label>
 
               <label>
-                Contraseña
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  value={formData.password}
-                  onChange={handleFormChange}
-                  style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                />
-              </label>
-
-              <label>
                 Rol
                 <select
                   name="role"

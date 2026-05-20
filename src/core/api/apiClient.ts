@@ -32,6 +32,46 @@ if (typeof window !== 'undefined') {
   window.addEventListener('offline', () => notificar(false))
 }
 
+/* ── Sincronización ── */
+
+let sincronizando = false
+const sincronizarListeners = new Set<() => void>()
+
+export function suscribirSincronizacion(fn: () => void): () => void {
+  sincronizarListeners.add(fn)
+  return () => { sincronizarListeners.delete(fn) }
+}
+
+export async function sincronizar(): Promise<void> {
+  if (sincronizando || !navigator.onLine) return
+  sincronizando = true
+  try {
+    const cola = await offlineStorage.obtenerCola()
+    for (const item of cola) {
+      try {
+        const payload = item.payload && typeof item.payload === 'object'
+          ? item.payload
+          : {}
+        await apiClient({
+          method: item.method,
+          url: item.endpoint,
+          data: payload,
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (item.id !== undefined) {
+          await offlineStorage.eliminarDeCola(item.id)
+        }
+      } catch {
+        // Si uno falla, detener la sincronización (probablemente aún offline o error del servidor)
+        break
+      }
+    }
+    sincronizarListeners.forEach((fn) => fn())
+  } finally {
+    sincronizando = false
+  }
+}
+
 /* ── Interceptor de autenticación ── */
 
 apiClient.interceptors.request.use((config) => {

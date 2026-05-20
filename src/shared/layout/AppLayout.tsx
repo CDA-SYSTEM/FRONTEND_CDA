@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
 import { LogOut, Menu, WifiOff, X } from 'lucide-react'
-import { estaOnline, suscribirConectividad } from '@/core/api/apiClient'
+import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
 import { offlineStorage } from '@/core/services/offlineStorage'
 import './AppLayout.css'
 
@@ -43,7 +43,12 @@ export function AppLayout() {
   const [pendientes, setPendientes] = useState(0)
 
   useEffect(() => {
-    const unsuscribe = suscribirConectividad(setOnline)
+    const unsuscribe = suscribirConectividad((conectado) => {
+      setOnline(conectado)
+      if (conectado) {
+        sincronizar()
+      }
+    })
     return unsuscribe
   }, [])
 

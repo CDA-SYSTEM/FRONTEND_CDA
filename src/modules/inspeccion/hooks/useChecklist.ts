@@ -21,11 +21,18 @@ export type EstadoChecklist =
   | 'exito'
   | 'error_envio'
 
+/**
+ * HU-015: Infiere el VehicleType a partir del texto del tipo de vehículo.
+ * Detecta variaciones comunes en español: motocicleta, moto, motocarro, cuatrimoto, etc.
+ */
 function inferirVehicleType(tipoVehiculo: string): VehicleType {
   const t = tipoVehiculo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  if (t.includes('moto')) return 'MOTO'
-  if (t.includes('pesad') || t.includes('pesado')) return 'PESADO'
-  if (t.includes('livian') || t.includes('libian') || t.includes('liviano')) return 'LIVIANO'
+  // Motos — detectar "moto", "motocicleta", "motocarro", "cuatrimoto", "triciclo"
+  if (t.includes('moto') || t.includes('triciclo') || t.includes('biciclet')) return 'MOTO'
+  // Pesados — detectar "pesado", "camion", "bus", "tracto"
+  if (t.includes('pesad') || t.includes('camion') || t.includes('bus') || t.includes('tracto')) return 'PESADO'
+  // Liviano — default
+  if (t.includes('livian') || t.includes('libian') || t.includes('auto') || t.includes('sedan') || t.includes('camionet')) return 'LIVIANO'
   return 'LIVIANO'
 }
 

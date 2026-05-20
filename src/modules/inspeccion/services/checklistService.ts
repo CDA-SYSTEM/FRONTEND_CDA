@@ -28,14 +28,33 @@ function extractArray<T>(responseData: unknown): T[] {
 }
 
 export const checklistService = {
+  /**
+   * HU-015 + HU-014: Obtiene la plantilla activa para el tipo de vehículo.
+   * Primero intenta con los endpoints dedicados (/motos o /livianos-pesados),
+   * luego como fallback usa el listado genérico con filtro.
+   */
   async obtenerPlantillaActiva(vehicleType: VehicleType): Promise<ChecklistTemplate | null> {
+    // 1) Intentar con el endpoint dedicado
+    try {
+      const dedicatedUrl = vehicleType === 'MOTO'
+        ? '/api/v1/checklist/templates/motos'
+        : '/api/v1/checklist/templates/livianos-pesados'
+
+      const res = await apiClient.get(dedicatedUrl)
+      const template = extractItem<ChecklistTemplate>(res.data)
+      if (template?.sections) return template
+    } catch {
+      // Si el dedicado falla, continuar con el genérico
+    }
+
+    // 2) Fallback: listar todas y filtrar por vehicle_type
     try {
       const response = await apiClient.get('/api/v1/checklist/templates', {
         params: { vehicle_type: vehicleType },
       })
       const templates = extractArray<ChecklistTemplate>(response.data)
       const activa = templates.find((t) => t.active === true)
-      return activa ?? null
+      return activa ?? templates[0] ?? null
     } catch {
       return null
     }

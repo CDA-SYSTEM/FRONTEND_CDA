@@ -12,7 +12,7 @@ export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'condiciones' | 'c
 
 export type EstadoEnvio = 'idle' | 'enviando' | 'exito' | 'error'
 
-export function useCrearOrdenServicio() {
+export function useCrearRecepcion() {
   const user = useAuthStore((s) => s.user)
 
   const [paso, setPaso] = useState<PasoWizard>('cliente')
@@ -84,7 +84,7 @@ export function useCrearOrdenServicio() {
     setCargandoVehiculos(true)
     try {
       const v = await ordenServicioService.obtenerVehiculosCliente(c.id)
-      setVehiculos(v)
+      setVehiculos(v as Vehiculo[])
       setPaso('vehiculo')
     } catch {
       setVehiculos([])
@@ -143,7 +143,6 @@ export function useCrearOrdenServicio() {
         customer_type: customerType,
         revision_type: revisionType,
         observations: observations || undefined,
-        operator_id: String(user.id),
         responsible_id: String(user.id),
         customer_id: String(cliente.id),
         tinted_windows: tintedWindows,

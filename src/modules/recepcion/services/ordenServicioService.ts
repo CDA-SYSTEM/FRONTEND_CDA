@@ -95,7 +95,7 @@ function extractItem(responseData: unknown): unknown {
 }
 
 function normalizarCatalogo(raw: unknown[]): CatalogoItem[] {
-  return raw.map((item, i) => {
+  return raw.map((item) => {
     if (item && typeof item === 'object' && 'id' in (item as Record<string, unknown>) && 'nombre' in (item as Record<string, unknown>)) {
       const obj = item as Record<string, unknown>
       return { id: String(obj.id), nombre: String(obj.nombre) }

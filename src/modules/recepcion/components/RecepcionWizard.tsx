@@ -11,15 +11,13 @@ import {
   FileText,
   Image,
   Loader2,
-  PenSquare,
   Search,
   User,
   UserPlus,
   X,
 } from 'lucide-react'
-import { useCrearOrdenServicio, type PasoWizard } from '@/modules/recepcion/hooks/useCrearOrdenServicio'
+import { useCrearRecepcion, type PasoWizard } from '@/modules/recepcion/hooks/useCrearRecepcion'
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
-import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { SignaturePad } from '@/shared/components/SignaturePad'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
@@ -44,8 +42,8 @@ const INDICE_PASO: Record<PasoWizard, number> = {
   confirmacion: 4,
 }
 
-export function OrdenServicioWizard({ onCancelar }: Props) {
-  const wizard = useCrearOrdenServicio()
+export function RecepcionWizard({ onCancelar }: Props) {
+  const wizard = useCrearRecepcion()
   const buscador = useBuscarCliente()
   const [clienteNuevoModal, setClienteNuevoModal] = useState(false)
 
@@ -66,12 +64,12 @@ export function OrdenServicioWizard({ onCancelar }: Props) {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-            Nueva Orden de Servicio
-          </h1>
-          <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-            Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
-          </p>
+            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+              Nueva Recepción
+            </h1>
+            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+              Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
+            </p>
         </div>
         <button
           onClick={onCancelar}
@@ -175,7 +173,7 @@ export function OrdenServicioWizard({ onCancelar }: Props) {
           onCloseModal={() => setClienteNuevoModal(false)}
             onClienteCreado={(c) => {
             setClienteNuevoModal(false)
-            onSeleccionar(c)
+            wizard.seleccionarCliente(c)
           }}
         />
       ) : wizard.paso === 'vehiculo' ? (
@@ -401,10 +399,10 @@ function PasoVehiculo({ vehiculos, cargando, onSeleccionar, onSaltar, clienteNom
                 <tr key={v.id}>
                   <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
                   <td style={{ padding: '12px 16px' }}>
-                    {typeof v.marca === 'object' ? (v.marca as Record<string, unknown>)?.nombre || (v.marca as Record<string, unknown>)?.name : v.marca}
+                    {typeof v.marca === 'object' && v.marca ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '') : String(v.marca ?? '')}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
-                    {typeof v.linea === 'object' ? (v.linea as Record<string, unknown>)?.nombre || (v.linea as Record<string, unknown>)?.name : v.linea}
+                    {typeof v.linea === 'object' && v.linea ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '') : String(v.linea ?? '')}
                   </td>
                   <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
                   <td style={{ padding: '12px 16px' }}>
@@ -482,7 +480,7 @@ function PasoDetalle({
         <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
           <ArrowLeft size={18} />
         </button>
-        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Detalle de la Orden</h2>
+        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Detalle de la Recepción</h2>
       </div>
 
       <div className="form-grid">
@@ -573,7 +571,7 @@ interface PasoCondicionesProps {
 function PasoCondiciones({
   observations, setObservations,
   photoFile, setPhotoFile,
-  signatureBlob, setSignatureBlob,
+  setSignatureBlob,
   confirmacionAcuerdo, setConfirmacionAcuerdo,
   estadoEnvio, errorEnvio,
   tintedWindows, setTintedWindows,
@@ -774,12 +772,12 @@ function PasoCondiciones({
             {estadoEnvio === 'enviando' ? (
               <>
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-                Creando orden...
+                Registrando...
               </>
             ) : (
               <>
                 <ClipboardList size={18} />
-                Abrir Orden de Servicio
+                Registrar Recepción
               </>
             )}
           </button>
@@ -838,7 +836,7 @@ function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, t
       </div>
 
       <h2 style={{ margin: '0 0 4px', color: '#15803d' }}>
-        Orden de Servicio Creada
+        Recepción Registrada
       </h2>
       <p style={{ color: '#6b7280', marginBottom: 24 }}>
         El vehículo ha sido registrado para revisión técnico-mecánica.
@@ -859,7 +857,7 @@ function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, t
       >
         <div>
           <span style={{ fontSize: '0.72rem', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            N° de Orden
+            N° de Recepción
           </span>
           <p style={{ margin: '2px 0 0', fontWeight: 700, color: '#2563eb', fontSize: '1.1rem' }}>
             {orden.inspection_number ? `#${orden.inspection_number}` : orden.id.slice(0, 8).toUpperCase()}
@@ -939,7 +937,7 @@ function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, t
             fontSize: '0.95rem',
           }}
         >
-          Nueva Orden
+          Nueva Recepción
         </button>
         <button
           onClick={onSalir}

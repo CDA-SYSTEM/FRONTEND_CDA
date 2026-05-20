@@ -15,8 +15,9 @@ import './LoginPage.css'
  */
 const DASHBOARD_ROUTES: Record<string, string> = {
   ADMIN: '/dashboard',
-  RECEPCIONISTA: '/recepcion',
-  INSPECTOR: '/inspeccion',
+  MANAGER: '/recepcion',
+  OPERARIO: '/recepcion',
+  INSPECTOR: '/inspeccion/asignacion',
   FACTURADOR: '/facturacion',
 }
 

@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthState>((set) => {
       }
     },
 
-    loginAsDemo: (role = 'RECEPCIONISTA') => {
+    loginAsDemo: (role: UserRole = 'OPERARIO') => {
       const demoUser: AuthUser = {
         id: 'demo-user',
         name: 'Usuario Demo CDA',

@@ -66,8 +66,8 @@ describe('ordenServicioService', () => {
 
       const result = await ordenServicioService.crearOrdenServicio({
         mileage: 50000,
-        client_id: '1',
-        vehicle_id: '10',
+        client_id: 1,
+        vehicle_id: 10,
         customer_type: 'PROPIETARIO',
         revision_type: 'TECNICO_MECANICA',
       })
@@ -87,8 +87,8 @@ describe('ordenServicioService', () => {
       await expect(
         ordenServicioService.crearOrdenServicio({
           mileage: 1000,
-          client_id: '1',
-          vehicle_id: '5',
+          client_id: 1,
+          vehicle_id: 5,
           customer_type: 'PROPIETARIO',
           revision_type: 'TECNICO_MECANICA',
         }),
@@ -100,8 +100,8 @@ describe('ordenServicioService', () => {
 
       await ordenServicioService.crearOrdenServicio({
         mileage: 0,
-        client_id: '1',
-        vehicle_id: '1',
+        client_id: 1,
+        vehicle_id: 1,
         customer_type: 'PROPIETARIO',
         revision_type: 'TECNICO_MECANICA',
         observations: 'Golpe en puerta trasera izquierda',
@@ -118,7 +118,7 @@ describe('ordenServicioService', () => {
       const foto = new File(['foto'], 'ingreso.jpg', { type: 'image/jpeg' })
 
       await ordenServicioService.crearOrdenServicio(
-        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        { mileage: 0, client_id: 1, vehicle_id: 1, customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
         { photo: foto },
       )
 
@@ -131,7 +131,7 @@ describe('ordenServicioService', () => {
       const firma = new Blob(['firma'], { type: 'image/png' })
 
       await ordenServicioService.crearOrdenServicio(
-        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        { mileage: 0, client_id: 1, vehicle_id: 1, customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
         { signature: firma },
       )
 

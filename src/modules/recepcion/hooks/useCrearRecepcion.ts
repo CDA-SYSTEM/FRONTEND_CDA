@@ -138,13 +138,14 @@ export function useCrearRecepcion() {
     try {
       const dto = {
         mileage: Number(mileage) || 0,
-        client_id: String(cliente.id),
-        vehicle_id: String(vehiculo?.id || ''),
+        client_id: typeof cliente.id === 'number' ? cliente.id : Number(cliente.id) || 0,
+        vehicle_id: vehiculo ? (typeof vehiculo.id === 'number' ? vehiculo.id : Number(vehiculo.id) || 0) : 0,
+        plate: vehiculo?.placa || '',
         customer_type: customerType,
         revision_type: revisionType,
         observations: observations || undefined,
         responsible_id: String(user.id),
-        customer_id: String(cliente.id),
+        customer_id: typeof cliente.id === 'number' ? cliente.id : Number(cliente.id) || 0,
         tinted_windows: tintedWindows,
         armored_vehicle: armoredVehicle,
         brake_fluid_sight_glass: brakeFluidSightGlass,
@@ -152,6 +153,7 @@ export function useCrearRecepcion() {
         tires: tires.length > 0
           ? tires.map((t) => ({ position: t.position, code: t.code || 'PENDIENTE', tire_pressure: t.tire_pressure || 32 }))
           : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32 }],
+        checklist: { is_clean: false },
       }
 
       const response = await ordenServicioService.crearOrdenServicio(dto, {

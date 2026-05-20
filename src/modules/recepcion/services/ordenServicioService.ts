@@ -116,10 +116,12 @@ export const ordenServicioService = {
   },
 
   async crearOrdenServicio(dto: CrearOrdenServicioDTO, adjuntos?: ArchivosAdjuntos): Promise<OrdenServicioResponse> {
+    const clientId = typeof dto.client_id === 'number' ? dto.client_id : Number(dto.client_id) || 0
+    const vehicleId = typeof dto.vehicle_id === 'number' ? dto.vehicle_id : Number(dto.vehicle_id) || 0
     const payload: Record<string, unknown> = {
       mileage: dto.mileage,
-      client_id: String(dto.client_id),
-      vehicle_id: String(dto.vehicle_id),
+      client_id: clientId,
+      vehicle_id: vehicleId,
       customer_type: dto.customer_type,
       revision_type: dto.revision_type,
     }
@@ -127,11 +129,13 @@ export const ordenServicioService = {
     if (dto.operator_id) payload.operator_id = dto.operator_id
     if (dto.responsible_id) payload.responsible_id = dto.responsible_id
     if (dto.customer_id) payload.customer_id = dto.customer_id
+    if (dto.plate) payload.plate = dto.plate
     if (dto.tinted_windows) payload.tinted_windows = dto.tinted_windows
     if (dto.armored_vehicle) payload.armored_vehicle = dto.armored_vehicle
     if (dto.brake_fluid_sight_glass) payload.brake_fluid_sight_glass = dto.brake_fluid_sight_glass
-    if (dto.axles) payload.axles = dto.axles
-    if (dto.tires) payload.tires = dto.tires
+    if (dto.axles && dto.axles.length > 0) payload.axles = dto.axles
+    if (dto.tires && dto.tires.length > 0) payload.tires = dto.tires
+    if (dto.checklist) payload.checklist = dto.checklist
 
     const formData = new FormData()
     formData.append('data', JSON.stringify(payload))

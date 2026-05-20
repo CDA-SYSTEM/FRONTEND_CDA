@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
-  Camera,
+  AlertTriangle,
   Car,
   CheckCircle,
   ChevronDown,
@@ -18,6 +18,7 @@ import {
   Settings,
   Shield,
   Trash2,
+  Upload,
   XCircle,
   Zap,
 } from 'lucide-react'
@@ -66,6 +67,10 @@ function sectionIcon(title: string) {
 /* ═══════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════ */
+
+const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/heic']
+const TAMAÑO_MAXIMO_MB = 5
+const TAMAÑO_MAXIMO_BYTES = TAMAÑO_MAXIMO_MB * 1024 * 1024
 
 export function ChecklistPage() {
   const { inspectionId } = useParams<{ inspectionId: string }>()
@@ -575,12 +580,28 @@ function ItemRow({
   const [observation, setObservation] = useState('')
   const [showObservation, setShowObservation] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
+  const [errorFoto, setErrorFoto] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fotos = obtenerFotos()
 
-  const handleTomarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (!FORMATOS_PERMITIDOS.includes(file.type)) {
+      setErrorFoto('Formato no permitido. Use JPG, PNG o HEIC.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
+    if (file.size > TAMAÑO_MAXIMO_BYTES) {
+      setErrorFoto(`La imagen excede el tamaño máximo de ${TAMAÑO_MAXIMO_MB} MB.`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
     setSubiendoFoto(true)
     try {
       await onAgregarFoto(sectionCode, subsectionCode, item.code, file)
@@ -697,37 +718,48 @@ function ItemRow({
         </div>
       )}
 
-      {/* HU-027: Botón de cámara + galería de fotos */}
-      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleTomarFoto}
-          style={{ display: 'none' }}
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={subiendoFoto}
-          title="Tomar foto"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
-            borderRadius: 6, cursor: subiendoFoto ? 'not-allowed' : 'pointer',
-            border: '1px dashed #93c5fd', background: '#eff6ff',
-            color: '#155DFC', transition: 'all 0.12s ease',
-            opacity: subiendoFoto ? 0.6 : 1,
-          }}
-        >
-          {subiendoFoto ? (
-            <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
-          ) : (
-            <Camera size={13} />
-          )}
-          {subiendoFoto ? 'Comprimiendo...' : `Foto${fotos.length > 0 ? ` (${fotos.length})` : ''}`}
-        </button>
+      {/* HU-017: Adjuntar imágenes desde galería / explorador de archivos */}
+      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {errorFoto && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 10px', borderRadius: 6, fontSize: '0.8rem',
+            background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b',
+          }}>
+            <AlertTriangle size={13} />
+            <span>{errorFoto}</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
+            onChange={handleAdjuntarFoto}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={subiendoFoto}
+            title="Adjuntar imagen (JPG, PNG, HEIC — máx 5 MB)"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
+              borderRadius: 6, cursor: subiendoFoto ? 'not-allowed' : 'pointer',
+              border: '1px dashed #93c5fd', background: '#eff6ff',
+              color: '#155DFC', transition: 'all 0.12s ease',
+              opacity: subiendoFoto ? 0.6 : 1,
+            }}
+          >
+            {subiendoFoto ? (
+              <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Upload size={13} />
+            )}
+            {subiendoFoto ? 'Comprimiendo...' : `Adjuntar${fotos.length > 0 ? ` (${fotos.length})` : ''}`}
+          </button>
+        </div>
       </div>
 
       {/* HU-027: Miniaturas de fotos */}

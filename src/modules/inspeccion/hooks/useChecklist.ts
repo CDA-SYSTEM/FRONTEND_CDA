@@ -159,7 +159,7 @@ export function useChecklist(inspectionId: string) {
         section_code,
         subsection_code,
         item_code,
-        response: existing?.response || 'No Aplica',
+        response: existing?.response || 'CUMPLE',
         defect_type: existing?.defect_type,
         observation,
       })

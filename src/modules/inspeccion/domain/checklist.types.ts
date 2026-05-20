@@ -1,6 +1,34 @@
 export type VehicleType = 'MOTO' | 'LIVIANO' | 'PESADO'
-export type ItemResponse = 'Cumple' | 'No Cumple' | 'No Aplica'
+
+/**
+ * El backend acepta cualquier string como response (example: "APROBADO").
+ * Según la NTC 5375, las opciones estándar son:
+ * - "CUMPLE" (conforme, sin defectos)
+ * - "DEFECTO_LEVE" (defecto tipo A)
+ * - "DEFECTO_GRAVE" (defecto tipo B)
+ * - "NO_APLICA"
+ *
+ * Usamos string para ser flexibles con lo que envíe/acepte el backend.
+ */
+export type ItemResponse = string
 export type InspectionResult = 'APROBADO' | 'RECHAZADO'
+
+/** Opciones de respuesta estándar NTC 5375 — se usan como fallback si el backend no las envía */
+export interface ResponseOption {
+  value: string
+  label: string
+  icon: string
+  color: string
+  bg: string
+  border: string
+}
+
+export const RESPONSE_OPTIONS_NTC5375: ResponseOption[] = [
+  { value: 'CUMPLE',        label: 'Conforme',       icon: '✓', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+  { value: 'DEFECTO_LEVE',  label: 'Defecto Menor',  icon: '⚠', color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
+  { value: 'DEFECTO_GRAVE', label: 'Defecto Mayor',  icon: '✗', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  { value: 'NO_APLICA',     label: 'N/A',            icon: '—', color: '#6b7280', bg: '#f9fafb', border: '#e5e7eb' },
+]
 
 export interface ChecklistTemplate {
   id: string
@@ -10,6 +38,8 @@ export interface ChecklistTemplate {
   active?: boolean
   supported_vehicle_types: string[]
   sections: TemplateSection[]
+  /** Si el backend envía opciones de respuesta en la plantilla, se usan estas */
+  response_options?: ResponseOption[]
 }
 
 export interface TemplateSection {
@@ -74,6 +104,42 @@ export interface ChecklistInspection {
   general_result?: string
   responses?: InspectionItemResponse[]
   observations?: string
+  created_at?: string
+  updated_at?: string
+}
+
+/* ── Labrado (medición de desgaste de llantas) ── */
+/* Estructura del Swagger: axles → wheels → tires */
+export interface TireMeasurement {
+  tire_code: string
+  outer_mm: number
+  middle_mm: number
+  inner_mm: number
+}
+
+export interface WheelMeasurement {
+  wheel_code: string
+  tires: TireMeasurement[]
+}
+
+export interface AxleMeasurement {
+  axle_code: string
+  wheels: WheelMeasurement[]
+}
+
+export interface CreateLabradoDTO {
+  inspection_id: string
+  axles: AxleMeasurement[]
+}
+
+export interface UpdateLabradoDTO {
+  axles: AxleMeasurement[]
+}
+
+export interface LabradoRecord {
+  id?: string
+  inspection_id: string
+  axles: AxleMeasurement[]
   created_at?: string
   updated_at?: string
 }

@@ -811,9 +811,9 @@ function ItemRow({
               }}
             >
               <img
-                src={foto.previewUrl}
+                src={typeof foto.previewUrl === 'string' ? foto.previewUrl : ''}
                 alt="Foto inspección"
-                onClick={() => setFotoPreviewUrl(foto.previewUrl)}
+                onClick={() => setFotoPreviewUrl(typeof foto.previewUrl === 'string' ? foto.previewUrl : null)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
               <button
@@ -834,7 +834,7 @@ function ItemRow({
       )}
 
       {/* HU-017: Modal de vista previa en tamaño completo */}
-      {fotoPreviewUrl && (
+      {typeof fotoPreviewUrl === 'string' && fotoPreviewUrl.trim() && (
         <div
           onClick={() => setFotoPreviewUrl(null)}
           style={{

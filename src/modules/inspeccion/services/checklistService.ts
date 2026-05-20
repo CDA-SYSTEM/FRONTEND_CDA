@@ -131,9 +131,15 @@ export const checklistService = {
       })
       const body = response.data as Record<string, unknown>
       const inner = (body?.data as Record<string, unknown>) || body
-      const photoUrl = (inner.url || inner.fileUrl || inner.id) as string | undefined
-      if (photoUrl) return photoUrl.startsWith('http') ? photoUrl : `/api/v1/storage/files/${photoUrl}`
-      return null
+
+      // Extraer URL de archivo de forma segura — el backend puede devolverla como string o dentro de un objeto
+      const raw = inner.url || inner.fileUrl || inner.id
+      let photoUrl: string | null = null
+      if (typeof raw === 'string' && raw.trim()) {
+        photoUrl = raw.trim()
+      }
+      if (!photoUrl) return null
+      return photoUrl.startsWith('http') ? photoUrl : `/api/v1/storage/files/${photoUrl}`
     } catch {
       return null
     }

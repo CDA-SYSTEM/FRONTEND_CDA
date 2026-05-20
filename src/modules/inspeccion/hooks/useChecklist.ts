@@ -292,9 +292,16 @@ export function useChecklist(inspectionId: string) {
   const obtenerRespuestasArray = useCallback((): InspectionItemResponse[] => {
     return Array.from(responses.entries()).map(([key, r]) => {
       const photos = itemPhotos.get(key)
+      // Extraer URLs de fotos de forma segura (uploadedUrl puede venir como objeto del backend)
+      const photoUrls = photos
+        ?.map((p) => {
+          const u = p.uploadedUrl || p.previewUrl
+          return typeof u === 'string' && u.trim() ? u.trim() : null
+        })
+        .filter((u): u is string => u !== null)
       return {
         ...r,
-        photos: photos?.map((p) => p.uploadedUrl || p.previewUrl).filter(Boolean) as string[] | undefined,
+        photos: photoUrls?.length ? photoUrls : undefined,
       }
     })
   }, [responses, itemPhotos])

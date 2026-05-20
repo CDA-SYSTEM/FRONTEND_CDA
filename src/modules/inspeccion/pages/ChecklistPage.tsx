@@ -2,15 +2,22 @@ import { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
+  Car,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronUp,
   ClipboardList,
+  Eye,
+  Gauge,
   Loader2,
+  MessageSquare,
   RefreshCw,
   Save,
+  Settings,
+  Shield,
   XCircle,
+  Zap,
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
 import {
@@ -30,6 +37,28 @@ function vehicleTypeLabel(type: string | null): string {
     case 'PESADO': return 'Pesado'
     default: return type || '—'
   }
+}
+
+/**
+ * HU-016: Mapea el título/código de sección a un ícono contextual.
+ * Detecta secciones de sistema exterior (carrocería, puertas, vidrios, espejos, chasis)
+ * y otros sistemas comunes de inspección vehicular.
+ */
+function sectionIcon(title: string) {
+  const t = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  if (t.includes('exterior') || t.includes('carrocer') || t.includes('puerta') || t.includes('vidrio') || t.includes('espejo') || t.includes('chasis'))
+    return <Car size={16} />
+  if (t.includes('freno') || t.includes('brake'))
+    return <Shield size={16} />
+  if (t.includes('luces') || t.includes('luz') || t.includes('electr') || t.includes('señal'))
+    return <Zap size={16} />
+  if (t.includes('motor') || t.includes('emision') || t.includes('escape'))
+    return <Settings size={16} />
+  if (t.includes('suspension') || t.includes('direccion') || t.includes('llanta') || t.includes('rin'))
+    return <Gauge size={16} />
+  if (t.includes('visibilidad') || t.includes('retrovisor'))
+    return <Eye size={16} />
+  return <ClipboardList size={16} />
 }
 
 /* ═══════════════════════════════════════════════
@@ -440,7 +469,8 @@ function AccordionSection({
         onMouseOver={(e) => { if (!isOpen) e.currentTarget.style.background = '#f8fafc' }}
         onMouseOut={(e) => { if (!isOpen) e.currentTarget.style.background = '#fff' }}
       >
-        <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#1e293b', textAlign: 'left' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: '0.95rem', color: '#1e293b', textAlign: 'left' }}>
+          <span style={{ color: colors[index % colors.length], flexShrink: 0 }}>{sectionIcon(section.title)}</span>
           {section.title}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
@@ -499,7 +529,8 @@ function AccordionSection({
 /* ═══════════════════════════════════════════════
    ItemRow — cada ítem del checklist
    HU-014: Cada ítem tiene opciones que vienen del backend
-   HU-014: Se pueden agregar observaciones por ítem
+   HU-016: Muestra tipo de defecto (A/B) y observaciones
+           para documentar estado estructural del vehículo
    ═══════════════════════════════════════════════ */
 
 function ItemRow({
@@ -519,6 +550,7 @@ function ItemRow({
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [observation, setObservation] = useState('')
+  const [showObservation, setShowObservation] = useState(false)
 
   const handleResponse = (value: string) => {
     const isNew = selected === null
@@ -543,14 +575,26 @@ function ItemRow({
       borderColor: selectedOption ? selectedOption.border : '#f1f5f9',
       transition: 'all 0.15s ease',
     }}>
-      {/* Descripción */}
-      <div style={{ marginBottom: 8 }}>
+      {/* HU-016: Descripción + badge de tipo de defecto */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <span style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.4 }}>
           {item.description}
         </span>
+        <span
+          title={item.defect_type === 'A' ? 'Defecto tipo A (leve)' : 'Defecto tipo B (grave)'}
+          style={{
+            flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: 4, fontSize: '0.72rem', fontWeight: 700,
+            background: item.defect_type === 'A' ? '#fef3c7' : '#fee2e2',
+            color: item.defect_type === 'A' ? '#92400e' : '#991b1b',
+            border: `1px solid ${item.defect_type === 'A' ? '#fde68a' : '#fecaca'}`,
+          }}
+        >
+          {item.defect_type}
+        </span>
       </div>
 
-      {/* HU-014: Opciones dinámicas — vienen del backend via responseOptions */}
+      {/* Opciones de respuesta + toggle de observación */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {responseOptions.map((op) => {
           const isSelected = selected === op.value
@@ -575,24 +619,45 @@ function ItemRow({
           )
         })}
 
-        {/* HU-014: Observación por ítem — siempre disponible cuando hay defecto */}
-        {isDefect && (
+        {/* HU-016: Botón para abrir/cerrar observación manualmente */}
+        {!isDefect && !showObservation && (
+          <button
+            type="button"
+            onClick={() => setShowObservation(true)}
+            title="Agregar observación"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
+              borderRadius: 6, cursor: 'pointer',
+              border: '1px dashed #d1d5db', background: 'transparent',
+              color: '#94a3b8', transition: 'all 0.12s ease',
+            }}
+          >
+            <MessageSquare size={13} />
+            Nota
+          </button>
+        )}
+      </div>
+
+      {/* HU-016: Campo de observación — visible siempre en defecto, o si el inspector lo abre */}
+      {(isDefect || showObservation) && (
+        <div style={{ marginTop: 8 }}>
           <input
             type="text"
-            placeholder="Observación..."
+            placeholder="Observación sobre el estado del componente..."
             value={observation}
             onChange={(e) => handleObservation(e.target.value)}
             style={{
-              flex: 1, minWidth: 150, padding: '5px 10px',
+              width: '100%', padding: '6px 10px',
               fontSize: '0.82rem', border: '1px solid #e5e7eb',
-              borderRadius: 6, outline: 'none',
+              borderRadius: 6, outline: 'none', boxSizing: 'border-box',
               transition: 'border-color 0.15s',
             }}
             onFocus={(e) => { e.target.style.borderColor = '#155DFC' }}
             onBlur={(e) => { e.target.style.borderColor = '#e5e7eb' }}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

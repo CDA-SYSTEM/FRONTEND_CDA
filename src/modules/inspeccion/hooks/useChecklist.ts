@@ -4,6 +4,7 @@ import { checklistService } from '@/modules/inspeccion/services/checklistService
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
+import { offlineStorage } from '@/core/services/offlineStorage'
 import type {
   ChecklistInspection,
   ChecklistTemplate,
@@ -130,11 +131,41 @@ export function useChecklist(inspectionId: string) {
     }
 
     inicializar()
+
+    /* HU-037: Restaurar datos offline guardados para esta inspección */
+    ;(async () => {
+      try {
+        const savedInspection = await offlineStorage.obtenerMetadata(`inspection:${inspectionId}`)
+        if (savedInspection === inspectionId) {
+          const savedResponses = await offlineStorage.obtenerRespuestas()
+          if (savedResponses.size > 0) setResponses(savedResponses)
+          const savedFotos = await offlineStorage.obtenerFotos()
+          if (savedFotos.size > 0) setItemPhotos(savedFotos)
+          const savedObs = await offlineStorage.obtenerMetadata(`observaciones:${inspectionId}`)
+          if (savedObs) setObservaciones(savedObs)
+        }
+      } catch {
+        // Silencioso
+      }
+    })()
+
     return () => {
       mounted = false
       itemPhotos.forEach((photos) => revokePreviewUrls(photos.map((p) => p.previewUrl)))
     }
   }, [inspectionId, user])
+
+  /* HU-037: Persistir respuestas y observaciones automáticamente */
+  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  useEffect(() => {
+    if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current)
+    persistTimeoutRef.current = setTimeout(() => {
+      offlineStorage.guardarMetadata(`inspection:${inspectionId}`, inspectionId)
+      offlineStorage.guardarRespuestas(Array.from(responses.entries()))
+      offlineStorage.guardarMetadata(`observaciones:${inspectionId}`, observaciones)
+    }, 500)
+    return () => { if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current) }
+  }, [responses, observaciones, inspectionId])
 
   const responderItem = useCallback((
     section_code: string,
@@ -200,6 +231,9 @@ export function useChecklist(inspectionId: string) {
       next.set(key, [...existing, photo])
       return next
     })
+
+    /* HU-037: Persistir blob en IndexedDB */
+    await offlineStorage.guardarFoto(key, id, compressedBlob)
   }, [])
 
   const eliminarFoto = useCallback((
@@ -219,6 +253,8 @@ export function useChecklist(inspectionId: string) {
       else next.delete(key)
       return next
     })
+    /* HU-037: Eliminar blob de IndexedDB */
+    offlineStorage.eliminarFoto(key, photoId)
   }, [])
 
   const obtenerFotosPorItem = useCallback((
@@ -266,6 +302,12 @@ export function useChecklist(inspectionId: string) {
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
     setEstado('enviando')
+
+    /* HU-037: Persistir offline antes del intento de API */
+    await offlineStorage.guardarMetadata(`inspection:${inspectionId}`, inspectionId)
+    await offlineStorage.guardarRespuestas(Array.from(responses.entries()))
+    await offlineStorage.guardarMetadata(`observaciones:${inspectionId}`, observaciones)
+
     const ok = await checklistService.guardarBorrador(
       checklistInspection.id,
       obtenerRespuestasArray(),
@@ -274,7 +316,7 @@ export function useChecklist(inspectionId: string) {
     if (ok) setEstado('listo')
     else { setEstado('error_envio'); setErrorMensaje('Error al guardar el borrador') }
     return ok
-  }, [checklistInspection, obtenerRespuestasArray, observaciones])
+  }, [checklistInspection, obtenerRespuestasArray, observaciones, responses, inspectionId])
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
     if (!checklistInspection) return false
@@ -285,6 +327,12 @@ export function useChecklist(inspectionId: string) {
     }
 
     setEstado('enviando')
+
+    /* HU-037: Persistir offline antes del intento de API */
+    await offlineStorage.guardarMetadata(`inspection:${inspectionId}`, inspectionId)
+    await offlineStorage.guardarRespuestas(Array.from(responses.entries()))
+    await offlineStorage.guardarMetadata(`observaciones:${inspectionId}`, observaciones)
+
     const guardadoOk = await checklistService.guardarBorrador(
       checklistInspection.id,
       obtenerRespuestasArray(),
@@ -300,13 +348,15 @@ export function useChecklist(inspectionId: string) {
       general_result: resultado,
     })
     if (cerradoOk) {
+      /* HU-037: Limpiar datos offline tras cierre exitoso */
+      await offlineStorage.limpiarTodo(inspectionId)
       setEstado('exito')
       return true
     }
     setEstado('error_envio')
     setErrorMensaje('Error al cerrar la inspección')
     return false
-  }, [checklistInspection, itemsSinResponder, obtenerRespuestasArray, observaciones])
+  }, [checklistInspection, itemsSinResponder, obtenerRespuestasArray, observaciones, responses, inspectionId])
 
   return {
     estado,

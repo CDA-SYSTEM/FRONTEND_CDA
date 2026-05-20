@@ -30,8 +30,12 @@ function extractArray<T>(responseData: unknown): T[] {
 export const checklistService = {
   async obtenerPlantillaActiva(vehicleType: VehicleType): Promise<ChecklistTemplate | null> {
     try {
-      const response = await apiClient.get(`/api/v1/checklist/templates/active/${vehicleType}`)
-      return extractItem<ChecklistTemplate>(response.data)
+      const response = await apiClient.get('/api/v1/checklist/templates', {
+        params: { vehicle_type: vehicleType },
+      })
+      const templates = extractArray<ChecklistTemplate>(response.data)
+      const activa = templates.find((t) => t.active === true)
+      return activa ?? null
     } catch {
       return null
     }

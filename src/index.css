@@ -73,6 +73,10 @@ button {
   color: #fff;
   cursor: pointer;
   padding: 0.65rem 1rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:disabled {
@@ -87,6 +91,7 @@ select {
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   margin-top: 0.35rem;
+  min-height: 44px;
 }
 
 label span {
@@ -130,6 +135,8 @@ label span {
   gap: 0.5rem;
   padding: 0.75rem;
   background: #e2e8f0;
+  position: relative;
+  z-index: 8000;
 }
 
 .tab {
@@ -236,6 +243,39 @@ td {
 
   .form-row-doc {
     grid-template-columns: 200px 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   HU-020: Adaptación móvil
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  .content {
+    padding: 0.75rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .form-row-2,
+  .form-row-doc {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  th,
+  td {
+    padding: 0.45rem 0.4rem;
   }
 }
 

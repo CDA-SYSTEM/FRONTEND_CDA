@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import './AppLayout.css'
 
 const links = [
@@ -34,33 +34,50 @@ export function AppLayout() {
     }
   }
 
+  const [menuAbierto, setMenuAbierto] = useState(false)
+  const cerrarMenu = useCallback(() => setMenuAbierto(false), [])
+
+  const linksFiltrados = links.filter(
+    (link) =>
+      !link.roles || (user?.role && link.roles.includes(user.role)),
+  )
+
   return (
     <div className="app-shell">
       <header className="topbar">
-        <strong>CDA Putumayo</strong>
-        <div>
+        <div className="topbar-left">
+          <button
+            className="hamburger"
+            onClick={() => setMenuAbierto((v) => !v)}
+            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {menuAbierto ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <strong>CDA Putumayo</strong>
+        </div>
+        <div className="topbar-right">
           <span className="badge">{user?.role ?? 'SIN ROL'}</span>
-          <button onClick={openConfirm}>Cerrar sesión</button>
+          <button className="btn-logout-topbar" onClick={openConfirm}>Cerrar sesión</button>
         </div>
       </header>
 
-      <nav className="tabs">
-        {links
-          .filter(
-            (link) =>
-              !link.roles || (user?.role && link.roles.includes(user.role)),
-          )
-          .map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.to === '/'}
-              className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
-            >
-              {link.label}
-            </NavLink>
-          ))}
+      <nav className={`tabs${menuAbierto ? ' tabs--open' : ''}`}>
+        {linksFiltrados.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === '/'}
+            className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
+            onClick={cerrarMenu}
+          >
+            {link.label}
+          </NavLink>
+        ))}
       </nav>
+
+      {menuAbierto && (
+        <div className="nav-overlay" onClick={cerrarMenu} />
+      )}
 
       <section className="content">
         <Outlet />

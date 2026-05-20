@@ -19,6 +19,7 @@ import {
   Shield,
   Trash2,
   Upload,
+  X,
   XCircle,
   Zap,
 } from 'lucide-react'
@@ -581,6 +582,7 @@ function ItemRow({
   const [showObservation, setShowObservation] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [errorFoto, setErrorFoto] = useState<string | null>(null)
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fotos = obtenerFotos()
 
@@ -762,7 +764,7 @@ function ItemRow({
         </div>
       </div>
 
-      {/* HU-027: Miniaturas de fotos */}
+      {/* HU-017: Miniaturas de fotos */}
       {fotos.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
           {fotos.map((foto) => (
@@ -771,16 +773,18 @@ function ItemRow({
               style={{
                 position: 'relative', width: 60, height: 60, borderRadius: 6,
                 overflow: 'hidden', border: '1px solid #e2e8f0', flexShrink: 0,
+                cursor: 'pointer',
               }}
             >
               <img
                 src={foto.previewUrl}
                 alt="Foto inspección"
+                onClick={() => setFotoPreviewUrl(foto.previewUrl)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
               <button
                 type="button"
-                onClick={() => onEliminarFoto(sectionCode, subsectionCode, item.code, foto.id)}
+                onClick={(e) => { e.stopPropagation(); onEliminarFoto(sectionCode, subsectionCode, item.code, foto.id) }}
                 style={{
                   position: 'absolute', top: 2, right: 2, width: 18, height: 18,
                   borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)',
@@ -792,6 +796,41 @@ function ItemRow({
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* HU-017: Modal de vista previa en tamaño completo */}
+      {fotoPreviewUrl && (
+        <div
+          onClick={() => setFotoPreviewUrl(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 20,
+          }}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setFotoPreviewUrl(null) }}
+            style={{
+              position: 'absolute', top: 16, right: 16, width: 36, height: 36,
+              borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.2)',
+              color: '#fff', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={fotoPreviewUrl}
+            alt="Vista previa"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '100%', maxHeight: '90vh', borderRadius: 8,
+              objectFit: 'contain', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}
+          />
         </div>
       )}
     </div>

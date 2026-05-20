@@ -67,6 +67,14 @@ export interface TemplateItem {
   order: number
 }
 
+export interface InspectionItemPhoto {
+  id: string
+  compressedBlob: Blob
+  previewUrl: string
+  uploadedUrl?: string
+  uploading?: boolean
+}
+
 export interface InspectionItemResponse {
   section_code: string
   subsection_code: string
@@ -74,6 +82,7 @@ export interface InspectionItemResponse {
   response: ItemResponse
   defect_type?: 'A' | 'B'
   observation?: string
+  photos?: string[]
 }
 
 export interface CreateChecklistInspectionDTO {

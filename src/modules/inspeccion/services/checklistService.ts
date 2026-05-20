@@ -122,6 +122,23 @@ export const checklistService = {
     }
   },
 
+  async subirFoto(blob: Blob): Promise<string | null> {
+    try {
+      const formData = new FormData()
+      formData.append('file', blob, `photo-${Date.now()}.jpg`)
+      const response = await apiClient.post('/api/v1/storage/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      const body = response.data as Record<string, unknown>
+      const inner = (body?.data as Record<string, unknown>) || body
+      const photoUrl = (inner.url || inner.fileUrl || inner.id) as string | undefined
+      if (photoUrl) return photoUrl.startsWith('http') ? photoUrl : `/api/v1/storage/files/${photoUrl}`
+      return null
+    } catch {
+      return null
+    }
+  },
+
   async buscarInspecciones(params: {
     plate?: string
     vehicle_id?: number

@@ -3,9 +3,11 @@ import { useAuthStore } from '@/core/store/authStore'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
+import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
 import type {
   ChecklistInspection,
   ChecklistTemplate,
+  InspectionItemPhoto,
   InspectionItemResponse,
   InspectionResult,
   ItemResponse,
@@ -43,6 +45,7 @@ export function useChecklist(inspectionId: string) {
   const [template, setTemplate] = useState<ChecklistTemplate | null>(null)
   const [checklistInspection, setChecklistInspection] = useState<ChecklistInspection | null>(null)
   const [responses, setResponses] = useState<Map<string, InspectionItemResponse>>(new Map())
+  const [itemPhotos, setItemPhotos] = useState<Map<string, InspectionItemPhoto[]>>(new Map())
   const [observaciones, setObservaciones] = useState('')
   const [vehicleType, setVehicleType] = useState<VehicleType | null>(null)
   const [plate, setPlate] = useState('')
@@ -127,7 +130,10 @@ export function useChecklist(inspectionId: string) {
     }
 
     inicializar()
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      itemPhotos.forEach((photos) => revokePreviewUrls(photos.map((p) => p.previewUrl)))
+    }
   }, [inspectionId, user])
 
   const responderItem = useCallback((
@@ -174,6 +180,56 @@ export function useChecklist(inspectionId: string) {
     })
   }, [])
 
+  const agregarFoto = useCallback(async (
+    section_code: string,
+    subsection_code: string,
+    item_code: string,
+    file: File,
+  ) => {
+    const key = `${section_code}:${subsection_code}:${item_code}`
+
+    const compressedBlob = await compressImage(file)
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    const previewUrl = URL.createObjectURL(compressedBlob)
+
+    const photo: InspectionItemPhoto = { id, compressedBlob, previewUrl }
+
+    setItemPhotos((prev) => {
+      const next = new Map(prev)
+      const existing = next.get(key) || []
+      next.set(key, [...existing, photo])
+      return next
+    })
+  }, [])
+
+  const eliminarFoto = useCallback((
+    section_code: string,
+    subsection_code: string,
+    item_code: string,
+    photoId: string,
+  ) => {
+    const key = `${section_code}:${subsection_code}:${item_code}`
+    setItemPhotos((prev) => {
+      const next = new Map(prev)
+      const photos = (next.get(key) || []).filter((p) => {
+        if (p.id === photoId) URL.revokeObjectURL(p.previewUrl)
+        return p.id !== photoId
+      })
+      if (photos.length > 0) next.set(key, photos)
+      else next.delete(key)
+      return next
+    })
+  }, [])
+
+  const obtenerFotosPorItem = useCallback((
+    section_code: string,
+    subsection_code: string,
+    item_code: string,
+  ): InspectionItemPhoto[] => {
+    const key = `${section_code}:${subsection_code}:${item_code}`
+    return itemPhotos.get(key) || []
+  }, [itemPhotos])
+
   const itemsSinResponder = useCallback(() => {
     if (!template) return 0
     let count = 0
@@ -198,8 +254,14 @@ export function useChecklist(inspectionId: string) {
   }, [template, itemsSinResponder])
 
   const obtenerRespuestasArray = useCallback((): InspectionItemResponse[] => {
-    return Array.from(responses.values())
-  }, [responses])
+    return Array.from(responses.entries()).map(([key, r]) => {
+      const photos = itemPhotos.get(key)
+      return {
+        ...r,
+        photos: photos?.map((p) => p.uploadedUrl || p.previewUrl).filter(Boolean) as string[] | undefined,
+      }
+    })
+  }, [responses, itemPhotos])
 
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
@@ -260,6 +322,9 @@ export function useChecklist(inspectionId: string) {
     progreso: progresoActual(),
     responderItem,
     agregarObservacion,
+    agregarFoto,
+    eliminarFoto,
+    obtenerFotosPorItem,
     itemsSinResponder: itemsSinResponder(),
     guardar,
     cerrar,

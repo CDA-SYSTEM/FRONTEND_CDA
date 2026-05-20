@@ -1,7 +1,9 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
+  AlertTriangle,
+  Camera,
   Car,
   CheckCircle,
   ChevronDown,
@@ -16,6 +18,9 @@ import {
   Save,
   Settings,
   Shield,
+  Trash2,
+  Upload,
+  X,
   XCircle,
   Zap,
 } from 'lucide-react'
@@ -65,6 +70,10 @@ function sectionIcon(title: string) {
    Main Component
    ═══════════════════════════════════════════════ */
 
+const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/heic']
+const TAMAÑO_MAXIMO_MB = 5
+const TAMAÑO_MAXIMO_BYTES = TAMAÑO_MAXIMO_MB * 1024 * 1024
+
 export function ChecklistPage() {
   const { inspectionId } = useParams<{ inspectionId: string }>()
   const navigate = useNavigate()
@@ -80,6 +89,9 @@ export function ChecklistPage() {
     progreso,
     responderItem,
     agregarObservacion,
+    agregarFoto,
+    eliminarFoto,
+    obtenerFotosPorItem,
     itemsSinResponder,
     guardar,
     cerrar,
@@ -320,6 +332,9 @@ export function ChecklistPage() {
             responseOptions={responseOptions}
             onResponder={responderItem}
             onObservar={agregarObservacion}
+            onAgregarFoto={agregarFoto}
+            onEliminarFoto={eliminarFoto}
+            obtenerFotos={obtenerFotosPorItem}
           />
         ))}
 
@@ -426,6 +441,9 @@ function AccordionSection({
   responseOptions,
   onResponder,
   onObservar,
+  onAgregarFoto,
+  onEliminarFoto,
+  obtenerFotos,
 }: {
   section: TemplateSection
   index: number
@@ -434,6 +452,9 @@ function AccordionSection({
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
+  onAgregarFoto: (section: string, subsection: string, item: string, file: File) => Promise<void>
+  onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
+  obtenerFotos: (section: string, subsection: string, item: string) => { id: string; previewUrl: string }[]
 }) {
   const totalItems = section.subsections.reduce((s, ss) => s + ss.items.length, 0)
   const [respondidos, setRespondidos] = useState(0)
@@ -515,6 +536,9 @@ function AccordionSection({
                         responseOptions={responseOptions}
                         onResponder={handleResponder}
                         onObservar={onObservar}
+                        onAgregarFoto={onAgregarFoto}
+                        onEliminarFoto={onEliminarFoto}
+                        obtenerFotos={() => obtenerFotos(section.code || '', sub.code || '', item.code)}
                       />
                     ))}
                 </div>
@@ -540,6 +564,9 @@ function ItemRow({
   responseOptions,
   onResponder,
   onObservar,
+  onAgregarFoto,
+  onEliminarFoto,
+  obtenerFotos,
 }: {
   item: { code: string; description: string; defect_type: 'A' | 'B'; order: number }
   sectionCode: string
@@ -547,10 +574,46 @@ function ItemRow({
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string, isNew: boolean) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
+  onAgregarFoto: (section: string, subsection: string, item: string, file: File) => Promise<void>
+  onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
+  obtenerFotos: () => { id: string; previewUrl: string }[]
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [observation, setObservation] = useState('')
   const [showObservation, setShowObservation] = useState(false)
+  const [subiendoFoto, setSubiendoFoto] = useState(false)
+  const [errorFoto, setErrorFoto] = useState<string | null>(null)
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const fotos = obtenerFotos()
+
+  const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!FORMATOS_PERMITIDOS.includes(file.type)) {
+      setErrorFoto('Formato no permitido. Use JPG, PNG o HEIC.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
+    if (file.size > TAMAÑO_MAXIMO_BYTES) {
+      setErrorFoto(`La imagen excede el tamaño máximo de ${TAMAÑO_MAXIMO_MB} MB.`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
+    setSubiendoFoto(true)
+    try {
+      await onAgregarFoto(sectionCode, subsectionCode, item.code, file)
+    } finally {
+      setSubiendoFoto(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const handleResponse = (value: string) => {
     const isNew = selected === null
@@ -655,6 +718,152 @@ function ItemRow({
             }}
             onFocus={(e) => { e.target.style.borderColor = '#155DFC' }}
             onBlur={(e) => { e.target.style.borderColor = '#e5e7eb' }}
+          />
+        </div>
+      )}
+
+      {/* HU-017: Adjuntar imágenes desde galería / explorador de archivos */}
+      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {errorFoto && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '6px 10px', borderRadius: 6, fontSize: '0.8rem',
+            background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b',
+          }}>
+            <AlertTriangle size={13} />
+            <span>{errorFoto}</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Input para cámara */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleAdjuntarFoto}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            disabled={subiendoFoto}
+            title="Tomar foto con la cámara"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
+              borderRadius: 6, cursor: subiendoFoto ? 'not-allowed' : 'pointer',
+              border: '1px dashed #93c5fd', background: '#eff6ff',
+              color: '#155DFC', transition: 'all 0.12s ease',
+              opacity: subiendoFoto ? 0.6 : 1,
+            }}
+          >
+            {subiendoFoto ? (
+              <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Camera size={13} />
+            )}
+            Tomar foto
+          </button>
+
+          {/* Input para galería / explorador */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.heic,image/jpeg,image/png,image/heic"
+            onChange={handleAdjuntarFoto}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={subiendoFoto}
+            title="Adjuntar imagen (JPG, PNG, HEIC — máx 5 MB)"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
+              borderRadius: 6, cursor: subiendoFoto ? 'not-allowed' : 'pointer',
+              border: '1px dashed #93c5fd', background: '#eff6ff',
+              color: '#155DFC', transition: 'all 0.12s ease',
+              opacity: subiendoFoto ? 0.6 : 1,
+            }}
+          >
+            {subiendoFoto ? (
+              <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Upload size={13} />
+            )}
+            Adjuntar{subiendoFoto ? '' : fotos.length > 0 ? ` (${fotos.length})` : ''}
+          </button>
+        </div>
+      </div>
+
+      {/* HU-017: Miniaturas de fotos */}
+      {fotos.length > 0 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+          {fotos.map((foto) => (
+            <div
+              key={foto.id}
+              style={{
+                position: 'relative', width: 60, height: 60, borderRadius: 6,
+                overflow: 'hidden', border: '1px solid #e2e8f0', flexShrink: 0,
+                cursor: 'pointer',
+              }}
+            >
+              <img
+                src={foto.previewUrl}
+                alt="Foto inspección"
+                onClick={() => setFotoPreviewUrl(foto.previewUrl)}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onEliminarFoto(sectionCode, subsectionCode, item.code, foto.id) }}
+                style={{
+                  position: 'absolute', top: 2, right: 2, width: 18, height: 18,
+                  borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)',
+                  color: '#fff', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', padding: 0,
+                }}
+              >
+                <Trash2 size={10} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* HU-017: Modal de vista previa en tamaño completo */}
+      {fotoPreviewUrl && (
+        <div
+          onClick={() => setFotoPreviewUrl(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.85)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 20,
+          }}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setFotoPreviewUrl(null) }}
+            style={{
+              position: 'absolute', top: 16, right: 16, width: 36, height: 36,
+              borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.2)',
+              color: '#fff', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={fotoPreviewUrl}
+            alt="Vista previa"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '100%', maxHeight: '90vh', borderRadius: 8,
+              objectFit: 'contain', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}
           />
         </div>
       )}

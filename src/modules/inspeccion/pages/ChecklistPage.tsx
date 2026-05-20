@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
   AlertTriangle,
+  Camera,
   Car,
   CheckCircle,
   ChevronDown,
@@ -584,6 +585,7 @@ function ItemRow({
   const [errorFoto, setErrorFoto] = useState<string | null>(null)
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const fotos = obtenerFotos()
 
   const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -733,6 +735,38 @@ function ItemRow({
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Input para cámara */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleAdjuntarFoto}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            disabled={subiendoFoto}
+            title="Tomar foto con la cámara"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
+              borderRadius: 6, cursor: subiendoFoto ? 'not-allowed' : 'pointer',
+              border: '1px dashed #93c5fd', background: '#eff6ff',
+              color: '#155DFC', transition: 'all 0.12s ease',
+              opacity: subiendoFoto ? 0.6 : 1,
+            }}
+          >
+            {subiendoFoto ? (
+              <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Camera size={13} />
+            )}
+            Tomar foto
+          </button>
+
+          {/* Input para galería / explorador */}
           <input
             ref={fileInputRef}
             type="file"
@@ -759,7 +793,7 @@ function ItemRow({
             ) : (
               <Upload size={13} />
             )}
-            {subiendoFoto ? 'Comprimiendo...' : `Adjuntar${fotos.length > 0 ? ` (${fotos.length})` : ''}`}
+            Adjuntar{subiendoFoto ? '' : fotos.length > 0 ? ` (${fotos.length})` : ''}
           </button>
         </div>
       </div>

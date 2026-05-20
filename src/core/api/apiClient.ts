@@ -1,10 +1,78 @@
 import axios from 'axios'
 import { useAuthStore } from '@/core/store/authStore'
+import { offlineStorage } from '@/core/services/offlineStorage'
+
+const METODOS_MUTACION = ['post', 'patch', 'put', 'delete'] as const
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api',
   timeout: 15000,
 })
+
+/* ── Estado de conectividad ── */
+
+export function estaOnline(): boolean {
+  return navigator.onLine
+}
+
+type Listener = (online: boolean) => void
+const listeners = new Set<Listener>()
+
+export function suscribirConectividad(fn: Listener): () => void {
+  listeners.add(fn)
+  return () => { listeners.delete(fn) }
+}
+
+function notificar(online: boolean) {
+  listeners.forEach((fn) => fn(online))
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => notificar(true))
+  window.addEventListener('offline', () => notificar(false))
+}
+
+/* ── Sincronización ── */
+
+let sincronizando = false
+const sincronizarListeners = new Set<() => void>()
+
+export function suscribirSincronizacion(fn: () => void): () => void {
+  sincronizarListeners.add(fn)
+  return () => { sincronizarListeners.delete(fn) }
+}
+
+export async function sincronizar(): Promise<void> {
+  if (sincronizando || !navigator.onLine) return
+  sincronizando = true
+  try {
+    const cola = await offlineStorage.obtenerCola()
+    for (const item of cola) {
+      try {
+        const payload = item.payload && typeof item.payload === 'object'
+          ? item.payload
+          : {}
+        await apiClient({
+          method: item.method,
+          url: item.endpoint,
+          data: payload,
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (item.id !== undefined) {
+          await offlineStorage.eliminarDeCola(item.id)
+        }
+      } catch {
+        // Si uno falla, detener la sincronización (probablemente aún offline o error del servidor)
+        break
+      }
+    }
+    sincronizarListeners.forEach((fn) => fn())
+  } finally {
+    sincronizando = false
+  }
+}
+
+/* ── Interceptor de autenticación ── */
 
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
@@ -20,6 +88,8 @@ apiClient.interceptors.request.use((config) => {
 
   return config
 })
+
+/* ── Refresh token queue ── */
 
 let isRefreshing = false
 let failedQueue: Array<{
@@ -38,10 +108,35 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
+/* ── Interceptor de respuesta ── */
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
+
+    // HU-037: Sin conexión — encolar mutación y responder como éxito local
+    if (!error.response && originalRequest) {
+      const method = (originalRequest.method || '').toLowerCase()
+      if (METODOS_MUTACION.includes(method as typeof METODOS_MUTACION[number])) {
+        let payload: unknown = undefined
+        if (originalRequest.data) {
+          try {
+            payload = typeof originalRequest.data === 'string'
+              ? JSON.parse(originalRequest.data)
+              : originalRequest.data
+          } catch {
+            payload = originalRequest.data
+          }
+        }
+        await offlineStorage.encolar(
+          originalRequest.url || '',
+          method.toUpperCase() as 'POST' | 'PATCH' | 'PUT' | 'DELETE',
+          payload,
+        )
+        return Promise.resolve({ data: { __offline: true } })
+      }
+    }
 
     // Evitar loop infinito si la ruta de refresh, login o logout devuelve 401
     if (
@@ -80,7 +175,6 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        // Usamos axios directamente para no pasar por los interceptores y evitar loops
         const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
         const response = await axios.post(`${baseURL}/auth/refresh`, {
           refreshToken,
@@ -95,7 +189,6 @@ apiClient.interceptors.response.use(
           throw new Error('No access token returned')
         }
 
-        // Actualizamos el store (preservando el usuario actual)
         if (authStore.user) {
           authStore.login(newAccessToken, authStore.user, newRefreshToken)
         }

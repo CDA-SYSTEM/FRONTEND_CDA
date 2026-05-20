@@ -1,7 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut, Menu, X } from 'lucide-react'
+import { LogOut, Menu, WifiOff, X } from 'lucide-react'
+import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
+import { offlineStorage } from '@/core/services/offlineStorage'
 import './AppLayout.css'
 
 const links = [
@@ -37,6 +39,27 @@ export function AppLayout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const cerrarMenu = useCallback(() => setMenuAbierto(false), [])
 
+  const [online, setOnline] = useState(estaOnline())
+  const [pendientes, setPendientes] = useState(0)
+
+  useEffect(() => {
+    const unsuscribe = suscribirConectividad((conectado) => {
+      setOnline(conectado)
+      if (conectado) {
+        sincronizar()
+      }
+    })
+    return unsuscribe
+  }, [])
+
+  useEffect(() => {
+    if (online) {
+      offlineStorage.obtenerCola().then((cola) => setPendientes(cola.length))
+    } else {
+      setPendientes(0)
+    }
+  }, [online])
+
   const linksFiltrados = links.filter(
     (link) =>
       !link.roles || (user?.role && link.roles.includes(user.role)),
@@ -60,6 +83,19 @@ export function AppLayout() {
           <button className="btn-logout-topbar" onClick={openConfirm}>Cerrar sesión</button>
         </div>
       </header>
+
+      {/* HU-037: Indicador de conectividad */}
+      {!online && (
+        <div className="offline-bar">
+          <WifiOff size={14} />
+          <span>Sin conexión</span>
+          {pendientes > 0 && (
+            <span className="offline-pending">
+              — {pendientes} {pendientes === 1 ? 'cambio pendiente' : 'cambios pendientes'} de sincronización
+            </span>
+          )}
+        </div>
+      )}
 
       <nav className={`tabs${menuAbierto ? ' tabs--open' : ''}`}>
         {linksFiltrados.map((link) => (

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AlertCircle, Car, Calendar, Clock, ClipboardList, Loader2, Plus, RefreshCw, Wrench, X } from 'lucide-react'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
-import { OrdenServicioWizard } from '@/modules/recepcion/components/OrdenServicioWizard'
+import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
 import type { InspectionSummary } from '@/modules/inspeccion/domain/inspeccion.types'
 
 /* ── Helpers para datos enriquecidos ──────────────────────────────────────── */
@@ -101,10 +101,10 @@ export function RecepcionPage() {
         }}>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Nueva Orden de Servicio
+              Nueva Recepción
             </h1>
             <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-              Apertura de orden de revisión técnico-mecánica
+              Registro de ingreso de vehículo para revisión técnico-mecánica
             </p>
           </div>
           <button
@@ -127,7 +127,7 @@ export function RecepcionPage() {
             Volver
           </button>
         </div>
-        <OrdenServicioWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
+        <RecepcionWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
       </div>
     )
   }

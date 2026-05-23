@@ -109,7 +109,7 @@ export function AsignacionPage() {
           i.id === inspectionId ? { ...i, operator_id: userId } : i,
         ),
       )
-      setToast({ tipo: 'exito', mensaje: 'Te has asignado la orden exitosamente' })
+      setToast({ tipo: 'exito', mensaje: 'Te has asignado la inspección exitosamente' })
       setTab('mis-asignaciones')
     } catch {
       setToast({ tipo: 'error', mensaje: 'No se pudo asignar la inspección. Intente de nuevo.' })
@@ -154,12 +154,12 @@ export function AsignacionPage() {
       >
         <div>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-            Asignación de Órdenes
+            Asignación de Checklist
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
             {esInspector
-              ? 'Seleccione una orden de servicio pendiente para asignarse'
-              : 'Visualización de órdenes de servicio'}
+              ? 'Seleccione una inspección pendiente para tomarla y completar el checklist'
+              : 'Visualización de inspecciones y estado del checklist'}
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -257,7 +257,7 @@ export function AsignacionPage() {
           }}
         >
           <UserCheck size={18} />
-          Mis Asignaciones
+          Mis Checklists
           {misAsignaciones.length > 0 && (
             <span
               style={{
@@ -341,9 +341,9 @@ function ContenidoPendientes({
     return (
       <article className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
         <CheckCircle size={48} color="#16a34a" strokeWidth={1.5} style={{ marginBottom: 16 }} />
-        <h3 style={{ color: '#374151', marginBottom: 8 }}>No hay órdenes pendientes</h3>
+        <h3 style={{ color: '#374151', marginBottom: 8 }}>No hay inspecciones pendientes</h3>
         <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
-          Todas las órdenes de servicio tienen un inspector asignado.
+          Todas las inspecciones tienen un inspector asignado.
         </p>
       </article>
     )
@@ -473,9 +473,9 @@ function ContenidoMisAsignaciones({
     return (
       <article className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
         <UserCheck size={48} color="#94a3b8" strokeWidth={1.5} style={{ marginBottom: 16 }} />
-        <h3 style={{ color: '#374151', marginBottom: 8 }}>Sin asignaciones activas</h3>
+        <h3 style={{ color: '#374151', marginBottom: 8 }}>Sin checklists activos</h3>
         <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
-          No tiene órdenes de servicio asignadas actualmente.
+          No tiene inspecciones asignadas actualmente.
         </p>
         <button
           onClick={onRefresh}

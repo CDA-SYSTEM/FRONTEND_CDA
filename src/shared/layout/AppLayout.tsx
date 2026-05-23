@@ -11,7 +11,7 @@ const links = [
   { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
   { to: '/recepcion', label: 'Recepcion', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
   { to: '/clientes', label: 'Clientes', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/inspeccion/asignacion', label: 'Inspeccion', roles: ['ADMIN', 'INSPECTOR'] },
+  { to: '/inspeccion/asignacion', label: 'Checklist', roles: ['ADMIN', 'INSPECTOR'] },
   { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
   { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
 ]

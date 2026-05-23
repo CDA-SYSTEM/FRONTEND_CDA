@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { animate, stagger } from 'animejs'
 import { Car } from 'lucide-react'
 import {
   loginSchema,
@@ -19,6 +20,21 @@ const DASHBOARD_ROUTES: Record<string, string> = {
   OPERARIO: '/recepcion',
   INSPECTOR: '/inspeccion/asignacion',
   FACTURADOR: '/facturacion',
+}
+
+const LOGIN_TITLE = 'CDA del Putumayo'
+const LOGIN_SUBTITLE = 'Sistema de Control de Acceso'
+
+function renderTextCharacters(text: string, className: string) {
+  return Array.from(text).map((character, index) => (
+    <span
+      key={`${className}-${index}-${character}`}
+      className={className}
+      aria-hidden="true"
+    >
+      {character === ' ' ? '\u00A0' : character}
+    </span>
+  ))
 }
 
 export function LoginPage() {
@@ -53,6 +69,31 @@ export function LoginPage() {
     }
   }, [user, navigate])
 
+  useEffect(() => {
+    const animacionTitulo = animate('.login-title-char', {
+      opacity: [0, 1],
+      translateY: [16, 0],
+      filter: ['blur(12px)', 'blur(0px)'],
+      duration: 900,
+      delay: stagger(25, { from: 'first' }),
+      ease: 'outCubic',
+    })
+
+    const animacionSubtitulo = animate('.login-subtitle-word', {
+      opacity: [0, 1],
+      translateY: [8, 0],
+      scale: [0.98, 1],
+      duration: 600,
+      delay: stagger(70, { from: 'first' }),
+      ease: 'outCubic',
+    })
+
+    return () => {
+      animacionTitulo.revert()
+      animacionSubtitulo.revert()
+    }
+  }, [])
+
   /**
    * Manejo del submit del formulario
    */
@@ -76,8 +117,17 @@ export function LoginPage() {
           <div className="logo-circle">
             <Car size={42} strokeWidth={2.2} />
           </div>
-          <h1>CDA del Putumayo</h1>
-          <p className="auth-subtitle">Sistema de Control de Acceso</p>
+          <h1 className="auth-title" aria-label={LOGIN_TITLE}>
+            {renderTextCharacters(LOGIN_TITLE, 'login-title-char')}
+          </h1>
+          <p className="auth-subtitle login-subtitle" aria-label={LOGIN_SUBTITLE}>
+            {LOGIN_SUBTITLE.split(' ').map((word, index, words) => (
+              <span key={`${word}-${index}`} className="login-subtitle-word">
+                {word}
+                {index < words.length - 1 ? '\u00A0' : ''}
+              </span>
+            ))}
+          </p>
         </div>
 
         <section className="auth-card">

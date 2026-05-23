@@ -21,6 +21,7 @@ import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { SignaturePad } from '@/shared/components/SignaturePad'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
+import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 
 interface Props {
   onCancelar: () => void
@@ -208,6 +209,13 @@ export function RecepcionWizard({ onCancelar }: Props) {
           setSignatureBlob={wizard.setSignatureBlob}
           confirmacionAcuerdo={wizard.confirmacionAcuerdo}
           setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
+          rolAsignado={wizard.rolAsignado}
+          setRolAsignado={wizard.setRolAsignado}
+          usuarioAsignadoId={wizard.usuarioAsignadoId}
+          setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
+          usuariosAsignables={wizard.usuariosAsignables}
+          cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
+          errorUsuariosAsignables={wizard.errorUsuariosAsignables}
           estadoEnvio={wizard.estadoEnvio}
           errorEnvio={wizard.errorEnvio}
           tintedWindows={wizard.tintedWindows}
@@ -556,6 +564,13 @@ interface PasoCondicionesProps {
   setSignatureBlob: (b: Blob | null) => void
   confirmacionAcuerdo: boolean
   setConfirmacionAcuerdo: (v: boolean) => void
+  rolAsignado: 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'OPERARIO'
+  setRolAsignado: (v: 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'OPERARIO') => void
+  usuarioAsignadoId: string
+  setUsuarioAsignadoId: (v: string) => void
+  usuariosAsignables: Usuario[]
+  cargandoUsuariosAsignables: boolean
+  errorUsuariosAsignables: string | null
   estadoEnvio: 'idle' | 'enviando' | 'exito' | 'error'
   errorEnvio: string | null
   tintedWindows: string
@@ -573,6 +588,9 @@ function PasoCondiciones({
   photoFile, setPhotoFile,
   setSignatureBlob,
   confirmacionAcuerdo, setConfirmacionAcuerdo,
+  rolAsignado, setRolAsignado,
+  usuarioAsignadoId, setUsuarioAsignadoId,
+  usuariosAsignables, cargandoUsuariosAsignables, errorUsuariosAsignables,
   estadoEnvio, errorEnvio,
   tintedWindows, setTintedWindows,
   armoredVehicle, setArmoredVehicle,
@@ -638,6 +656,44 @@ function PasoCondiciones({
               <option value="MAL_ESTADO">MAL ESTADO</option>
               <option value="NO_APLICA">NO APLICA</option>
             </select>
+          </label>
+        </div>
+
+        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <label>
+            <span style={{ fontWeight: 500 }}>Rol asignado</span>
+            <select
+              value={rolAsignado}
+              onChange={(e) => setRolAsignado(e.target.value as 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'OPERARIO')}
+              disabled={estadoEnvio === 'enviando'}
+            >
+              <option value="OPERARIO">Operario</option>
+              <option value="INSPECTOR">Inspector</option>
+              <option value="MANAGER">Manager</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
+          </label>
+
+          <label>
+            <span style={{ fontWeight: 500 }}>Usuario asignado</span>
+            <select
+              value={usuarioAsignadoId}
+              onChange={(e) => setUsuarioAsignadoId(e.target.value)}
+              disabled={estadoEnvio === 'enviando' || cargandoUsuariosAsignables || usuariosAsignables.length === 0}
+            >
+              <option value="">Seleccione un usuario</option>
+              {usuariosAsignables.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email}
+                </option>
+              ))}
+            </select>
+            {cargandoUsuariosAsignables && (
+              <div style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem' }}>Cargando usuarios...</div>
+            )}
+            {errorUsuariosAsignables && (
+              <div style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem' }}>{errorUsuariosAsignables}</div>
+            )}
           </label>
         </div>
 

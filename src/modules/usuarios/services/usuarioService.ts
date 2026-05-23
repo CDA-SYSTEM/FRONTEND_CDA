@@ -65,11 +65,13 @@ export const usuarioService = {
       return extractArray(response.data).map(normalizeUsuario)
     }
 
-    // Sin filtro: obtener todos los roles en paralelo
+    // Sin filtro: obtener todos los roles operativos en paralelo
     const roles: RolUsuario[] = [
       'ADMIN',
+      'MANAGER',
       'RECEPCIONISTA',
       'INSPECTOR',
+      'OPERARIO',
       'FACTURADOR',
     ]
     const results = await Promise.allSettled(

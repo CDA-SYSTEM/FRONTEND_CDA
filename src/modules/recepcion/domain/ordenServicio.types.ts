@@ -5,8 +5,8 @@ export interface CatalogoItem {
 
 export interface CrearOrdenServicioDTO {
   mileage: number
-  client_id: number
-  vehicle_id: number
+  client_id: string
+  vehicle_id: string
   customer_type: string
   revision_type: string
   observations?: string

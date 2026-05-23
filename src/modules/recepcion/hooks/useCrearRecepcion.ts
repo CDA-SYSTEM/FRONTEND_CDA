@@ -1,14 +1,18 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
 import { ordenServicioService } from '@/modules/recepcion/services/ordenServicioService'
+import { usuarioService } from '@/modules/usuarios/services/usuarioService'
 import type {
   CatalogoItem,
   ClienteConVehiculos,
   OrdenServicioResponse,
 } from '@/modules/recepcion/domain/ordenServicio.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
+import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 
 export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'condiciones' | 'confirmacion'
+
+export type RolAsignacion = 'ADMIN' | 'MANAGER' | 'INSPECTOR' | 'OPERARIO'
 
 export type EstadoEnvio = 'idle' | 'enviando' | 'exito' | 'error'
 
@@ -35,6 +39,12 @@ export function useCrearRecepcion() {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
   const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
+
+  const [rolAsignado, setRolAsignado] = useState<RolAsignacion>('OPERARIO')
+  const [usuarioAsignadoId, setUsuarioAsignadoId] = useState('')
+  const [usuariosAsignables, setUsuariosAsignables] = useState<Usuario[]>([])
+  const [cargandoUsuariosAsignables, setCargandoUsuariosAsignables] = useState(false)
+  const [errorUsuariosAsignables, setErrorUsuariosAsignables] = useState<string | null>(null)
 
   const [tintedWindows, setTintedWindows] = useState('NO')
   const [armoredVehicle, setArmoredVehicle] = useState('NO')
@@ -77,6 +87,31 @@ export function useCrearRecepcion() {
     cargar()
     return () => { mounted = false }
   }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function cargarUsuariosAsignables() {
+      setCargandoUsuariosAsignables(true)
+      setErrorUsuariosAsignables(null)
+      try {
+        const usuarios = await usuarioService.obtenerUsuarios(rolAsignado)
+        if (!mounted) return
+        setUsuariosAsignables(usuarios)
+        setUsuarioAsignadoId((prev) => prev && usuarios.some((u) => u.id === prev) ? prev : (usuarios[0]?.id ?? ''))
+      } catch {
+        if (!mounted) return
+        setUsuariosAsignables([])
+        setUsuarioAsignadoId('')
+        setErrorUsuariosAsignables('No se pudieron cargar los usuarios para ese rol.')
+      } finally {
+        if (mounted) setCargandoUsuariosAsignables(false)
+      }
+    }
+
+    cargarUsuariosAsignables()
+    return () => { mounted = false }
+  }, [rolAsignado])
 
   const seleccionarCliente = useCallback(async (c: ClienteConVehiculos) => {
     setCliente(c)
@@ -131,21 +166,36 @@ export function useCrearRecepcion() {
 
   const enviar = useCallback(async () => {
     if (!cliente || !user) return
+    if (!vehiculo) {
+      setErrorEnvio('Seleccione un vehículo antes de crear la recepción.')
+      setEstadoEnvio('error')
+      return
+    }
+    if (!usuarioAsignadoId) {
+      setErrorEnvio('Seleccione un usuario asignado para continuar.')
+      setEstadoEnvio('error')
+      return
+    }
 
     setEstadoEnvio('enviando')
     setErrorEnvio(null)
 
     try {
+      const currentUserId = String(user.id)
+      const clientId = String(cliente.id)
+      const vehicleId = vehiculo ? String(vehiculo.id) : ''
+
       const dto = {
         mileage: Number(mileage) || 0,
-        client_id: typeof cliente.id === 'number' ? cliente.id : Number(cliente.id) || 0,
-        vehicle_id: vehiculo ? (typeof vehiculo.id === 'number' ? vehiculo.id : Number(vehiculo.id) || 0) : 0,
+        client_id: clientId,
+        vehicle_id: vehicleId,
         plate: vehiculo?.placa || '',
         customer_type: customerType,
         revision_type: revisionType,
         observations: observations || undefined,
-        responsible_id: String(user.id),
-        customer_id: typeof cliente.id === 'number' ? cliente.id : Number(cliente.id) || 0,
+        operator_id: usuarioAsignadoId,
+        responsible_id: usuarioAsignadoId,
+        customer_id: currentUserId,
         tinted_windows: tintedWindows,
         armored_vehicle: armoredVehicle,
         brake_fluid_sight_glass: brakeFluidSightGlass,
@@ -169,7 +219,7 @@ export function useCrearRecepcion() {
       setErrorEnvio(msg)
       setEstadoEnvio('error')
     }
-  }, [cliente, user, mileage, vehiculo, customerType, revisionType, observations, photoFile, signatureBlob])
+  }, [cliente, user, mileage, vehiculo, customerType, revisionType, observations, photoFile, signatureBlob, usuarioAsignadoId, tintedWindows, armoredVehicle, brakeFluidSightGlass, axles, tires])
 
   const reset = useCallback(() => {
     setPaso('cliente')
@@ -215,6 +265,13 @@ export function useCrearRecepcion() {
     photoFile,
     signatureBlob,
     confirmacionAcuerdo,
+    rolAsignado,
+    setRolAsignado,
+    usuarioAsignadoId,
+    setUsuarioAsignadoId,
+    usuariosAsignables,
+    cargandoUsuariosAsignables,
+    errorUsuariosAsignables,
     estadoEnvio,
     ordenCreada,
     errorEnvio,

@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAuthStore } from '@/core/store/authStore'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
-import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
-import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
 import { offlineStorage } from '@/core/services/offlineStorage'
 import type {
@@ -24,24 +21,7 @@ export type EstadoChecklist =
   | 'exito'
   | 'error_envio'
 
-/**
- * HU-015: Infiere el VehicleType a partir del texto del tipo de vehículo.
- * Detecta variaciones comunes en español: motocicleta, moto, motocarro, cuatrimoto, etc.
- */
-function inferirVehicleType(tipoVehiculo: string): VehicleType {
-  const t = tipoVehiculo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  // Motos — detectar "moto", "motocicleta", "motocarro", "cuatrimoto", "triciclo"
-  if (t.includes('moto') || t.includes('triciclo') || t.includes('biciclet')) return 'MOTO'
-  // Pesados — detectar "pesado", "camion", "bus", "tracto"
-  if (t.includes('pesad') || t.includes('camion') || t.includes('bus') || t.includes('tracto')) return 'PESADO'
-  // Liviano — default
-  if (t.includes('livian') || t.includes('libian') || t.includes('auto') || t.includes('sedan') || t.includes('camionet')) return 'LIVIANO'
-  return 'LIVIANO'
-}
-
 export function useChecklist(inspectionId: string) {
-  const user = useAuthStore((s) => s.user)
-
   const [estado, setEstado] = useState<EstadoChecklist>('cargando')
   const [template, setTemplate] = useState<ChecklistTemplate | null>(null)
   const [checklistInspection, setChecklistInspection] = useState<ChecklistInspection | null>(null)
@@ -52,7 +32,20 @@ export function useChecklist(inspectionId: string) {
   const [plate, setPlate] = useState('')
   const [vehicleId, setVehicleId] = useState<number>(0)
   const [errorMensaje, setErrorMensaje] = useState<string | null>(null)
-  const createdRef = useRef(false)
+  const itemPhotosRef = useRef(itemPhotos)
+
+  const responsesFromChecklist = useCallback((detalle: ChecklistInspection) => {
+    const next = new Map<string, InspectionItemResponse>()
+    for (const response of detalle.responses || []) {
+      const key = `${response.section_code}:${response.subsection_code}:${response.item_code}`
+      next.set(key, response)
+    }
+    return next
+  }, [])
+
+  useEffect(() => {
+    itemPhotosRef.current = itemPhotos
+  }, [itemPhotos])
 
   useEffect(() => {
     let mounted = true
@@ -60,35 +53,27 @@ export function useChecklist(inspectionId: string) {
     async function inicializar() {
       setEstado('cargando')
       try {
-        const detalle = await inspeccionService.obtenerDetalle(inspectionId)
+        const detalle = await checklistService.obtenerInspeccion(inspectionId)
         if (!mounted || !detalle) {
-          if (mounted) { setEstado('error'); setErrorMensaje('No se encontró la orden de inspección') }
+          if (mounted) { setEstado('error'); setErrorMensaje('No se encontró la inspección') }
           return
         }
 
-        const vehicleIdStr = detalle.vehicle?.id || detalle.vehicle_id
-        if (!vehicleIdStr) {
-          if (mounted) { setEstado('error'); setErrorMensaje('La orden no tiene vehículo asociado') }
-          return
-        }
+        const plateStr = detalle.plate || ''
+        const vId = detalle.vehicle_id || 0
+        const tipo: VehicleType = detalle.vehicle_type || 'LIVIANO'
 
-        const plateStr = detalle.vehicle?.placa || ''
+        setChecklistInspection(detalle)
         setPlate(plateStr)
-
-        const vId = Number(vehicleIdStr)
         setVehicleId(vId)
-
-        const vehiculo = await vehiculoService.obtenerVehiculoPorId(String(vId))
-        if (!mounted) return
-
-        let tipo: VehicleType = 'LIVIANO'
-        if (vehiculo?.tipoVehiculo) {
-          const raw = typeof vehiculo.tipoVehiculo === 'object'
-            ? (vehiculo.tipoVehiculo as { nombre?: string }).nombre || ''
-            : String(vehiculo.tipoVehiculo)
-          tipo = inferirVehicleType(raw)
-        }
         setVehicleType(tipo)
+        setResponses(responsesFromChecklist(detalle))
+
+        if (detalle.template_snapshot) {
+          setTemplate(detalle.template_snapshot)
+          setEstado('listo')
+          return
+        }
 
         const plantilla = await checklistService.obtenerPlantillaActiva(tipo)
         if (!mounted) return
@@ -100,23 +85,6 @@ export function useChecklist(inspectionId: string) {
         }
 
         setTemplate(plantilla)
-
-        if (!createdRef.current && user) {
-          const creada = await checklistService.crearInspeccion({
-            plate: plateStr,
-            vehicle_id: vId,
-            vehicle_type: tipo,
-            inspector_id: user.id,
-            template_id: plantilla.id,
-          })
-          if (!mounted) return
-          if (creada) {
-            createdRef.current = true
-            setChecklistInspection(creada)
-          } else {
-            console.warn('[Checklist] No se pudo crear la inspección en el servicio checklist. El backend podría no estar disponible.')
-          }
-        }
 
         setEstado('listo')
       } catch (err) {
@@ -151,9 +119,9 @@ export function useChecklist(inspectionId: string) {
 
     return () => {
       mounted = false
-      itemPhotos.forEach((photos) => revokePreviewUrls(photos.map((p) => p.previewUrl)))
+      itemPhotosRef.current.forEach((photos) => revokePreviewUrls(photos.map((p) => p.previewUrl)))
     }
-  }, [inspectionId, user])
+  }, [inspectionId, responsesFromChecklist])
 
   /* HU-037: Persistir respuestas y observaciones automáticamente */
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout>>()

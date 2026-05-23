@@ -26,6 +26,7 @@ export interface InspectionSummary {
   vehicle_id?: string
   client_id?: string
   operator_id?: string
+  responsible_id?: string
   revision_type?: string
   mileage?: number
   createdAt?: string

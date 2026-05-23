@@ -4,7 +4,11 @@ import type {
   ChecklistTemplate,
   CloseChecklistInspectionDTO,
   CreateChecklistInspectionDTO,
+  CreateLabradoInspectionDTO,
+  ChecklistInspectionSearchParams,
+  LabradoRecord,
   InspectionItemResponse,
+  UpdateLabradoDTO,
   VehicleType,
 } from '@/modules/inspeccion/domain/checklist.types'
 
@@ -22,9 +26,141 @@ function extractArray<T>(responseData: unknown): T[] {
   if (body?.data) {
     if (Array.isArray(body.data)) return body.data as T[]
     const inner = body.data as Record<string, unknown>
-    if (inner?.data && Array.isArray(inner.data)) return inner.data as T[]
+    if (Array.isArray(inner?.items)) return inner.items as T[]
+    if (inner?.data) {
+      if (Array.isArray(inner.data)) return inner.data as T[]
+      if (typeof inner.data === 'object') {
+        const nested = inner.data as Record<string, unknown>
+        if (Array.isArray(nested.items)) return nested.items as T[]
+        if (Array.isArray(nested.data)) return nested.data as T[]
+      }
+    }
   }
   return []
+}
+
+function toStringId(value: unknown): string {
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return ''
+}
+
+function toNumberId(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : undefined
+  }
+  return undefined
+}
+
+function normalizeTemplateSnapshot(raw: unknown): ChecklistTemplate | null {
+  const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const sections = Array.isArray(body.sections)
+    ? body.sections.map((section) => {
+        const sectionBody = (section && typeof section === 'object' ? section : {}) as Record<string, unknown>
+        return {
+          id: toStringId(sectionBody.id ?? sectionBody.code),
+          code: typeof sectionBody.code === 'string' ? sectionBody.code : undefined,
+          title: String(sectionBody.title ?? ''),
+          order: toNumberId(sectionBody.order) ?? 0,
+          subsections: Array.isArray(sectionBody.subsections)
+            ? sectionBody.subsections.map((subsection) => {
+                const subsectionBody = (subsection && typeof subsection === 'object' ? subsection : {}) as Record<string, unknown>
+                return {
+                  id: toStringId(subsectionBody.id ?? subsectionBody.code),
+                  code: typeof subsectionBody.code === 'string' ? subsectionBody.code : undefined,
+                  title: typeof subsectionBody.title === 'string' ? subsectionBody.title : undefined,
+                  order: toNumberId(subsectionBody.order) ?? 0,
+                  items: Array.isArray(subsectionBody.items)
+                    ? subsectionBody.items.map((item) => {
+                        const itemBody = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>
+                        return {
+                          id: toStringId(itemBody.id ?? itemBody.code),
+                          code: String(itemBody.code ?? ''),
+                          description: String(itemBody.description ?? ''),
+                          defect_type: String(itemBody.defect_type ?? 'A') as 'A' | 'B',
+                          observation: typeof itemBody.observation === 'string' ? itemBody.observation : undefined,
+                          order: toNumberId(itemBody.order) ?? 0,
+                        }
+                      })
+                    : [],
+                }
+              })
+            : [],
+        }
+      })
+    : []
+
+  if (sections.length === 0) return null
+
+  return {
+    id: toStringId(body.id ?? body.template_id ?? body.templateId),
+    code: String(body.code ?? '' ) as ChecklistTemplate['code'],
+    name: String(body.name ?? ''),
+    version: toNumberId(body.version),
+    active: typeof body.active === 'boolean' ? body.active : undefined,
+    supported_vehicle_types: Array.isArray(body.supported_vehicle_types)
+      ? body.supported_vehicle_types.map((item) => String(item))
+      : [],
+    sections,
+    response_options: Array.isArray(body.response_options)
+      ? (body.response_options as ChecklistTemplate['response_options'])
+      : undefined,
+  }
+}
+
+function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
+  const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const vehicle = (body.vehicle && typeof body.vehicle === 'object' ? body.vehicle : {}) as Record<string, unknown>
+  const id = toStringId(body.id ?? body.inspection_id ?? body.inspectionId ?? body._id)
+  return {
+    id,
+    plate: toStringId(body.plate ?? body.placa ?? vehicle.plate ?? vehicle.placa),
+    vehicle_id: toNumberId(body.vehicle_id ?? body.vehicleId ?? vehicle.id) ?? 0,
+    client_id: toNumberId(body.client_id ?? body.clientId ?? body.customer_id ?? body.customerId),
+    vehicle_type: String(body.vehicle_type ?? body.vehicleType ?? vehicle.vehicle_type ?? vehicle.tipoVehiculo ?? 'LIVIANO') as ChecklistInspection['vehicle_type'],
+    template_id: toStringId(body.template_id ?? body.templateId),
+    inspection_datetime: toStringId(body.inspection_datetime ?? body.inspectionDatetime ?? body.created_at ?? body.createdAt),
+    inspector_id: toStringId(body.inspector_id ?? body.inspectorId ?? body.operator_id ?? body.operatorId),
+    status: toStringId(body.status),
+    general_result: toStringId(body.general_result ?? body.generalResult),
+    responses: Array.isArray(body.responses) ? (body.responses as ChecklistInspection['responses']) : undefined,
+    observations: typeof body.observations === 'string' ? body.observations : undefined,
+    created_at: toStringId(body.created_at ?? body.createdAt),
+    updated_at: toStringId(body.updated_at ?? body.updatedAt),
+    template_snapshot: normalizeTemplateSnapshot(body.template_snapshot ?? body.templateSnapshot) ?? undefined,
+    template_ref: body.template_ref && typeof body.template_ref === 'object'
+      ? {
+          template_id: toStringId((body.template_ref as Record<string, unknown>).template_id ?? (body.template_ref as Record<string, unknown>).templateId),
+          code: typeof (body.template_ref as Record<string, unknown>).code === 'string'
+            ? String((body.template_ref as Record<string, unknown>).code)
+            : undefined,
+          version: toNumberId((body.template_ref as Record<string, unknown>).version),
+        }
+      : undefined,
+    client: body.client,
+    vehicle: body.vehicle,
+    inspector: body.inspector,
+    labrado: body.labrado,
+  }
+}
+
+function normalizeLabradoRecord(raw: unknown): LabradoRecord {
+  const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  return {
+    id: toStringId(body.id ?? body._id),
+    inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? body.inspection?.id),
+    axles: Array.isArray(body.axles) ? (body.axles as LabradoRecord['axles']) : [],
+    created_at: toStringId(body.created_at ?? body.createdAt),
+    updated_at: toStringId(body.updated_at ?? body.updatedAt),
+  }
+}
+
+function normalizeInspectionList(responseData: unknown): ChecklistInspection[] {
+  return extractArray<unknown>(responseData)
+    .map((item) => normalizeChecklistInspection(item))
+    .filter((item) => Boolean(item.id))
 }
 
 export const checklistService = {
@@ -63,9 +199,56 @@ export const checklistService = {
   async crearInspeccion(dto: CreateChecklistInspectionDTO): Promise<ChecklistInspection | null> {
     try {
       const response = await apiClient.post('/api/v1/checklist/inspections', dto)
-      return extractItem<ChecklistInspection>(response.data)
+      return normalizeChecklistInspection(extractItem<unknown>(response.data))
     } catch {
       return null
+    }
+  },
+
+  async listarInspecciones(params: ChecklistInspectionSearchParams = {}): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get('/api/v1/checklist/inspections/search', { params })
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async buscarInspeccionesPorPlaca(plate: string): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get(`/api/v1/checklist/inspections/by-plate/${encodeURIComponent(plate)}`)
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async buscarInspeccionesPorEstado(status: string): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get(`/api/v1/checklist/inspections/by-status/${encodeURIComponent(status)}`)
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async buscarInspeccionesPorVehiculo(vehicleId: string | number): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get(`/api/v1/checklist/inspections/by-vehicle/${encodeURIComponent(String(vehicleId))}`)
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async buscarInspeccionesPorFecha(start: string, end: string): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get('/api/v1/checklist/inspections/by-date', {
+        params: { start, end },
+      })
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
     }
   },
 
@@ -116,7 +299,34 @@ export const checklistService = {
   async obtenerInspeccion(id: string): Promise<ChecklistInspection | null> {
     try {
       const response = await apiClient.get(`/api/v1/checklist/inspections/${id}`)
-      return extractItem<ChecklistInspection>(response.data)
+      return normalizeChecklistInspection(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async crearLabrado(dto: CreateLabradoInspectionDTO): Promise<LabradoRecord | null> {
+    try {
+      const response = await apiClient.post('/api/v1/checklist/labrado', dto)
+      return normalizeLabradoRecord(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async obtenerLabradoPorInspeccion(inspectionId: string): Promise<LabradoRecord | null> {
+    try {
+      const response = await apiClient.get(`/api/v1/checklist/labrado/by-inspection/${inspectionId}`)
+      return normalizeLabradoRecord(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async actualizarLabradoPorInspeccion(inspectionId: string, dto: UpdateLabradoDTO): Promise<LabradoRecord | null> {
+    try {
+      const response = await apiClient.put(`/api/v1/checklist/labrado/by-inspection/${inspectionId}`, dto)
+      return normalizeLabradoRecord(extractItem<unknown>(response.data))
     } catch {
       return null
     }
@@ -154,7 +364,7 @@ export const checklistService = {
   }): Promise<ChecklistInspection[]> {
     try {
       const response = await apiClient.get('/api/v1/checklist/inspections/search', { params })
-      return extractArray<ChecklistInspection>(response.data)
+      return normalizeInspectionList(response.data)
     } catch {
       return []
     }

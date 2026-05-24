@@ -89,49 +89,122 @@ function renderLabrado(record: LabradoRecord | null) {
     )
   }
 
+  const totalAxles = record.axles?.length ?? 0
+  const totalWheels = record.axles?.reduce((sum, axle) => sum + (axle.wheels?.length ?? 0), 0) ?? 0
+  const totalTires = record.axles?.reduce(
+    (sum, axle) => sum + (axle.wheels?.reduce((wheelSum, wheel) => wheelSum + (wheel.tires?.length ?? 0), 0) ?? 0),
+    0,
+  ) ?? 0
+
   return (
-    <article className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Wrench size={20} color="#155DFC" />
+    <article
+      className="panel"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 18,
+        background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
+        border: '1px solid #dbeafe',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr',
+          gap: 14,
+          alignItems: 'center',
+          padding: '2px 0 6px',
+        }}
+      >
+        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 0 1px #bfdbfe' }}>
+          <Wrench size={22} color="#155DFC" />
         </div>
-        <div>
-          <h3 style={{ margin: 0, color: '#1e293b' }}>Labrado de la inspección</h3>
-          <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: '0.9rem' }}>ID inspección: {record.inspection_id}</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6, color: '#475569', fontSize: '0.88rem' }}>
-            {typeof record.minimum_mm === 'number' && <span><strong>Mínimo:</strong> {record.minimum_mm.toFixed(1)} mm</span>}
-            {record.measured_at && <span><strong>Medido:</strong> {formatearFecha(record.measured_at)}</span>}
+        <div style={{ display: 'grid', gap: 8 }}>
+          <div>
+            <h3 style={{ margin: 0, color: '#0f172a', fontSize: '1.05rem' }}>Labrado de la inspección</h3>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>ID inspección: {record.inspection_id}</p>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', fontSize: '0.84rem', fontWeight: 700 }}>
+              Mínimo general: {typeof record.minimum_mm === 'number' ? `${record.minimum_mm.toFixed(1)} mm` : '—'}
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999, background: '#ecfeff', color: '#0f766e', fontSize: '0.84rem', fontWeight: 700 }}>
+              Medido: {record.measured_at ? formatearFecha(record.measured_at) : '—'}
+            </span>
           </div>
         </div>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+        <div style={{ padding: '12px 14px', borderRadius: 12, background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+          <div style={{ fontSize: '0.78rem', color: '#1d4ed8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ejes</div>
+          <div style={{ marginTop: 6, fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>{totalAxles}</div>
+        </div>
+        <div style={{ padding: '12px 14px', borderRadius: 12, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ruedas</div>
+          <div style={{ marginTop: 6, fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>{totalWheels}</div>
+        </div>
+        <div style={{ padding: '12px 14px', borderRadius: 12, background: '#fff7ed', border: '1px solid #fed7aa' }}>
+          <div style={{ fontSize: '0.78rem', color: '#c2410c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Llantas</div>
+          <div style={{ marginTop: 6, fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>{totalTires}</div>
+        </div>
+      </div>
+
       {record.axles?.length ? (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div style={{ display: 'grid', gap: 14 }}>
           {record.axles.map((axle) => (
-            <div key={axle.axle_code} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#f8fafc' }}>
-              <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: 10 }}>{axle.axle_code}</div>
-              <div style={{ display: 'grid', gap: 10 }}>
+            <section key={axle.axle_code} style={{ border: '1px solid #cbd5e1', borderRadius: 16, overflow: 'hidden', background: '#ffffff', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'linear-gradient(90deg, #eff6ff 0%, #ffffff 100%)', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gap: 2 }}>
+                  <div style={{ fontWeight: 800, color: '#0f172a' }}>{axle.axle_code}</div>
+                  <div style={{ fontSize: '0.82rem', color: '#64748b' }}>Eje con {axle.wheels?.length ?? 0} rueda(s)</div>
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '6px 10px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontWeight: 700, fontSize: '0.82rem' }}>
+                  Mínimo: {typeof axle.minimum_mm === 'number' ? `${axle.minimum_mm.toFixed(1)} mm` : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gap: 10, padding: 14 }}>
                 {axle.wheels.map((wheel) => (
-                  <div key={wheel.wheel_code} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontWeight: 600, color: '#334155', marginBottom: 8 }}>{wheel.wheel_code}</div>
-                    <div style={{ display: 'grid', gap: 8 }}>
+                  <article key={wheel.wheel_code} style={{ border: '1px solid #e2e8f0', borderRadius: 14, padding: 12, background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{ fontWeight: 700, color: '#1e293b' }}>{wheel.wheel_code}</div>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 9px', borderRadius: 999, background: '#ecfdf5', color: '#15803d', fontWeight: 700, fontSize: '0.8rem' }}>
+                        Mínimo: {typeof wheel.minimum_mm === 'number' ? `${wheel.minimum_mm.toFixed(1)} mm` : '—'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gap: 10 }}>
                       {wheel.tires.map((tire) => (
-                        <div key={tire.tire_code} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', gap: 10, fontSize: '0.9rem', color: '#475569' }}>
-                          <div><strong>{tire.tire_code}</strong></div>
-                          <div>Exterior: {tire.outer_mm}</div>
-                          <div>Centro: {tire.middle_mm}</div>
-                          <div>Interior: {tire.inner_mm}</div>
+                        <div key={tire.tire_code} style={{ display: 'grid', gap: 8, gridTemplateColumns: '1.1fr repeat(3, minmax(0, 0.8fr))', alignItems: 'stretch', padding: '10px 12px', borderRadius: 12, background: '#ffffff', border: '1px solid #e2e8f0' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+                            <strong style={{ color: '#0f172a' }}>{tire.tire_code}</strong>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Llanta</span>
+                          </div>
+                          <div style={{ display: 'grid', placeItems: 'center', padding: '8px 10px', borderRadius: 10, background: '#eff6ff', color: '#1d4ed8', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.76rem', display: 'block' }}>Exterior</span>
+                            <span>{tire.outer_mm} mm</span>
+                          </div>
+                          <div style={{ display: 'grid', placeItems: 'center', padding: '8px 10px', borderRadius: 10, background: '#f0fdf4', color: '#15803d', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.76rem', display: 'block' }}>Centro</span>
+                            <span>{tire.middle_mm} mm</span>
+                          </div>
+                          <div style={{ display: 'grid', placeItems: 'center', padding: '8px 10px', borderRadius: 10, background: '#fff7ed', color: '#c2410c', fontWeight: 700 }}>
+                            <span style={{ fontSize: '0.76rem', display: 'block' }}>Interior</span>
+                            <span>{tire.inner_mm} mm</span>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       ) : (
-        <p style={{ color: '#64748b', margin: 0 }}>El backend no devolvió ejes/ruedas/llantas para este registro.</p>
+        <div style={{ padding: '14px 16px', borderRadius: 12, background: '#fff7ed', border: '1px solid #fed7aa', color: '#9a3412' }}>
+          El backend devolvió el labrado, pero no incluyó ejes/ruedas/llantas para mostrar.
+        </div>
       )}
     </article>
   )

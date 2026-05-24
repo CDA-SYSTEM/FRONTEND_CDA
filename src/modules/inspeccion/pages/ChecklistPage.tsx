@@ -92,6 +92,64 @@ function isNativePlatform(): boolean {
   return Capacitor.isNativePlatform()
 }
 
+function esCamaraTelefonica(label: string): boolean {
+  const value = label.toLowerCase()
+  return (
+    value.includes('phone')
+    || value.includes('mobile')
+    || value.includes('movil')
+    || value.includes('móvil')
+    || value.includes('link')
+    || value.includes('remote')
+    || value.includes('virtual')
+    || value.includes('android')
+    || value.includes('iphone')
+  )
+}
+
+function esCamaraPreferida(label: string): boolean {
+  const value = label.toLowerCase()
+  return (
+    value.includes('integrated')
+    || value.includes('built-in')
+    || value.includes('builtin')
+    || value.includes('internal')
+    || value.includes('webcam')
+    || value.includes('camera')
+    || value.includes('hd')
+    || value.includes('usb')
+  )
+}
+
+async function obtenerCamaraWebPreferida(): Promise<MediaStream> {
+  const permisoTemporal = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+  const dispositivos = await navigator.mediaDevices.enumerateDevices()
+  const camaras = dispositivos.filter((device) => device.kind === 'videoinput')
+  const infoCamaras = camaras.map((device, index) => ({
+    deviceId: device.deviceId,
+    label: device.label || '',
+    index,
+  }))
+
+  const preferida = infoCamaras.find((device) => esCamaraPreferida(device.label) && !esCamaraTelefonica(device.label))
+    || infoCamaras.find((device) => !esCamaraTelefonica(device.label))
+    || infoCamaras[0]
+
+  permisoTemporal.getTracks().forEach((track) => track.stop())
+
+  if (!preferida) {
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false,
+    })
+  }
+
+  return navigator.mediaDevices.getUserMedia({
+    video: { deviceId: { exact: preferida.deviceId } },
+    audio: false,
+  })
+}
+
 export function ChecklistPage() {
   const { inspectionId } = useParams<{ inspectionId: string }>()
   const navigate = useNavigate()
@@ -729,10 +787,7 @@ function ItemRow({
           return
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
-          audio: false,
-        })
+        const stream = await obtenerCamaraWebPreferida()
 
         webStreamRef.current = stream
         setMostrarCamaraWeb(true)

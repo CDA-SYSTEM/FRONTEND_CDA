@@ -290,6 +290,26 @@ export function AsignacionPage() {
     setLabradoDraft((prev) => [...prev, crearEje()])
   }, [])
 
+  const cargarDatosPrueba = useCallback(() => {
+    const datos = [
+      {
+        axle_code: 'EJE1',
+        wheels: [
+          { wheel_code: 'RUEDA-1', tires: [{ tire_code: 'LL-101', outer_mm: 8.5, middle_mm: 7.2, inner_mm: 6.9 }] },
+          { wheel_code: 'RUEDA-2', tires: [{ tire_code: 'LL-102', outer_mm: 8.3, middle_mm: 7.0, inner_mm: 6.8 }] },
+        ],
+      },
+      {
+        axle_code: 'EJE2',
+        wheels: [
+          { wheel_code: 'RUEDA-3', tires: [{ tire_code: 'LL-103', outer_mm: 8.6, middle_mm: 7.4, inner_mm: 7.0 }] },
+          { wheel_code: 'RUEDA-4', tires: [{ tire_code: 'LL-104', outer_mm: 8.4, middle_mm: 7.1, inner_mm: 6.9 }] },
+        ],
+      },
+    ]
+    setLabradoDraft(datos)
+  }, [])
+
   const quitarEje = useCallback((index: number) => {
     setLabradoDraft((prev) => {
       const next = prev.filter((_, idx) => idx !== index)
@@ -693,9 +713,14 @@ export function AsignacionPage() {
             <p style={{ margin: 0, color: '#64748b', fontSize: '0.92rem' }}>
               Actualiza ejes, ruedas y medidas. El backend recibe el arreglo completo por inspección.
             </p>
-            <button type="button" onClick={agregarEje} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
-              Agregar eje
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={cargarDatosPrueba} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                Cargar datos de prueba
+              </button>
+              <button type="button" onClick={agregarEje} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                Agregar eje
+              </button>
+            </div>
           </div>
 
           {errorEditorLabrado && (

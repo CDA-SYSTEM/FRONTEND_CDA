@@ -176,9 +176,14 @@ apiClient.interceptors.response.use(
 
       try {
         const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
-        const response = await axios.post(`${baseURL}/auth/refresh`, {
-          refreshToken,
-        })
+        const apiKey = import.meta.env.VITE_API_KEY_FRONT
+        const response = await axios.post(
+          `${baseURL}/auth/refresh`,
+          { refreshToken },
+          {
+            headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
+          },
+        )
 
         const body = response.data
         const inner = body.data && typeof body.data === 'object' ? body.data : body
@@ -189,9 +194,12 @@ apiClient.interceptors.response.use(
           throw new Error('No access token returned')
         }
 
-        if (authStore.user) {
-          authStore.login(newAccessToken, authStore.user, newRefreshToken)
-        }
+        const currentUser = authStore.user
+        authStore.login(
+          newAccessToken,
+          currentUser ?? { id: '', name: '', role: 'OPERARIO' },
+          newRefreshToken,
+        )
 
         processQueue(null, newAccessToken)
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`

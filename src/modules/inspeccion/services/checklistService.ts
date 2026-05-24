@@ -184,6 +184,7 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
   const id = toStringId(body.id ?? body.inspection_id ?? body.inspectionId ?? body._id)
   return {
     id,
+    inspection_number: toStringId(body.inspection_number ?? body.inspectionNumber),
     plate: toStringId(body.plate ?? body.placa ?? vehicle.plate ?? vehicle.placa),
     vehicle_id: toNumberId(body.vehicle_id ?? body.vehicleId ?? vehicle.id) ?? 0,
     client_id: toNumberId(body.client_id ?? body.clientId ?? body.customer_id ?? body.customerId),
@@ -222,7 +223,11 @@ function normalizeLabradoRecord(raw: unknown): LabradoRecord {
     inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? body.inspectionID ?? inspection.id),
     minimum_mm: toNumberId(body.minimum_mm ?? body.minimumMm),
     measured_at: toStringId(body.measured_at ?? body.measuredAt),
-    axles: Array.isArray(body.axles) ? (body.axles as LabradoRecord['axles']) : [],
+    axles: Array.isArray(body.axles)
+      ? (body.axles as LabradoRecord['axles'])
+      : Array.isArray((body.labrado as Record<string, unknown> | undefined)?.axles)
+        ? (((body.labrado as Record<string, unknown>).axles) as LabradoRecord['axles'])
+        : [],
     created_at: toStringId(body.created_at ?? body.createdAt),
     updated_at: toStringId(body.updated_at ?? body.updatedAt),
   }

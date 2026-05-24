@@ -112,6 +112,7 @@ export interface ChecklistInspectionSearchParams {
 
 export interface ChecklistInspection {
   id: string
+  inspection_number?: string
   plate: string
   vehicle_id: number
   client_id?: number
@@ -148,11 +149,13 @@ export interface TireMeasurement {
 
 export interface WheelMeasurement {
   wheel_code: string
+  minimum_mm?: number
   tires: TireMeasurement[]
 }
 
 export interface AxleMeasurement {
   axle_code: string
+  minimum_mm?: number
   wheels: WheelMeasurement[]
 }
 

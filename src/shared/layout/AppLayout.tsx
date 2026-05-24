@@ -1,15 +1,19 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut } from 'lucide-react'
+import { LogOut, Menu, WifiOff, X } from 'lucide-react'
+import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
+import { offlineStorage } from '@/core/services/offlineStorage'
 import './AppLayout.css'
 
 const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
-  { to: '/recepcion', label: 'Recepcion' },
-  { to: '/inspeccion', label: 'Inspeccion' },
-  { to: '/facturacion', label: 'Facturacion' },
+  { to: '/recepcion', label: 'Recepcion', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/clientes', label: 'Clientes', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/inspeccion/asignacion', label: 'Checklist', roles: ['ADMIN', 'INSPECTOR'] },
+  { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
 ]
 
 export function AppLayout() {
@@ -31,33 +35,84 @@ export function AppLayout() {
     }
   }
 
+  const [menuAbierto, setMenuAbierto] = useState(false)
+  const cerrarMenu = useCallback(() => setMenuAbierto(false), [])
+
+  const [online, setOnline] = useState(estaOnline())
+  const [pendientes, setPendientes] = useState(0)
+
+  useEffect(() => {
+    const unsuscribe = suscribirConectividad((conectado) => {
+      setOnline(conectado)
+      if (conectado) {
+        sincronizar()
+      }
+    })
+    return unsuscribe
+  }, [])
+
+  useEffect(() => {
+    if (online) {
+      offlineStorage.obtenerCola().then((cola) => setPendientes(cola.length))
+    } else {
+      setPendientes(0)
+    }
+  }, [online])
+
+  const linksFiltrados = links.filter(
+    (link) =>
+      !link.roles || (user?.role && link.roles.includes(user.role)),
+  )
+
   return (
     <div className="app-shell">
       <header className="topbar">
-        <strong>CDA Putumayo</strong>
-        <div>
+        <div className="topbar-left">
+          <button
+            className="hamburger"
+            onClick={() => setMenuAbierto((v) => !v)}
+            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {menuAbierto ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <strong>CDA Putumayo</strong>
+        </div>
+        <div className="topbar-right">
           <span className="badge">{user?.role ?? 'SIN ROL'}</span>
-          <button onClick={openConfirm}>Cerrar sesión</button>
+          <button className="btn-logout-topbar" onClick={openConfirm}>Cerrar sesión</button>
         </div>
       </header>
 
-      <nav className="tabs">
-        {links
-          .filter(
-            (link) =>
-              !link.roles || (user?.role && link.roles.includes(user.role)),
-          )
-          .map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              end={link.to === '/'}
-              className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
-            >
-              {link.label}
-            </NavLink>
-          ))}
+      {/* HU-037: Indicador de conectividad */}
+      {!online && (
+        <div className="offline-bar">
+          <WifiOff size={14} />
+          <span>Sin conexión</span>
+          {pendientes > 0 && (
+            <span className="offline-pending">
+              — {pendientes} {pendientes === 1 ? 'cambio pendiente' : 'cambios pendientes'} de sincronización
+            </span>
+          )}
+        </div>
+      )}
+
+      <nav className={`tabs${menuAbierto ? ' tabs--open' : ''}`}>
+        {linksFiltrados.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === '/'}
+            className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
+            onClick={cerrarMenu}
+          >
+            {link.label}
+          </NavLink>
+        ))}
       </nav>
+
+      {menuAbierto && (
+        <div className="nav-overlay" onClick={cerrarMenu} />
+      )}
 
       <section className="content">
         <Outlet />

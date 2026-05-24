@@ -1,7 +1,6 @@
 import { apiClient } from '@/core/api/apiClient'
+import { extractApiData } from '@/core/api/extractApiData'
 import type { AuthUser, LoginFormData } from '@/modules/auth/domain/auth.types'
-
-// ── Tipos internos ────────────────────────────────────────────────────────────
 
 interface LoginResponse {
   token: string | null
@@ -10,8 +9,6 @@ interface LoginResponse {
 }
 
 type JwtPayload = Record<string, unknown>
-
-// ── Helpers JWT ───────────────────────────────────────────────────────────────
 
 function safeJsonBase64Decode(str: string): JwtPayload | null {
   try {
@@ -25,10 +22,6 @@ function safeJsonBase64Decode(str: string): JwtPayload | null {
   }
 }
 
-/**
- * Extrae AuthUser desde el payload del JWT.
- * El JWT del backend contiene: { sub, id, email, role, iat, exp }
- */
 function extractUserFromToken(token: string | null): AuthUser | null {
   if (!token) return null
   const parts = token.split('.')
@@ -44,7 +37,6 @@ function extractUserFromToken(token: string | null): AuthUser | null {
   if (!resolvedRole) return null
 
   const id = payload['sub'] ?? payload['id'] ?? payload['userId'] ?? null
-  // El JWT del backend no tiene name; usar email como display name
   const name = String(
     payload['name'] ?? payload['preferred_username'] ?? payload['email'] ?? '',
   )
@@ -56,12 +48,46 @@ function extractUserFromToken(token: string | null): AuthUser | null {
   }
 }
 
-// ── Servicio de autenticación ─────────────────────────────────────────────────
+function mapMeToAuthUser(raw: Record<string, unknown>): AuthUser {
+  const firstName = raw['firstName'] != null ? String(raw['firstName']) : ''
+  const lastName = raw['lastName'] != null ? String(raw['lastName']) : ''
+  const name =
+    [firstName, lastName].filter(Boolean).join(' ').trim() ||
+    String(raw['email'] ?? '')
+
+  return {
+    id: String(raw['id']),
+    name,
+    role: String(raw['role']).toUpperCase() as AuthUser['role'],
+  }
+}
+
+function unwrapTokens(body: Record<string, unknown>): {
+  accessToken: string | null
+  refreshToken: string | null
+} {
+  const inner =
+    body['data'] && typeof body['data'] === 'object'
+      ? (body['data'] as Record<string, unknown>)
+      : body
+
+  return {
+    accessToken:
+      (inner['accessToken'] as string) ||
+      (inner['access_token'] as string) ||
+      (inner['token'] as string) ||
+      null,
+    refreshToken:
+      (inner['refreshToken'] as string) ||
+      (inner['refresh_token'] as string) ||
+      null,
+  }
+}
 
 export const authService = {
   /**
-   * POST /auth/login
-   * Envelope de respuesta: { statusCode, message, data: { accessToken, refreshToken } }
+   * POST /auth/login — respuesta: { data: { accessToken, refreshToken } }
+   * El perfil se obtiene con GET /auth/me.
    */
   async login(credentials: LoginFormData): Promise<LoginResponse> {
     try {
@@ -71,29 +97,17 @@ export const authService = {
       })
 
       const body = response.data as Record<string, unknown>
-
-      // Soporta envelope { data: { accessToken } } y respuesta plana
-      const inner =
-        body['data'] && typeof body['data'] === 'object'
-          ? (body['data'] as Record<string, unknown>)
-          : body
-
-      const token =
-        (inner['accessToken'] as string) ||
-        (inner['access_token'] as string) ||
-        (inner['token'] as string) ||
-        null
-
-      const refreshToken =
-        (inner['refreshToken'] as string) ||
-        (inner['refresh_token'] as string) ||
-        null
+      const { accessToken, refreshToken } = unwrapTokens(body)
 
       let user: AuthUser | null = null
-      if (inner['user']) user = inner['user'] as AuthUser
-      else if (token) user = extractUserFromToken(token)
+      if (accessToken) {
+        user = await this.getMe(accessToken)
+      }
+      if (!user && accessToken) {
+        user = extractUserFromToken(accessToken)
+      }
 
-      return { token, refreshToken, user }
+      return { token: accessToken, refreshToken, user }
     } catch (error: unknown) {
       const e = error as { response?: { status?: number }; message?: string }
       if (e.response?.status === 401 || e.response?.status === 400) {
@@ -111,46 +125,57 @@ export const authService = {
   },
 
   /**
-   * POST /auth/logout
-   * El backend espera: { refreshToken: string }
+   * GET /auth/me — perfil del usuario autenticado (cualquier rol).
    */
+  async getMe(accessToken?: string): Promise<AuthUser | null> {
+    try {
+      const response = await apiClient.get('/auth/me', {
+        headers: accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : undefined,
+      })
+      const data = extractApiData<Record<string, unknown>>(response.data)
+      if (!data || typeof data !== 'object') return null
+      return mapMeToAuthUser(data)
+    } catch {
+      return null
+    }
+  },
+
   async logout(refreshToken?: string | null): Promise<void> {
     try {
       await apiClient.post('/auth/logout', {
         refreshToken: refreshToken ?? '',
       })
     } catch {
-      // Ignorar errores — el logout local siempre procede
+      // logout local siempre procede
     }
   },
 
   /**
    * POST /auth/refresh
-   * Renueva el accessToken usando el refreshToken.
-   * Retorna el nuevo accessToken o null si falla.
    */
-  async refresh(refreshToken: string): Promise<string | null> {
+  async refresh(refreshToken: string): Promise<{
+    accessToken: string | null
+    refreshToken: string | null
+  }> {
     try {
       const response = await apiClient.post('/auth/refresh', { refreshToken })
       const body = response.data as Record<string, unknown>
-      const inner =
-        body['data'] && typeof body['data'] === 'object'
-          ? (body['data'] as Record<string, unknown>)
-          : body
-      return (inner['accessToken'] as string) || null
+      return unwrapTokens(body)
     } catch {
-      return null
+      return { accessToken: null, refreshToken: null }
     }
   },
 
   /**
-   * POST /auth/validate-token
-   * Valida si el token JWT actual es válido en el servidor.
+   * POST /auth/validate-token — { data: { valid, roles, userId } }
    */
   async validateToken(token: string): Promise<boolean> {
     try {
-      await apiClient.post('/auth/validate-token', { token })
-      return true
+      const response = await apiClient.post('/auth/validate-token', { token })
+      const data = extractApiData<{ valid?: boolean }>(response.data)
+      return Boolean(data?.valid)
     } catch {
       return false
     }

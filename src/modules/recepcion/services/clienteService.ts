@@ -18,6 +18,32 @@ import type {
  * Duplicados: el backend devuelve 409 cuando ya existe un cliente
  * con el mismo `identity` (número de documento).
  */
+function extractArray(responseData: unknown): any[] {
+  const body = responseData as Record<string, any>
+
+  if (Array.isArray(responseData)) return responseData
+
+  if (body?.data) {
+    if (Array.isArray(body.data)) return body.data
+
+    const inner = body.data.data
+    if (inner) {
+      if (Array.isArray(inner)) return inner
+      if (typeof inner === 'object') {
+        const arr = Object.values(inner).find((v) => Array.isArray(v))
+        if (arr) return arr as any[]
+      }
+    }
+
+    if (typeof body.data === 'object') {
+      const arr = Object.values(body.data).find((v) => Array.isArray(v))
+      if (arr) return arr as any[]
+    }
+  }
+
+  return []
+}
+
 export const clienteService = {
   /**
    * Registra un nuevo cliente persona natural.
@@ -25,7 +51,7 @@ export const clienteService = {
    */
   async crearCliente(payload: CrearClienteDTO): Promise<ClientePersonaNatural> {
     const response = await apiClient.post<ClientePersonaNatural>(
-      '/clients',
+      '/api/v1/clients',
       payload,
     )
     return response.data
@@ -36,8 +62,13 @@ export const clienteService = {
    * Se usa para poblar el <select> y obtener el ID numérico correcto.
    */
   async obtenerTiposDocumento(): Promise<DocumentType[]> {
-    const response = await apiClient.get<DocumentType[]>('/document-types')
-    return Array.isArray(response.data) ? response.data : []
+    const response = await apiClient.get('/api/v1/document-types')
+    const items = extractArray(response.data)
+    return items.map((item) => ({
+      id: item.id,
+      nombre: item.type || item.nombre || item.name || String(item.id),
+      codigo: item.type || item.codigo || item.code,
+    }))
   },
 
   /**
@@ -45,8 +76,12 @@ export const clienteService = {
    * Para HU-005 solo se usa "Natural" (personTypeId correspondiente).
    */
   async obtenerTiposPersona(): Promise<PersonType[]> {
-    const response = await apiClient.get<PersonType[]>('/person-types')
-    return Array.isArray(response.data) ? response.data : []
+    const response = await apiClient.get('/api/v1/person-types')
+    const items = extractArray(response.data)
+    return items.map((item) => ({
+      id: item.id,
+      nombre: item.type || item.nombre || item.name || String(item.id),
+    }))
   },
 
   /**
@@ -58,7 +93,7 @@ export const clienteService = {
   ): Promise<ClientePersonaNatural | null> {
     try {
       const response = await apiClient.get<ClientePersonaNatural>(
-        `/clients/${id}`,
+        `/api/v1/clients/${id}`,
       )
       return response.data
     } catch (error: unknown) {
@@ -66,5 +101,34 @@ export const clienteService = {
       if (e.response?.status === 404) return null
       throw error
     }
+  },
+
+  /**
+   * Busca clientes por nombre, documento o placa (si el backend lo soporta).
+   * Usa GET /api/v1/clients?search=...
+   */
+  async buscarClientes(query: string): Promise<ClientePersonaNatural[]> {
+    if (!query || query.trim().length < 3) return []
+    
+    const response = await apiClient.get('/api/v1/clients', {
+      params: { search: query.trim(), size: 50 },
+    })
+    
+    return extractArray(response.data)
+  },
+
+  /**
+   * Actualiza los datos de un cliente existente.
+   * Usa PUT /api/v1/clients/:id
+   */
+  async actualizarCliente(
+    id: number | string,
+    payload: Partial<CrearClienteDTO>,
+  ): Promise<ClientePersonaNatural> {
+    const response = await apiClient.put<ClientePersonaNatural>(
+      `/api/v1/clients/${id}`,
+      payload,
+    )
+    return response.data
   },
 }

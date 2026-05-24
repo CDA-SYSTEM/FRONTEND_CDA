@@ -14,7 +14,6 @@ const INITIAL_FORM: CrearUsuarioDTO = {
   lastName: '',
   phoneNumber: '',
   email: '',
-  password: '',
   role: 'inspector',
 }
 
@@ -26,7 +25,7 @@ export function useUsuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(false)
   const [mostrarModal, setMostrarModal] = useState(false)
-  const [filtroRol, setFiltroRol] = useState<'' | RolUsuario>('')
+  const [filtroRol, setFiltroRol] = useState<'' | RolUsuarioForm>('')
   const [busqueda, setBusqueda] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [errorMensaje, setErrorMensaje] = useState('')
@@ -38,7 +37,7 @@ export function useUsuarios() {
   }
 
   const cargarUsuarios = useCallback(
-    async (rol?: '' | RolUsuario) => {
+    async (rol?: '' | RolUsuarioForm) => {
       try {
         setLoading(true)
         setErrorMensaje('')
@@ -59,11 +58,11 @@ export function useUsuarios() {
     cargarUsuarios(filtroRol)
   }, [filtroRol, cargarUsuarios])
 
-  const handleCambiarRol = async (id: string, nuevoRol: RolUsuario) => {
+  const handleCambiarRol = async (id: string, nuevoRol: string) => {
     if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
     try {
       clearFeedback()
-      await usuarioService.cambiarRol(id, { role: nuevoRol })
+      await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
       setMensaje('Rol actualizado correctamente.')
       cargarUsuarios()
     } catch {

@@ -330,7 +330,6 @@ export function useChecklist(inspectionId: string) {
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
     if (!checklistInspection) return false
-    void resultado
     const sinResponder = itemsSinResponder()
     if (sinResponder > 0) {
       setErrorMensaje(`Faltan ${sinResponder} ítems por responder`)
@@ -354,7 +353,7 @@ export function useChecklist(inspectionId: string) {
       return false
     }
 
-    const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey)
+    const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
     if (cerradoOk) {
       /* HU-037: Limpiar datos offline tras cierre exitoso */
       await offlineStorage.limpiarTodo(inspectionId)

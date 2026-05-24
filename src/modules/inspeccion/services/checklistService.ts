@@ -7,6 +7,7 @@ import type {
   ChecklistInspectionSearchParams,
   LabradoRecord,
   InspectionItemResponse,
+  InspectionResult,
   UpdateLabradoDTO,
   VehicleType,
 } from '@/modules/inspeccion/domain/checklist.types'
@@ -305,9 +306,12 @@ export const checklistService = {
 
   async cerrarInspeccion(
     id: string,
+    generalResult: InspectionResult,
   ): Promise<boolean> {
     try {
-      await apiClient.patch(`/api/v1/checklist/inspections/${id}/close`)
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/close`, {
+        general_result: generalResult,
+      })
       return true
     } catch {
       return false

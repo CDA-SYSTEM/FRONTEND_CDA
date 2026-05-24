@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
 import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera'
 import {
   AlertCircle,
@@ -85,6 +86,10 @@ function base64ToFile(dataUrl: string, filename: string): File {
     bytes[i] = binary.charCodeAt(i)
   }
   return new File([bytes], filename, { type: mimeType })
+}
+
+function isNativePlatform(): boolean {
+  return Capacitor.isNativePlatform()
 }
 
 export function ChecklistPage() {
@@ -724,6 +729,9 @@ function ItemRow({
           }}
         >
           {item.defect_type}
+      const [mostrarCamaraWeb, setMostrarCamaraWeb] = useState(false)
+      const videoRef = useRef<HTMLVideoElement>(null)
+      const webStreamRef = useRef<MediaStream | null>(null)
         </span>
       </div>
 
@@ -749,6 +757,23 @@ function ItemRow({
               <span style={{ fontSize: '0.9rem' }}>{op.icon}</span>
               {op.label}
             </button>
+          if (!isNativePlatform()) {
+            if (!navigator.mediaDevices?.getUserMedia) {
+              setErrorFoto('Este navegador no soporta acceso a la cámara.')
+              setTimeout(() => setErrorFoto(null), 4000)
+              return
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' } },
+              audio: false,
+            })
+
+            webStreamRef.current = stream
+            setMostrarCamaraWeb(true)
+            return
+          }
+
           )
         })}
 
@@ -757,6 +782,60 @@ function ItemRow({
           <button
             type="button"
             onClick={() => setShowObservation(true)}
+
+      const cerrarCamaraWeb = useCallback(() => {
+        webStreamRef.current?.getTracks().forEach((track) => track.stop())
+        webStreamRef.current = null
+        setMostrarCamaraWeb(false)
+      }, [])
+
+      const capturarFotoWeb = useCallback(async () => {
+        const video = videoRef.current
+        if (!video) return
+
+        const canvas = document.createElement('canvas')
+        canvas.width = video.videoWidth || 1280
+        canvas.height = video.videoHeight || 720
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          setErrorFoto('No se pudo preparar la captura de la cámara.')
+          setTimeout(() => setErrorFoto(null), 4000)
+          return
+        }
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.85)
+        })
+
+        if (!blob) {
+          setErrorFoto('No se pudo capturar la imagen de la cámara.')
+          setTimeout(() => setErrorFoto(null), 4000)
+          return
+        }
+
+        cerrarCamaraWeb()
+        await procesarArchivoFoto(new File([blob], `webcam-${Date.now()}.jpg`, { type: 'image/jpeg' }))
+      }, [cerrarCamaraWeb])
+
+      useEffect(() => {
+        if (!mostrarCamaraWeb) return
+        const video = videoRef.current
+        if (!video || !webStreamRef.current) return
+
+        video.srcObject = webStreamRef.current
+        void video.play().catch(() => {
+          setErrorFoto('No se pudo iniciar la cámara del navegador.')
+          setTimeout(() => setErrorFoto(null), 4000)
+          cerrarCamaraWeb()
+        })
+
+        return () => {
+          cerrarCamaraWeb()
+        }
+      }, [mostrarCamaraWeb, cerrarCamaraWeb])
             title="Agregar observación"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
@@ -809,7 +888,7 @@ function ItemRow({
             type="button"
             onClick={handleTomarFoto}
             disabled={subiendoFoto}
-            title="Tomar foto con la cámara"
+            title={isNativePlatform() ? 'Tomar foto con la cámara del dispositivo' : 'Tomar foto con la cámara del navegador'}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
               padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
@@ -858,6 +937,46 @@ function ItemRow({
           </button>
         </div>
       </div>
+
+      {mostrarCamaraWeb && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(15, 23, 42, 0.72)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+        >
+          <div
+            style={{
+              width: 'min(92vw, 760px)', background: '#fff', borderRadius: 16,
+              overflow: 'hidden', boxShadow: '0 24px 80px rgba(15, 23, 42, 0.35)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #e5e7eb' }}>
+              <strong style={{ color: '#0f172a' }}>Tomar foto con la cámara</strong>
+              <button type="button" onClick={cerrarCamaraWeb} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#64748b' }}>
+                ×
+              </button>
+            </div>
+            <div style={{ background: '#0f172a' }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: '100%', maxHeight: '65vh', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
+              <button type="button" onClick={cerrarCamaraWeb} style={{ padding: '10px 16px' }}>
+                Cancelar
+              </button>
+              <button type="button" onClick={capturarFotoWeb} style={{ padding: '10px 16px', background: '#155DFC', color: '#fff', border: 'none', borderRadius: 8 }}>
+                Capturar foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HU-017: Miniaturas de fotos */}
       {fotos.length > 0 && (

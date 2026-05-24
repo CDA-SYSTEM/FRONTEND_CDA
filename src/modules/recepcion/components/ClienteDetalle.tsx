@@ -21,7 +21,7 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   const [actualizando, setActualizando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const puedeEditar = user?.role === 'ADMIN' || user?.role === 'RECEPCIONISTA'
+  const puedeEditar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
 
   const {
     register,

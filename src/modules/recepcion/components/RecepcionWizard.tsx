@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { useAuthStore } from '@/core/store/authStore'
 import {
   AlertCircle,
   ArrowLeft,
@@ -21,6 +22,7 @@ import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { SignaturePad } from '@/shared/components/SignaturePad'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import type { Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
+import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 
 interface Props {
   onCancelar: () => void
@@ -195,6 +197,13 @@ export function RecepcionWizard({ onCancelar }: Props) {
           setCustomerType={wizard.setCustomerType}
           tiposRevision={wizard.tiposRevision}
           tiposCliente={wizard.tiposCliente}
+          rolAsignado={wizard.rolAsignado}
+          setRolAsignado={wizard.setRolAsignado}
+          usuarioAsignadoId={wizard.usuarioAsignadoId}
+          setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
+          usuariosAsignables={wizard.usuariosAsignables}
+          cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
+          errorUsuariosAsignables={wizard.errorUsuariosAsignables}
           onSiguiente={wizard.irACondiciones}
           onVolver={wizard.volver}
         />
@@ -466,14 +475,43 @@ interface PasoDetalleProps {
   setCustomerType: (v: string) => void
   tiposRevision: { id: number | string; nombre: string }[]
   tiposCliente: { id: number | string; nombre: string }[]
+  rolAsignado: 'INSPECTOR' | 'OPERARIO'
+  setRolAsignado: (v: 'INSPECTOR' | 'OPERARIO') => void
+  usuarioAsignadoId: string
+  setUsuarioAsignadoId: (v: string) => void
+  usuariosAsignables: Usuario[]
+  cargandoUsuariosAsignables: boolean
+  errorUsuariosAsignables: string | null
   onSiguiente: () => void
   onVolver: () => void
 }
 
+function labelPersonal(u: Usuario): string {
+  const nombre = u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim()
+  if (nombre && u.email) return `${nombre} (${u.email})`
+  return nombre || u.email || `Personal #${u.id}`
+}
+
+const ROL_PERSONAL_LABEL: Record<'INSPECTOR' | 'OPERARIO', string> = {
+  OPERARIO: 'Operario',
+  INSPECTOR: 'Inspector',
+}
+
 function PasoDetalle({
   mileage, setMileage, revisionType, setRevisionType, customerType, setCustomerType,
-  tiposRevision, tiposCliente, onSiguiente, onVolver,
+  tiposRevision, tiposCliente,
+  rolAsignado, setRolAsignado,
+  usuarioAsignadoId, setUsuarioAsignadoId,
+  usuariosAsignables, cargandoUsuariosAsignables, errorUsuariosAsignables,
+  onSiguiente, onVolver,
 }: PasoDetalleProps) {
+  const currentUserRole = useAuthStore((s) => s.user?.role)
+  const rolesPersonal: Array<'INSPECTOR' | 'OPERARIO'> =
+    currentUserRole === 'OPERARIO' ? ['OPERARIO'] : ['OPERARIO', 'INSPECTOR']
+
+  const puedeContinuar =
+    Boolean(revisionType && customerType && usuarioAsignadoId && !cargandoUsuariosAsignables)
+
   return (
     <article className="panel">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
@@ -521,10 +559,60 @@ function PasoDetalle({
           </select>
         </label>
 
+        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <label>
+            <span style={{ fontWeight: 500 }}>Rol del personal</span>
+            <select
+              value={rolAsignado}
+              onChange={(e) => setRolAsignado(e.target.value as 'INSPECTOR' | 'OPERARIO')}
+              disabled={rolesPersonal.length === 1}
+            >
+              {rolesPersonal.map((rol) => (
+                <option key={rol} value={rol}>
+                  {ROL_PERSONAL_LABEL[rol]}
+                </option>
+              ))}
+            </select>
+            <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.78rem', display: 'block' }}>
+              {currentUserRole === 'ADMIN' || currentUserRole === 'MANAGER'
+                ? 'Lista de personal registrado (requiere rol Admin o Manager en el API).'
+                : 'Con su rol se asigna su propia cuenta como operario.'}
+            </span>
+          </label>
+
+          <label>
+            <span style={{ fontWeight: 500 }}>
+              {ROL_PERSONAL_LABEL[rolAsignado]} a asignar <span style={{ color: '#ef4444' }}>*</span>
+            </span>
+            <select
+              value={usuarioAsignadoId}
+              onChange={(e) => setUsuarioAsignadoId(e.target.value)}
+              disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
+            >
+              <option value="">Seleccione personal...</option>
+              {usuariosAsignables.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {labelPersonal(u)}
+                </option>
+              ))}
+            </select>
+            {cargandoUsuariosAsignables && (
+              <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
+                Cargando personal de su cuenta...
+              </span>
+            )}
+            {errorUsuariosAsignables && (
+              <span style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem', display: 'block' }}>
+                {errorUsuariosAsignables}
+              </span>
+            )}
+          </label>
+        </div>
+
         <div style={{ marginTop: 8 }}>
           <button
             onClick={onSiguiente}
-            disabled={!revisionType || !customerType}
+            disabled={!puedeContinuar}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -533,7 +621,7 @@ function PasoDetalle({
               width: '100%',
               padding: '12px 24px',
               fontSize: '1rem',
-              opacity: (!revisionType || !customerType) ? 0.7 : 1,
+              opacity: !puedeContinuar ? 0.7 : 1,
             }}
           >
             <ArrowRight size={18} />

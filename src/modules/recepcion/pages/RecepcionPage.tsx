@@ -54,7 +54,7 @@ interface BadgeInfo {
 function estadoBadge(insp: InspectionSummary): BadgeInfo {
   if (insp.result === 'APROBADO') return { label: 'Aprobado', bg: '#dcfce7', color: '#166534' }
   if (insp.result === 'REPROBADO') return { label: 'Rechazado', bg: '#fee2e2', color: '#991b1b' }
-  if (insp.operator_id && !insp.result) return { label: 'En inspección', bg: '#dbeafe', color: '#1e40af' }
+  if ((insp.operator_id || insp.responsible_id) && !insp.result) return { label: 'En inspección', bg: '#dbeafe', color: '#1e40af' }
   return { label: 'En recepción', bg: '#fef9c3', color: '#854d0e' }
 }
 

@@ -24,12 +24,15 @@ function RoleBasedRedirect() {
     return <Navigate to="/login" replace />
   }
 
-  // Mapeo de roles a sus rutas
+  // Mapeo de roles backend → ruta inicial del frontend
+  // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
   const roleRoutes: Record<string, string> = {
     ADMIN: '/dashboard',
-    RECEPCIONISTA: '/recepcion',
+    MANAGER: '/recepcion',
+    OPERARIO: '/recepcion',
     INSPECTOR: '/inspeccion/asignacion',
     FACTURADOR: '/facturacion',
+    RECEPCIONISTA: '/recepcion',
   }
 
   const route = roleRoutes[user.role] || '/dashboard'

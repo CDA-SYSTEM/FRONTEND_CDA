@@ -68,8 +68,15 @@ describe('ordenServicioService', () => {
         mileage: 50000,
         client_id: '1',
         vehicle_id: '10',
+        operator_id: '1',
         customer_type: 'PROPIETARIO',
         revision_type: 'TECNICO_MECANICA',
+        tinted_windows: 'NO',
+        armored_vehicle: 'NO',
+        brake_fluid_sight_glass: 'BUEN_ESTADO',
+        checklist: { is_clean: true },
+        axles: [{ index: 1, axle_type: 'DELANTERO' }],
+        tires: [{ position: 'FRONT_LEFT', code: 'MXA12345', tire_pressure: 32.5 }],
       })
 
       expect(result.id).toBe('ord-001')
@@ -89,8 +96,15 @@ describe('ordenServicioService', () => {
           mileage: 1000,
           client_id: '1',
           vehicle_id: '5',
+          operator_id: '1',
           customer_type: 'PROPIETARIO',
           revision_type: 'TECNICO_MECANICA',
+          tinted_windows: 'SI',
+          armored_vehicle: 'SI',
+          brake_fluid_sight_glass: 'BUEN_ESTADO',
+          checklist: { is_clean: true },
+          axles: [{ index: 1, axle_type: 'DELANTERO' }],
+          tires: [{ position: 'FRONT_LEFT', code: 'MXA12345', tire_pressure: 32.5 }],
         }),
       ).rejects.toThrow()
     })
@@ -102,8 +116,15 @@ describe('ordenServicioService', () => {
         mileage: 0,
         client_id: '1',
         vehicle_id: '1',
+        operator_id: '1',
         customer_type: 'PROPIETARIO',
         revision_type: 'TECNICO_MECANICA',
+        tinted_windows: 'NO',
+        armored_vehicle: 'NO',
+        brake_fluid_sight_glass: 'BUEN_ESTADO',
+        checklist: { is_clean: false },
+        axles: [{ index: 1, axle_type: 'DELANTERO' }],
+        tires: [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32 }],
         observations: 'Golpe en puerta trasera izquierda',
       })
 
@@ -118,7 +139,20 @@ describe('ordenServicioService', () => {
       const foto = new File(['foto'], 'ingreso.jpg', { type: 'image/jpeg' })
 
       await ordenServicioService.crearOrdenServicio(
-        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        {
+          mileage: 0,
+          client_id: '1',
+          vehicle_id: '1',
+          operator_id: '1',
+          customer_type: 'PROPIETARIO',
+          revision_type: 'TECNICO_MECANICA',
+          tinted_windows: 'NO',
+          armored_vehicle: 'NO',
+          brake_fluid_sight_glass: 'BUEN_ESTADO',
+          checklist: { is_clean: false },
+          axles: [{ index: 1, axle_type: 'DELANTERO' }],
+          tires: [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32 }],
+        },
         { photo: foto },
       )
 
@@ -131,7 +165,20 @@ describe('ordenServicioService', () => {
       const firma = new Blob(['firma'], { type: 'image/png' })
 
       await ordenServicioService.crearOrdenServicio(
-        { mileage: 0, client_id: '1', vehicle_id: '1', customer_type: 'PROPIETARIO', revision_type: 'TECNICO_MECANICA' },
+        {
+          mileage: 0,
+          client_id: '1',
+          vehicle_id: '1',
+          operator_id: '1',
+          customer_type: 'PROPIETARIO',
+          revision_type: 'TECNICO_MECANICA',
+          tinted_windows: 'NO',
+          armored_vehicle: 'NO',
+          brake_fluid_sight_glass: 'BUEN_ESTADO',
+          checklist: { is_clean: false },
+          axles: [{ index: 1, axle_type: 'DELANTERO' }],
+          tires: [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32 }],
+        },
         { signature: firma },
       )
 

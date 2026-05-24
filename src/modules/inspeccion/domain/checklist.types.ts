@@ -100,8 +100,19 @@ export interface CloseChecklistInspectionDTO {
   general_result: InspectionResult
 }
 
+export interface ChecklistInspectionSearchParams {
+  page?: number
+  page_size?: number
+  plate?: string
+  status?: string
+  vehicle_id?: number
+  start_date?: string
+  end_date?: string
+}
+
 export interface ChecklistInspection {
   id: string
+  inspection_number?: string
   plate: string
   vehicle_id: number
   client_id?: number
@@ -115,6 +126,16 @@ export interface ChecklistInspection {
   observations?: string
   created_at?: string
   updated_at?: string
+  template_snapshot?: ChecklistTemplate
+  template_ref?: {
+    template_id?: string
+    code?: string
+    version?: number
+  }
+  client?: unknown
+  vehicle?: unknown
+  inspector?: unknown
+  labrado?: unknown
 }
 
 /* ── Labrado (medición de desgaste de llantas) ── */
@@ -128,11 +149,13 @@ export interface TireMeasurement {
 
 export interface WheelMeasurement {
   wheel_code: string
+  minimum_mm?: number
   tires: TireMeasurement[]
 }
 
 export interface AxleMeasurement {
   axle_code: string
+  minimum_mm?: number
   wheels: WheelMeasurement[]
 }
 
@@ -148,7 +171,14 @@ export interface UpdateLabradoDTO {
 export interface LabradoRecord {
   id?: string
   inspection_id: string
+  minimum_mm?: number
+  measured_at?: string
   axles: AxleMeasurement[]
   created_at?: string
   updated_at?: string
+}
+
+export interface CreateLabradoInspectionDTO {
+  inspection_id: string
+  axles: AxleMeasurement[]
 }

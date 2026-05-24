@@ -1,9 +1,11 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera'
 import {
   AlertCircle,
   AlertTriangle,
-  Camera,
+  Camera as CameraIcon,
   Car,
   CheckCircle,
   ChevronDown,
@@ -74,12 +76,87 @@ const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/heic']
 const TAMAÑO_MAXIMO_MB = 5
 const TAMAÑO_MAXIMO_BYTES = TAMAÑO_MAXIMO_MB * 1024 * 1024
 
+function base64ToFile(dataUrl: string, filename: string): File {
+  const [header, base64] = dataUrl.split(',')
+  const match = header?.match(/data:(.*?);base64/)
+  const mimeType = match?.[1] || 'image/jpeg'
+  const binary = atob(base64 || '')
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return new File([bytes], filename, { type: mimeType })
+}
+
+function isNativePlatform(): boolean {
+  return Capacitor.isNativePlatform()
+}
+
+function esCamaraTelefonica(label: string): boolean {
+  const value = label.toLowerCase()
+  return (
+    value.includes('phone')
+    || value.includes('mobile')
+    || value.includes('movil')
+    || value.includes('móvil')
+    || value.includes('link')
+    || value.includes('remote')
+    || value.includes('virtual')
+    || value.includes('android')
+    || value.includes('iphone')
+  )
+}
+
+function esCamaraPreferida(label: string): boolean {
+  const value = label.toLowerCase()
+  return (
+    value.includes('integrated')
+    || value.includes('built-in')
+    || value.includes('builtin')
+    || value.includes('internal')
+    || value.includes('webcam')
+    || value.includes('camera')
+    || value.includes('hd')
+    || value.includes('usb')
+  )
+}
+
+async function obtenerCamaraWebPreferida(): Promise<MediaStream> {
+  const permisoTemporal = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+  const dispositivos = await navigator.mediaDevices.enumerateDevices()
+  const camaras = dispositivos.filter((device) => device.kind === 'videoinput')
+  const infoCamaras = camaras.map((device, index) => ({
+    deviceId: device.deviceId,
+    label: device.label || '',
+    index,
+  }))
+
+  const preferida = infoCamaras.find((device) => esCamaraPreferida(device.label) && !esCamaraTelefonica(device.label))
+    || infoCamaras.find((device) => !esCamaraTelefonica(device.label))
+    || infoCamaras[0]
+
+  permisoTemporal.getTracks().forEach((track) => track.stop())
+
+  if (!preferida) {
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false,
+    })
+  }
+
+  return navigator.mediaDevices.getUserMedia({
+    video: { deviceId: { exact: preferida.deviceId } },
+    audio: false,
+  })
+}
+
 export function ChecklistPage() {
   const { inspectionId } = useParams<{ inspectionId: string }>()
   const navigate = useNavigate()
   const {
     estado,
     template,
+    responses,
     vehicleType,
     plate,
     observaciones,
@@ -108,6 +185,21 @@ export function ChecklistPage() {
     }
     return RESPONSE_OPTIONS_NTC5375
   }, [template])
+
+  const getRespuestaKey = useCallback((section: string, subsection: string, item: string) => {
+    return `${section}:${subsection}:${item}`
+  }, [])
+
+  const getRespondidosPorSeccion = useCallback((section: TemplateSection) => {
+    let count = 0
+    for (const sub of section.subsections) {
+      for (const item of sub.items) {
+        const key = getRespuestaKey(section.code || '', sub.code || '', item.code)
+        if (responses.has(key)) count++
+      }
+    }
+    return count
+  }, [getRespuestaKey, responses])
 
   const toggleSeccion = useCallback((idx: number) => {
     setSeccionesAbiertas((prev) => {
@@ -329,6 +421,8 @@ export function ChecklistPage() {
             index={idx}
             isOpen={seccionesAbiertas.has(idx)}
             onToggle={() => toggleSeccion(idx)}
+            initialRespondidos={getRespondidosPorSeccion(section)}
+            respuestas={responses}
             responseOptions={responseOptions}
             onResponder={responderItem}
             onObservar={agregarObservacion}
@@ -438,6 +532,8 @@ function AccordionSection({
   index,
   isOpen,
   onToggle,
+  initialRespondidos,
+  respuestas,
   responseOptions,
   onResponder,
   onObservar,
@@ -449,6 +545,8 @@ function AccordionSection({
   index: number
   isOpen: boolean
   onToggle: () => void
+  initialRespondidos: number
+  respuestas: Map<string, { response?: string; observation?: string }>
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
@@ -457,7 +555,7 @@ function AccordionSection({
   obtenerFotos: (section: string, subsection: string, item: string) => { id: string; previewUrl: string }[]
 }) {
   const totalItems = section.subsections.reduce((s, ss) => s + ss.items.length, 0)
-  const [respondidos, setRespondidos] = useState(0)
+  const [respondidos, setRespondidos] = useState(initialRespondidos)
 
   const handleResponder = useCallback((sectionCode: string, subsectionCode: string, itemCode: string, response: string, isNewResponse: boolean) => {
     onResponder(sectionCode, subsectionCode, itemCode, response)
@@ -533,6 +631,8 @@ function AccordionSection({
                         item={item}
                         sectionCode={section.code || ''}
                         subsectionCode={sub.code || ''}
+                        initialResponse={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.response ?? null}
+                        initialObservation={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.observation ?? ''}
                         responseOptions={responseOptions}
                         onResponder={handleResponder}
                         onObservar={onObservar}
@@ -567,10 +667,14 @@ function ItemRow({
   onAgregarFoto,
   onEliminarFoto,
   obtenerFotos,
+  initialResponse,
+  initialObservation,
 }: {
   item: { code: string; description: string; defect_type: 'A' | 'B'; order: number }
   sectionCode: string
   subsectionCode: string
+  initialResponse?: string | null
+  initialObservation?: string
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string, isNew: boolean) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
@@ -578,30 +682,27 @@ function ItemRow({
   onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
   obtenerFotos: () => { id: string; previewUrl: string }[]
 }) {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [observation, setObservation] = useState('')
+  const [selected, setSelected] = useState<string | null>(initialResponse ?? null)
+  const [observation, setObservation] = useState(initialObservation ?? '')
   const [showObservation, setShowObservation] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [errorFoto, setErrorFoto] = useState<string | null>(null)
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
+  const [mostrarCamaraWeb, setMostrarCamaraWeb] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const webStreamRef = useRef<MediaStream | null>(null)
   const fotos = obtenerFotos()
 
-  const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const procesarArchivoFoto = useCallback(async (file: File) => {
     if (!FORMATOS_PERMITIDOS.includes(file.type)) {
       setErrorFoto('Formato no permitido. Use JPG, PNG o HEIC.')
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setTimeout(() => setErrorFoto(null), 4000)
       return
     }
 
     if (file.size > TAMAÑO_MAXIMO_BYTES) {
       setErrorFoto(`La imagen excede el tamaño máximo de ${TAMAÑO_MAXIMO_MB} MB.`)
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setTimeout(() => setErrorFoto(null), 4000)
       return
     }
@@ -611,22 +712,125 @@ function ItemRow({
       await onAgregarFoto(sectionCode, subsectionCode, item.code, file)
     } finally {
       setSubiendoFoto(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-  }
+  }, [item.code, onAgregarFoto, sectionCode, subsectionCode])
 
-  const handleResponse = (value: string) => {
+  const handleAdjuntarFoto = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await procesarArchivoFoto(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [procesarArchivoFoto])
+
+  const cerrarCamaraWeb = useCallback(() => {
+    webStreamRef.current?.getTracks().forEach((track) => track.stop())
+    webStreamRef.current = null
+    setMostrarCamaraWeb(false)
+  }, [])
+
+  const capturarFotoWeb = useCallback(async () => {
+    const video = videoRef.current
+    if (!video) return
+
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth || 1280
+    canvas.height = video.videoHeight || 720
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      setErrorFoto('No se pudo preparar la captura de la cámara.')
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.85)
+    })
+
+    if (!blob) {
+      setErrorFoto('No se pudo capturar la imagen de la cámara.')
+      setTimeout(() => setErrorFoto(null), 4000)
+      return
+    }
+
+    cerrarCamaraWeb()
+    await procesarArchivoFoto(new File([blob], `webcam-${Date.now()}.jpg`, { type: 'image/jpeg' }))
+  }, [cerrarCamaraWeb, procesarArchivoFoto])
+
+  useEffect(() => {
+    if (!mostrarCamaraWeb) return undefined
+
+    const video = videoRef.current
+    if (!video || !webStreamRef.current) return undefined
+
+    video.srcObject = webStreamRef.current
+    void video.play().catch(() => {
+      setErrorFoto('No se pudo iniciar la cámara del navegador.')
+      setTimeout(() => setErrorFoto(null), 4000)
+      cerrarCamaraWeb()
+    })
+
+    return () => {
+      cerrarCamaraWeb()
+    }
+  }, [mostrarCamaraWeb, cerrarCamaraWeb])
+
+  const handleTomarFoto = useCallback(async () => {
+    setErrorFoto(null)
+    try {
+      if (!isNativePlatform()) {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setErrorFoto('Este navegador no soporta acceso a la cámara.')
+          setTimeout(() => setErrorFoto(null), 4000)
+          return
+        }
+
+        const stream = await obtenerCamaraWebPreferida()
+
+        webStreamRef.current = stream
+        setMostrarCamaraWeb(true)
+        return
+      }
+
+      const photo = await CapacitorCamera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+        saveToGallery: false,
+      })
+
+      if (!photo.dataUrl) {
+        setErrorFoto('No se pudo obtener la imagen de la cámara.')
+        setTimeout(() => setErrorFoto(null), 4000)
+        return
+      }
+
+      const file = base64ToFile(photo.dataUrl, `camera-${Date.now()}.jpg`)
+      await procesarArchivoFoto(file)
+    } catch (error) {
+      setErrorFoto(
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as Record<string, unknown>).message)
+          : 'No se pudo abrir la cámara.',
+      )
+      setTimeout(() => setErrorFoto(null), 4000)
+    }
+  }, [procesarArchivoFoto])
+
+  const handleResponse = useCallback((value: string) => {
     const isNew = selected === null
     setSelected(value)
     onResponder(sectionCode, subsectionCode, item.code, value, isNew)
-  }
+  }, [item.code, onResponder, sectionCode, selected, subsectionCode])
 
-  const handleObservation = (value: string) => {
+  const handleObservation = useCallback((value: string) => {
     setObservation(value)
     onObservar(sectionCode, subsectionCode, item.code, value)
-  }
+  }, [item.code, onObservar, sectionCode, subsectionCode])
 
-  /* Determine visual state from the selected option */
   const selectedOption = responseOptions.find((op) => op.value === selected)
   const isDefect = selected !== null && selected !== 'CUMPLE' && selected !== 'NO_APLICA'
 
@@ -638,7 +842,6 @@ function ItemRow({
       borderColor: selectedOption ? selectedOption.border : '#f1f5f9',
       transition: 'all 0.15s ease',
     }}>
-      {/* HU-016: Descripción + badge de tipo de defecto */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <span style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.4 }}>
           {item.description}
@@ -657,7 +860,6 @@ function ItemRow({
         </span>
       </div>
 
-      {/* Opciones de respuesta + toggle de observación */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         {responseOptions.map((op) => {
           const isSelected = selected === op.value
@@ -682,7 +884,6 @@ function ItemRow({
           )
         })}
 
-        {/* HU-016: Botón para abrir/cerrar observación manualmente */}
         {!isDefect && !showObservation && (
           <button
             type="button"
@@ -702,7 +903,6 @@ function ItemRow({
         )}
       </div>
 
-      {/* HU-016: Campo de observación — visible siempre en defecto, o si el inspector lo abre */}
       {(isDefect || showObservation) && (
         <div style={{ marginTop: 8 }}>
           <input
@@ -722,7 +922,6 @@ function ItemRow({
         </div>
       )}
 
-      {/* HU-017: Adjuntar imágenes desde galería / explorador de archivos */}
       <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {errorFoto && (
           <div style={{
@@ -735,20 +934,11 @@ function ItemRow({
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Input para cámara */}
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleAdjuntarFoto}
-            style={{ display: 'none' }}
-          />
           <button
             type="button"
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={handleTomarFoto}
             disabled={subiendoFoto}
-            title="Tomar foto con la cámara"
+            title={isNativePlatform() ? 'Tomar foto con la cámara del dispositivo' : 'Tomar foto con la cámara del navegador'}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
               padding: '5px 10px', fontSize: '0.78rem', fontWeight: 500,
@@ -761,12 +951,11 @@ function ItemRow({
             {subiendoFoto ? (
               <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
             ) : (
-              <Camera size={13} />
+              <CameraIcon size={13} />
             )}
             Tomar foto
           </button>
 
-          {/* Input para galería / explorador */}
           <input
             ref={fileInputRef}
             type="file"
@@ -798,7 +987,42 @@ function ItemRow({
         </div>
       </div>
 
-      {/* HU-017: Miniaturas de fotos */}
+      {mostrarCamaraWeb && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(15, 23, 42, 0.72)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div style={{
+            width: 'min(92vw, 760px)', background: '#fff', borderRadius: 16,
+            overflow: 'hidden', boxShadow: '0 24px 80px rgba(15, 23, 42, 0.35)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #e5e7eb' }}>
+              <strong style={{ color: '#0f172a' }}>Tomar foto con la cámara</strong>
+              <button type="button" onClick={cerrarCamaraWeb} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 20, lineHeight: 1, color: '#64748b' }}>
+                ×
+              </button>
+            </div>
+            <div style={{ background: '#0f172a' }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: '100%', maxHeight: '65vh', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: 16 }}>
+              <button type="button" onClick={cerrarCamaraWeb} style={{ padding: '10px 16px' }}>
+                Cancelar
+              </button>
+              <button type="button" onClick={capturarFotoWeb} style={{ padding: '10px 16px', background: '#155DFC', color: '#fff', border: 'none', borderRadius: 8 }}>
+                Capturar foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {fotos.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
           {fotos.map((foto) => (
@@ -811,9 +1035,9 @@ function ItemRow({
               }}
             >
               <img
-                src={foto.previewUrl}
+                src={typeof foto.previewUrl === 'string' ? foto.previewUrl : ''}
                 alt="Foto inspección"
-                onClick={() => setFotoPreviewUrl(foto.previewUrl)}
+                onClick={() => setFotoPreviewUrl(typeof foto.previewUrl === 'string' ? foto.previewUrl : null)}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
               <button
@@ -833,8 +1057,7 @@ function ItemRow({
         </div>
       )}
 
-      {/* HU-017: Modal de vista previa en tamaño completo */}
-      {fotoPreviewUrl && (
+      {typeof fotoPreviewUrl === 'string' && fotoPreviewUrl.trim() && (
         <div
           onClick={() => setFotoPreviewUrl(null)}
           style={{

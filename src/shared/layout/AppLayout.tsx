@@ -9,12 +9,11 @@ import './AppLayout.css'
 const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
-  { to: '/recepcion', label: 'Recepcion' },
-  { to: '/clientes', label: 'Clientes', roles: ['ADMIN', 'RECEPCIONISTA'] },
-  { to: '/inspeccion', label: 'Inspeccion', roles: ['ADMIN'] },
-  { to: '/inspeccion/asignacion', label: 'Inspeccion', roles: ['INSPECTOR'] },
-  { to: '/vehiculo/registro', label: 'Vehículos' },
-  { to: '/facturacion', label: 'Facturacion' },
+  { to: '/recepcion', label: 'Recepcion', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/clientes', label: 'Clientes', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/inspeccion/asignacion', label: 'Checklist', roles: ['ADMIN', 'INSPECTOR'] },
+  { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
 ]
 
 export function AppLayout() {

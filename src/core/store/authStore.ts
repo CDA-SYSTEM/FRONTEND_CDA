@@ -20,6 +20,8 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  requireReauth: boolean
+  setRequireReauth: (v: boolean) => void
   login: (token: string, user: AuthUser, refreshToken?: string) => void
   loginWithCredentials: (credentials: LoginFormData) => Promise<void>
   loginAsDemo: (role?: UserRole) => void
@@ -70,6 +72,8 @@ export const useAuthStore = create<AuthState>((set) => {
     isAuthenticated: Boolean(token),
     isLoading: false,
     error: null,
+    requireReauth: false,
+    setRequireReauth: (v: boolean) => set({ requireReauth: v }),
 
     login: (newToken, newUser, newRefresh) => {
       storage.setItem(TOKEN_KEY, newToken)
@@ -121,7 +125,7 @@ export const useAuthStore = create<AuthState>((set) => {
       }
     },
 
-    loginAsDemo: (role = 'RECEPCIONISTA') => {
+    loginAsDemo: (role: UserRole = 'OPERARIO') => {
       const demoUser: AuthUser = {
         id: 'demo-user',
         name: 'Usuario Demo CDA',
@@ -156,6 +160,7 @@ export const useAuthStore = create<AuthState>((set) => {
         refreshToken: null,
         user: null,
         isAuthenticated: false,
+        requireReauth: false,
         error: null,
       })
     },

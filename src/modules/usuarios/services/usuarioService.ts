@@ -1,13 +1,14 @@
 import { apiClient } from '@/core/api/apiClient'
+import { extractApiArray, extractApiData } from '@/core/api/extractApiData'
+import { authService } from '@/modules/auth/services/authService'
 import type {
   ActualizarUsuarioDTO,
   CrearUsuarioDTO,
+  RolPersonalDropdown,
   RolUsuario,
   RolUsuarioForm,
   Usuario,
 } from '@/modules/usuarios/domain/usuario.types'
-
-// ── Helpers de normalización ──────────────────────────────────────────────────
 
 function normalizeRole(role: string): RolUsuario {
   return role.toUpperCase() as RolUsuario
@@ -17,85 +18,153 @@ function toFormRole(role: RolUsuario): RolUsuarioForm {
   return role.toLowerCase() as RolUsuarioForm
 }
 
-/**
- * Normaliza la respuesta del backend al tipo Usuario del dominio.
- * Soporta respuesta plana y con envelope { data: [...] }.
- */
 function normalizeUsuario(raw: unknown): Usuario {
   const r = raw as Record<string, unknown>
+  const firstName = r['firstName'] != null ? String(r['firstName']) : undefined
+  const lastName = r['lastName'] != null ? String(r['lastName']) : undefined
+  const builtName = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const roleRaw = String(r['role'] ?? 'OPERARIO')
+
   return {
-    id: String(r['id']),
-    name: r['name'] != null ? String(r['name']) : undefined,
-    firstName: r['firstName'] != null ? String(r['firstName']) : undefined,
-    lastName: r['lastName'] != null ? String(r['lastName']) : undefined,
-    email: String(r['email']),
-    role: normalizeRole(String(r['role'])),
-    isActive: Boolean(r['isActive']),
+    id: String(r['id'] ?? r['sub'] ?? ''),
+    name:
+      r['name'] != null
+        ? String(r['name'])
+        : r['label'] != null
+          ? String(r['label'])
+          : builtName || undefined,
+    firstName,
+    lastName,
+    email: r['email'] != null ? String(r['email']) : '',
+    role: normalizeRole(roleRaw),
+    isActive: r['isActive'] === undefined ? true : Boolean(r['isActive']),
   }
 }
 
-/**
- * Extrae el array de usuarios manejando distintos formatos de respuesta.
- * Soporta: plano [...], envelope { data: [...] }, { items: [...] },
- *          { results: [...] }, { content: [...] }, { usuarios: [...] }
- */
-function extractArray(responseData: unknown): unknown[] {
-  if (Array.isArray(responseData)) return responseData as unknown[]
-  const body = responseData as Record<string, unknown>
-  for (const key of ['data', 'items', 'results', 'content', 'usuarios', 'users']) {
-    const val = body[key]
-    if (Array.isArray(val)) return val
-  }
-  return []
+function onlyActive(usuarios: Usuario[]): Usuario[] {
+  return usuarios.filter((u) => u.isActive)
 }
 
-// ── Servicio de usuarios ──────────────────────────────────────────────────────
+function meToUsuario(me: { id: string; name: string; role: RolUsuario }): Usuario {
+  return {
+    id: me.id,
+    name: me.name,
+    email: '',
+    role: me.role,
+    isActive: true,
+  }
+}
 
 export const usuarioService = {
   /**
-   * GET /auth/users?role=<rol>
-   * El parámetro role es requerido por el backend.
-   * Si no se pasa rol, se hace una petición por cada rol conocido y se fusionan.
+   * GET /auth/users?role={role} — Admin, Manager
    */
   async obtenerUsuarios(role?: string): Promise<Usuario[]> {
-    if (role) {
+    if (!role) {
+      const roles: RolUsuarioForm[] = ['admin', 'manager', 'inspector', 'operario']
+      const results = await Promise.allSettled(
+        roles.map((r) =>
+          apiClient
+            .get('/auth/users', { params: { role: r } })
+            .then((res) =>
+              extractApiArray(res.data).map(normalizeUsuario),
+            ),
+        ),
+      )
+      return onlyActive(
+        results.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])),
+      )
+    }
+
+    try {
       const response = await apiClient.get('/auth/users', {
         params: { role: role.toLowerCase() },
       })
-      return extractArray(response.data).map(normalizeUsuario)
+      return onlyActive(extractApiArray(response.data).map(normalizeUsuario))
+    } catch {
+      return []
     }
-
-    // Sin filtro: obtener todos los roles en paralelo
-    const roles: RolUsuario[] = [
-      'ADMIN',
-      'RECEPCIONISTA',
-      'INSPECTOR',
-      'FACTURADOR',
-    ]
-    const results = await Promise.allSettled(
-      roles.map((r) =>
-        apiClient
-          .get('/auth/users', { params: { role: r.toLowerCase() } })
-          .then((res) => extractArray(res.data).map(normalizeUsuario)),
-      ),
-    )
-
-    return results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
   },
 
   /**
-   * PATCH /auth/users/:id  →  { role: 'inspector' }
+   * GET /auth/users/options?role=operario|inspector — Admin, Manager (dropdown)
    */
+  async obtenerOpcionesUsuarios(role: RolPersonalDropdown): Promise<Usuario[]> {
+    try {
+      const response = await apiClient.get('/auth/users/options', {
+        params: { role },
+      })
+      return extractApiArray(response.data).map(normalizeUsuario)
+    } catch {
+      return []
+    }
+  },
+
+  /**
+   * GET /auth/users/operarios — Admin, Manager
+   */
+  async obtenerOperarios(): Promise<Usuario[]> {
+    try {
+      const response = await apiClient.get('/auth/users/operarios')
+      return onlyActive(extractApiArray(response.data).map(normalizeUsuario))
+    } catch {
+      return []
+    }
+  },
+
+  /**
+   * GET /auth/users/inspectors — Admin, Manager
+   */
+  async obtenerInspectores(): Promise<Usuario[]> {
+    try {
+      const response = await apiClient.get('/auth/users/inspectors')
+      return onlyActive(extractApiArray(response.data).map(normalizeUsuario))
+    } catch {
+      return []
+    }
+  },
+
+  /**
+   * Personal para asignar en recepción (operator_id).
+   * - Admin/Manager: GET /auth/users/options → operarios|inspectors
+   * - Operario/Inspector: GET /auth/me (solo su propia cuenta)
+   */
+  async obtenerPersonalAsignable(
+    role: 'OPERARIO' | 'INSPECTOR',
+    rolSesion?: string,
+  ): Promise<Usuario[]> {
+    const sesion = (rolSesion ?? '').toUpperCase()
+    const rolDropdown: RolPersonalDropdown =
+      role === 'OPERARIO' ? 'operario' : 'inspector'
+
+    if (sesion === 'ADMIN' || sesion === 'MANAGER') {
+      const opciones = await this.obtenerOpcionesUsuarios(rolDropdown)
+      if (opciones.length > 0) return opciones
+
+      if (role === 'OPERARIO') return this.obtenerOperarios()
+      return this.obtenerInspectores()
+    }
+
+    const me = await authService.getMe()
+    if (!me) return []
+
+    const rolCuenta = me.role.toUpperCase()
+    if (role === 'OPERARIO' && rolCuenta === 'OPERARIO') {
+      return [meToUsuario({ ...me, role: 'OPERARIO' })]
+    }
+    if (role === 'INSPECTOR' && rolCuenta === 'INSPECTOR') {
+      return [meToUsuario({ ...me, role: 'INSPECTOR' })]
+    }
+
+    return []
+  },
+
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
     await apiClient.patch(`/auth/users/${id}`, {
       role: toFormRole(payload.role),
     })
   },
 
-  /**
-   * PATCH /auth/users/:id/inactivate  (desactivar)
-   * PATCH /auth/users/:id             (activar con { isActive: true })
-   */
   async cambiarEstado(id: string, isActive: boolean): Promise<void> {
     if (!isActive) {
       await apiClient.patch(`/auth/users/${id}/inactivate`)
@@ -105,37 +174,23 @@ export const usuarioService = {
   },
 
   /**
-   * POST /auth/register
-   * Campos: identificationType, identificationNumber, firstName, lastName,
-   *         phoneNumber, email, password, role
+   * POST /auth/admin/personnel/register — Admin, Manager
    */
   async crearUsuario(payload: CrearUsuarioDTO): Promise<void> {
-    await apiClient.post('/auth/register', payload)
+    await apiClient.post('/auth/admin/personnel/register', payload)
   },
 
-  /**
-   * GET /auth/users/:id
-   */
   async obtenerUsuarioPorId(id: string): Promise<Usuario> {
     const response = await apiClient.get(`/auth/users/${id}`)
-    const body = response.data as Record<string, unknown>
-    const raw = body['data'] ?? response.data
+    const raw = extractApiData(response.data)
     return normalizeUsuario(raw)
   },
 
-  /**
-   * GET /auth/users/search?q=<termino>
-   */
   async buscarUsuarios(q: string): Promise<Usuario[]> {
-    const response = await apiClient.get('/auth/users/search', {
-      params: { q },
-    })
-    return extractArray(response.data).map(normalizeUsuario)
+    const response = await apiClient.get('/auth/users/search', { params: { q } })
+    return onlyActive(extractApiArray(response.data).map(normalizeUsuario))
   },
 
-  /**
-   * PATCH /auth/users/:id  →  payload parcial
-   */
   async actualizarUsuario(
     id: string,
     payload: ActualizarUsuarioDTO,
@@ -143,28 +198,33 @@ export const usuarioService = {
     await apiClient.patch(`/auth/users/${id}`, payload)
   },
 
-  /**
-   * DELETE /auth/users/:id
-   */
   async eliminarUsuario(id: string): Promise<void> {
     await apiClient.delete(`/auth/users/${id}`)
   },
 
   /**
-   * GET /auth/users/inspectors
-   * Lista de inspectores para dropdown (ej. asignación de inspección).
+   * GET /auth/identification-types — Admin, Manager
    */
-  async obtenerInspectores(): Promise<Usuario[]> {
-    const response = await apiClient.get('/auth/users/inspectors')
-    return extractArray(response.data).map(normalizeUsuario)
+  async obtenerTiposIdentificacion(): Promise<{ code: string; name: string }[]> {
+    try {
+      const response = await apiClient.get('/auth/identification-types')
+      const data = extractApiArray(response.data)
+      return data.map((item) => {
+        const r = item as Record<string, unknown>
+        return {
+          code: String(r['code'] ?? r['id'] ?? ''),
+          name: String(r['name'] ?? r['nombre'] ?? r['code'] ?? ''),
+        }
+      })
+    } catch {
+      return []
+    }
   },
 
-  /**
-   * GET /auth/users/operarios
-   * Lista de operarios para dropdown.
-   */
-  async obtenerOperarios(): Promise<Usuario[]> {
-    const response = await apiClient.get('/auth/users/operarios')
-    return extractArray(response.data).map(normalizeUsuario)
+  /** @deprecated usar obtenerPersonalAsignable */
+  async obtenerUsuariosAsignables(role: string, rolSesion?: string): Promise<Usuario[]> {
+    const r = role.toUpperCase()
+    if (r !== 'OPERARIO' && r !== 'INSPECTOR') return []
+    return this.obtenerPersonalAsignable(r, rolSesion)
   },
 }

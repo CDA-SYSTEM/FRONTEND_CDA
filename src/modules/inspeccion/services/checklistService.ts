@@ -2,7 +2,6 @@ import { apiClient } from '@/core/api/apiClient'
 import type {
   ChecklistInspection,
   ChecklistTemplate,
-  CloseChecklistInspectionDTO,
   CreateChecklistInspectionDTO,
   CreateLabradoInspectionDTO,
   ChecklistInspectionSearchParams,
@@ -13,11 +12,14 @@ import type {
 } from '@/modules/inspeccion/domain/checklist.types'
 
 function extractItem<T>(responseData: unknown): T {
-  const body = responseData as Record<string, unknown>
-  if (body?.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
-    return body.data as T
+  let current = responseData as unknown
+  while (current && typeof current === 'object' && !Array.isArray(current)) {
+    const body = current as Record<string, unknown>
+    if (!('data' in body) || body.data == null) break
+    if (Array.isArray(body.data)) return body.data as T
+    current = body.data
   }
-  return body as T
+  return current as T
 }
 
 function extractArray<T>(responseData: unknown): T[] {
@@ -148,9 +150,10 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
 
 function normalizeLabradoRecord(raw: unknown): LabradoRecord {
   const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const inspection = (body.inspection && typeof body.inspection === 'object' ? body.inspection : {}) as Record<string, unknown>
   return {
     id: toStringId(body.id ?? body._id),
-    inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? body.inspection?.id),
+    inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? inspection.id),
     axles: Array.isArray(body.axles) ? (body.axles as LabradoRecord['axles']) : [],
     created_at: toStringId(body.created_at ?? body.createdAt),
     updated_at: toStringId(body.updated_at ?? body.updatedAt),
@@ -254,13 +257,29 @@ export const checklistService = {
 
   async guardarBorrador(
     id: string,
-    responses: InspectionItemResponse[],
-    observations?: string,
+    payload: {
+      plate: string
+      vehicle_id: number
+      client_id?: number
+      vehicle_type: VehicleType
+      template_id?: string
+      inspection_datetime?: string
+      inspector_id?: string
+      responses: InspectionItemResponse[]
+      observations?: string
+    },
   ): Promise<boolean> {
     try {
-      await apiClient.patch(`/api/v1/checklist/inspections/${id}/draft`, {
-        responses,
-        observations,
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/in-progress`, {
+        plate: payload.plate,
+        vehicle_id: payload.vehicle_id,
+        client_id: payload.client_id,
+        vehicle_type: payload.vehicle_type,
+        template_id: payload.template_id,
+        inspection_datetime: payload.inspection_datetime,
+        inspector_id: payload.inspector_id,
+        responses: payload.responses,
+        observations: payload.observations,
       })
       return true
     } catch {
@@ -286,10 +305,9 @@ export const checklistService = {
 
   async cerrarInspeccion(
     id: string,
-    dto: CloseChecklistInspectionDTO,
   ): Promise<boolean> {
     try {
-      await apiClient.patch(`/api/v1/checklist/inspections/${id}/close`, dto)
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/close`)
       return true
     } catch {
       return false

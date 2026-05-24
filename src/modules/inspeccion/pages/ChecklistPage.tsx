@@ -80,6 +80,7 @@ export function ChecklistPage() {
   const {
     estado,
     template,
+    responses,
     vehicleType,
     plate,
     observaciones,
@@ -108,6 +109,21 @@ export function ChecklistPage() {
     }
     return RESPONSE_OPTIONS_NTC5375
   }, [template])
+
+  const getRespuestaKey = useCallback((section: string, subsection: string, item: string) => {
+    return `${section}:${subsection}:${item}`
+  }, [])
+
+  const getRespondidosPorSeccion = useCallback((section: TemplateSection) => {
+    let count = 0
+    for (const sub of section.subsections) {
+      for (const item of sub.items) {
+        const key = getRespuestaKey(section.code || '', sub.code || '', item.code)
+        if (responses.has(key)) count++
+      }
+    }
+    return count
+  }, [getRespuestaKey, responses])
 
   const toggleSeccion = useCallback((idx: number) => {
     setSeccionesAbiertas((prev) => {
@@ -329,6 +345,8 @@ export function ChecklistPage() {
             index={idx}
             isOpen={seccionesAbiertas.has(idx)}
             onToggle={() => toggleSeccion(idx)}
+            initialRespondidos={getRespondidosPorSeccion(section)}
+            respuestas={responses}
             responseOptions={responseOptions}
             onResponder={responderItem}
             onObservar={agregarObservacion}
@@ -438,6 +456,8 @@ function AccordionSection({
   index,
   isOpen,
   onToggle,
+  initialRespondidos,
+  respuestas,
   responseOptions,
   onResponder,
   onObservar,
@@ -449,6 +469,8 @@ function AccordionSection({
   index: number
   isOpen: boolean
   onToggle: () => void
+  initialRespondidos: number
+  respuestas: Map<string, { response?: string; observation?: string }>
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
@@ -457,7 +479,7 @@ function AccordionSection({
   obtenerFotos: (section: string, subsection: string, item: string) => { id: string; previewUrl: string }[]
 }) {
   const totalItems = section.subsections.reduce((s, ss) => s + ss.items.length, 0)
-  const [respondidos, setRespondidos] = useState(0)
+  const [respondidos, setRespondidos] = useState(initialRespondidos)
 
   const handleResponder = useCallback((sectionCode: string, subsectionCode: string, itemCode: string, response: string, isNewResponse: boolean) => {
     onResponder(sectionCode, subsectionCode, itemCode, response)
@@ -533,6 +555,8 @@ function AccordionSection({
                         item={item}
                         sectionCode={section.code || ''}
                         subsectionCode={sub.code || ''}
+                        initialResponse={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.response ?? null}
+                        initialObservation={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.observation ?? ''}
                         responseOptions={responseOptions}
                         onResponder={handleResponder}
                         onObservar={onObservar}
@@ -567,10 +591,14 @@ function ItemRow({
   onAgregarFoto,
   onEliminarFoto,
   obtenerFotos,
+  initialResponse,
+  initialObservation,
 }: {
   item: { code: string; description: string; defect_type: 'A' | 'B'; order: number }
   sectionCode: string
   subsectionCode: string
+  initialResponse?: string | null
+  initialObservation?: string
   responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string, isNew: boolean) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
@@ -578,8 +606,8 @@ function ItemRow({
   onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
   obtenerFotos: () => { id: string; previewUrl: string }[]
 }) {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [observation, setObservation] = useState('')
+  const [selected, setSelected] = useState<string | null>(initialResponse ?? null)
+  const [observation, setObservation] = useState(initialObservation ?? '')
   const [showObservation, setShowObservation] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const [errorFoto, setErrorFoto] = useState<string | null>(null)

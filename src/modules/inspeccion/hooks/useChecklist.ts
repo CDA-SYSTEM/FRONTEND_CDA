@@ -33,6 +33,7 @@ export function useChecklist(inspectionId: string) {
   const [vehicleId, setVehicleId] = useState<number>(0)
   const [errorMensaje, setErrorMensaje] = useState<string | null>(null)
   const itemPhotosRef = useRef(itemPhotos)
+  const inspectionKey = checklistInspection?.id || inspectionId
 
   const responsesFromChecklist = useCallback((detalle: ChecklistInspection) => {
     const next = new Map<string, InspectionItemResponse>()
@@ -274,6 +275,22 @@ export function useChecklist(inspectionId: string) {
     })
   }, [responses, itemPhotos])
 
+  const construirPayloadInspeccion = useCallback(() => {
+    if (!checklistInspection) return null
+
+    return {
+      plate: checklistInspection.plate || plate,
+      vehicle_id: checklistInspection.vehicle_id || vehicleId,
+      client_id: checklistInspection.client_id,
+      vehicle_type: checklistInspection.vehicle_type || (vehicleType || 'LIVIANO'),
+      template_id: checklistInspection.template_id || checklistInspection.template_ref?.template_id || template?.id,
+      inspection_datetime: checklistInspection.inspection_datetime,
+      inspector_id: checklistInspection.inspector_id,
+      responses: obtenerRespuestasArray(),
+      observations: observaciones,
+    }
+  }, [checklistInspection, obtenerRespuestasArray, observaciones, plate, template?.id, vehicleId, vehicleType])
+
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
     setEstado('enviando')
@@ -283,18 +300,18 @@ export function useChecklist(inspectionId: string) {
     await offlineStorage.guardarRespuestas(Array.from(responses.entries()))
     await offlineStorage.guardarMetadata(`observaciones:${inspectionId}`, observaciones)
 
-    const ok = await checklistService.guardarBorrador(
-      checklistInspection.id,
-      obtenerRespuestasArray(),
-      observaciones,
-    )
+    const payload = construirPayloadInspeccion()
+    if (!payload) return false
+
+    const ok = await checklistService.guardarBorrador(inspectionKey, payload)
     if (ok) setEstado('listo')
     else { setEstado('error_envio'); setErrorMensaje('Error al guardar el borrador') }
     return ok
-  }, [checklistInspection, obtenerRespuestasArray, observaciones, responses, inspectionId])
+  }, [checklistInspection, inspectionKey, construirPayloadInspeccion, inspectionId, observaciones, responses])
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
     if (!checklistInspection) return false
+    void resultado
     const sinResponder = itemsSinResponder()
     if (sinResponder > 0) {
       setErrorMensaje(`Faltan ${sinResponder} ítems por responder`)
@@ -308,20 +325,17 @@ export function useChecklist(inspectionId: string) {
     await offlineStorage.guardarRespuestas(Array.from(responses.entries()))
     await offlineStorage.guardarMetadata(`observaciones:${inspectionId}`, observaciones)
 
-    const guardadoOk = await checklistService.guardarBorrador(
-      checklistInspection.id,
-      obtenerRespuestasArray(),
-      observaciones,
-    )
+    const payload = construirPayloadInspeccion()
+    if (!payload) return false
+
+    const guardadoOk = await checklistService.guardarBorrador(inspectionKey, payload)
     if (!guardadoOk) {
       setEstado('error_envio')
       setErrorMensaje('Error al guardar antes de cerrar')
       return false
     }
 
-    const cerradoOk = await checklistService.cerrarInspeccion(checklistInspection.id, {
-      general_result: resultado,
-    })
+    const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey)
     if (cerradoOk) {
       /* HU-037: Limpiar datos offline tras cierre exitoso */
       await offlineStorage.limpiarTodo(inspectionId)
@@ -331,12 +345,13 @@ export function useChecklist(inspectionId: string) {
     setEstado('error_envio')
     setErrorMensaje('Error al cerrar la inspección')
     return false
-  }, [checklistInspection, itemsSinResponder, obtenerRespuestasArray, observaciones, responses, inspectionId])
+  }, [checklistInspection, inspectionKey, itemsSinResponder, observaciones, responses, inspectionId, construirPayloadInspeccion])
 
   return {
     estado,
     template,
     checklistInspection,
+    responses,
     vehicleType,
     plate,
     vehicleId,

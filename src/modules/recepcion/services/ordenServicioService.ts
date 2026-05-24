@@ -118,22 +118,19 @@ export const ordenServicioService = {
   async crearOrdenServicio(dto: CrearOrdenServicioDTO, adjuntos?: ArchivosAdjuntos): Promise<OrdenServicioResponse> {
     const payload: Record<string, unknown> = {
       mileage: dto.mileage,
-      client_id: dto.client_id,
-      vehicle_id: dto.vehicle_id,
+      client_id: String(dto.client_id),
+      vehicle_id: String(dto.vehicle_id),
+      operator_id: String(dto.operator_id),
       customer_type: dto.customer_type,
       revision_type: dto.revision_type,
+      tinted_windows: dto.tinted_windows,
+      armored_vehicle: dto.armored_vehicle,
+      brake_fluid_sight_glass: dto.brake_fluid_sight_glass,
+      checklist: dto.checklist,
+      axles: dto.axles,
+      tires: dto.tires,
     }
     if (dto.observations) payload.observations = dto.observations
-    if (dto.operator_id) payload.operator_id = String(dto.operator_id)
-    if (dto.responsible_id) payload.responsible_id = String(dto.responsible_id)
-    if (dto.customer_id) payload.customer_id = String(dto.customer_id)
-    if (dto.plate) payload.plate = dto.plate
-    if (dto.tinted_windows) payload.tinted_windows = dto.tinted_windows
-    if (dto.armored_vehicle) payload.armored_vehicle = dto.armored_vehicle
-    if (dto.brake_fluid_sight_glass) payload.brake_fluid_sight_glass = dto.brake_fluid_sight_glass
-    if (dto.axles && dto.axles.length > 0) payload.axles = dto.axles
-    if (dto.tires && dto.tires.length > 0) payload.tires = dto.tires
-    if (dto.checklist) payload.checklist = dto.checklist
 
     const formData = new FormData()
     formData.append('data', JSON.stringify(payload))

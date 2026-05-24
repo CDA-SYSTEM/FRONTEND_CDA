@@ -3,25 +3,25 @@ export interface CatalogoItem {
   nombre: string
 }
 
+/**
+ * Cuerpo JSON del campo `data` en POST /api/v1/inspections (multipart/form-data).
+ * @see Swagger — Crear una inspección con imágenes
+ */
 export interface CrearOrdenServicioDTO {
   mileage: number
   client_id: string
   vehicle_id: string
+  /** ID del personal operario asignado (GET /auth/users/operarios) */
+  operator_id: string
   customer_type: string
   revision_type: string
+  tinted_windows: string
+  armored_vehicle: string
+  brake_fluid_sight_glass: string
+  checklist: { is_clean: boolean }
+  axles: { index: number; axle_type: string }[]
+  tires: { position: string; code: string; tire_pressure: number }[]
   observations?: string
-  operator_id?: string | number
-  responsible_id?: string | number
-  customer_id?: number | string
-  tinted_windows?: string
-  armored_vehicle?: string
-  brake_fluid_sight_glass?: string
-  axles?: { index: number; axle_type: string }[]
-  tires?: { position: string; code: string; tire_pressure: number }[]
-  /** Placa del vehículo — el backend la incluye en el cuerpo de la inspección */
-  plate?: string
-  /** Checklist de limpieza del vehículo */
-  checklist?: { is_clean?: boolean }
 }
 
 export interface OrdenServicioResponse {

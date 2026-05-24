@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera'
 import {
   AlertCircle,
   AlertTriangle,
-  Camera,
+  Camera as CameraIcon,
   Car,
   CheckCircle,
   ChevronDown,
@@ -73,6 +74,18 @@ function sectionIcon(title: string) {
 const FORMATOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/heic']
 const TAMAÑO_MAXIMO_MB = 5
 const TAMAÑO_MAXIMO_BYTES = TAMAÑO_MAXIMO_MB * 1024 * 1024
+
+function base64ToFile(dataUrl: string, filename: string): File {
+  const [header, base64] = dataUrl.split(',')
+  const match = header?.match(/data:(.*?);base64/)
+  const mimeType = match?.[1] || 'image/jpeg'
+  const binary = atob(base64 || '')
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return new File([bytes], filename, { type: mimeType })
+}
 
 export function ChecklistPage() {
   const { inspectionId } = useParams<{ inspectionId: string }>()
@@ -613,23 +626,17 @@ function ItemRow({
   const [errorFoto, setErrorFoto] = useState<string | null>(null)
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const fotos = obtenerFotos()
 
-  const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const procesarArchivoFoto = async (file: File) => {
     if (!FORMATOS_PERMITIDOS.includes(file.type)) {
       setErrorFoto('Formato no permitido. Use JPG, PNG o HEIC.')
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setTimeout(() => setErrorFoto(null), 4000)
       return
     }
 
     if (file.size > TAMAÑO_MAXIMO_BYTES) {
       setErrorFoto(`La imagen excede el tamaño máximo de ${TAMAÑO_MAXIMO_MB} MB.`)
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setTimeout(() => setErrorFoto(null), 4000)
       return
     }
@@ -639,7 +646,42 @@ function ItemRow({
       await onAgregarFoto(sectionCode, subsectionCode, item.code, file)
     } finally {
       setSubiendoFoto(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleAdjuntarFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await procesarArchivoFoto(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleTomarFoto = async () => {
+    setErrorFoto(null)
+    try {
+      const photo = await CapacitorCamera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+        saveToGallery: false,
+      })
+
+      if (!photo.dataUrl) {
+        setErrorFoto('No se pudo obtener la imagen de la cámara.')
+        setTimeout(() => setErrorFoto(null), 4000)
+        return
+      }
+
+      const file = base64ToFile(photo.dataUrl, `camera-${Date.now()}.jpg`)
+      await procesarArchivoFoto(file)
+    } catch (error) {
+      setErrorFoto(
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as Record<string, unknown>).message)
+          : 'No se pudo abrir la cámara.',
+      )
+      setTimeout(() => setErrorFoto(null), 4000)
     }
   }
 
@@ -763,18 +805,9 @@ function ItemRow({
           </div>
         )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* Input para cámara */}
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleAdjuntarFoto}
-            style={{ display: 'none' }}
-          />
           <button
             type="button"
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={handleTomarFoto}
             disabled={subiendoFoto}
             title="Tomar foto con la cámara"
             style={{
@@ -789,7 +822,7 @@ function ItemRow({
             {subiendoFoto ? (
               <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
             ) : (
-              <Camera size={13} />
+              <CameraIcon size={13} />
             )}
             Tomar foto
           </button>

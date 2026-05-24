@@ -14,9 +14,10 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/core/store/authStore'
+import { Modal } from '@/core/components/Modal'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { Toast } from '@/shared/components/Toast'
-import type { ChecklistInspection, LabradoRecord } from '@/modules/inspeccion/domain/checklist.types'
+import type { AxleMeasurement, ChecklistInspection, LabradoRecord, TireMeasurement, WheelMeasurement } from '@/modules/inspeccion/domain/checklist.types'
 import type { UserRole } from '@/modules/auth/domain/auth.types'
 
 type Tab = 'inspecciones' | 'labrado'
@@ -132,6 +133,34 @@ function renderLabrado(record: LabradoRecord | null) {
   )
 }
 
+function crearLlantas(): TireMeasurement {
+  return { tire_code: '', outer_mm: 0, middle_mm: 0, inner_mm: 0 }
+}
+
+function crearRueda(): WheelMeasurement {
+  return { wheel_code: '', tires: [crearLlantas()] }
+}
+
+function crearEje(): AxleMeasurement {
+  return { axle_code: '', wheels: [crearRueda()] }
+}
+
+function normalizarLabradoParaEditar(record: LabradoRecord | null): AxleMeasurement[] {
+  const base = record?.axles?.length ? record.axles : [crearEje()]
+  return base.map((axle) => ({
+    axle_code: axle.axle_code || '',
+    wheels: (axle.wheels?.length ? axle.wheels : [crearRueda()]).map((wheel) => ({
+      wheel_code: wheel.wheel_code || '',
+      tires: (wheel.tires?.length ? wheel.tires : [crearLlantas()]).map((tire) => ({
+        tire_code: tire.tire_code || '',
+        outer_mm: Number.isFinite(tire.outer_mm) ? tire.outer_mm : 0,
+        middle_mm: Number.isFinite(tire.middle_mm) ? tire.middle_mm : 0,
+        inner_mm: Number.isFinite(tire.inner_mm) ? tire.inner_mm : 0,
+      })),
+    })),
+  }))
+}
+
 export function AsignacionPage() {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
@@ -150,6 +179,10 @@ export function AsignacionPage() {
 
   const [selectedInspectionId, setSelectedInspectionId] = useState('')
   const [labrado, setLabrado] = useState<LabradoRecord | null>(null)
+  const [labradoDraft, setLabradoDraft] = useState<AxleMeasurement[]>([])
+  const [editandoLabrado, setEditandoLabrado] = useState(false)
+  const [guardandoLabrado, setGuardandoLabrado] = useState(false)
+  const [errorEditorLabrado, setErrorEditorLabrado] = useState<string | null>(null)
   const [cargandoLabrado, setCargandoLabrado] = useState(false)
   const [errorLabrado, setErrorLabrado] = useState<string | null>(null)
 
@@ -216,6 +249,90 @@ export function AsignacionPage() {
       setCargandoLabrado(false)
     }
   }, [])
+
+  const abrirEditorLabrado = useCallback(() => {
+    if (!selectedInspectionId) {
+      setToast({ tipo: 'error', mensaje: 'Seleccione una inspección antes de editar el labrado.' })
+      return
+    }
+    setLabradoDraft(normalizarLabradoParaEditar(labrado))
+    setErrorEditorLabrado(null)
+    setEditandoLabrado(true)
+  }, [labrado, selectedInspectionId])
+
+  const guardarLabrado = useCallback(async () => {
+    if (!selectedInspectionId) return
+    setGuardandoLabrado(true)
+    setErrorEditorLabrado(null)
+    try {
+      const actualizado = await checklistService.actualizarLabradoPorInspeccion(selectedInspectionId, {
+        axles: labradoDraft,
+      })
+      if (!actualizado) {
+        setErrorEditorLabrado('No se pudo actualizar el labrado.')
+        return
+      }
+      setLabrado(actualizado)
+      setEditandoLabrado(false)
+      setToast({ tipo: 'exito', mensaje: 'Labrado actualizado correctamente.' })
+    } catch (err) {
+      setErrorEditorLabrado(err instanceof Error ? err.message : 'No se pudo guardar el labrado.')
+    } finally {
+      setGuardandoLabrado(false)
+    }
+  }, [labradoDraft, selectedInspectionId])
+
+  const actualizarEje = useCallback((index: number, updater: (axle: AxleMeasurement) => AxleMeasurement) => {
+    setLabradoDraft((prev) => prev.map((axle, idx) => (idx === index ? updater(axle) : axle)))
+  }, [])
+
+  const agregarEje = useCallback(() => {
+    setLabradoDraft((prev) => [...prev, crearEje()])
+  }, [])
+
+  const quitarEje = useCallback((index: number) => {
+    setLabradoDraft((prev) => {
+      const next = prev.filter((_, idx) => idx !== index)
+      return next.length > 0 ? next : [crearEje()]
+    })
+  }, [])
+
+  const agregarRueda = useCallback((axleIndex: number) => {
+    actualizarEje(axleIndex, (axle) => ({
+      ...axle,
+      wheels: [...axle.wheels, crearRueda()],
+    }))
+  }, [actualizarEje])
+
+  const quitarRueda = useCallback((axleIndex: number, wheelIndex: number) => {
+    actualizarEje(axleIndex, (axle) => {
+      const next = axle.wheels.filter((_, idx) => idx !== wheelIndex)
+      return {
+        ...axle,
+        wheels: next.length > 0 ? next : [crearRueda()],
+      }
+    })
+  }, [actualizarEje])
+
+  const agregarLlanta = useCallback((axleIndex: number, wheelIndex: number) => {
+    actualizarEje(axleIndex, (axle) => ({
+      ...axle,
+      wheels: axle.wheels.map((wheel, idx) => (
+        idx === wheelIndex ? { ...wheel, tires: [...wheel.tires, crearLlantas()] } : wheel
+      )),
+    }))
+  }, [actualizarEje])
+
+  const quitarLlanta = useCallback((axleIndex: number, wheelIndex: number, tireIndex: number) => {
+    actualizarEje(axleIndex, (axle) => ({
+      ...axle,
+      wheels: axle.wheels.map((wheel, idx) => {
+        if (idx !== wheelIndex) return wheel
+        const next = wheel.tires.filter((_, tireIdx) => tireIdx !== tireIndex)
+        return { ...wheel, tires: next.length > 0 ? next : [crearLlantas()] }
+      }),
+    }))
+  }, [actualizarEje])
 
   useEffect(() => {
     cargarInspecciones()
@@ -518,6 +635,13 @@ export function AsignacionPage() {
                 {cargandoLabrado ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={16} />}
                 Cargar labrado
               </button>
+              <button
+                onClick={abrirEditorLabrado}
+                disabled={!selectedInspectionId || cargandoLabrado}
+                style={{ height: 42, padding: '0 14px' }}
+              >
+                Editar labrado
+              </button>
             </div>
             {selectedInspection && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, color: '#475569', fontSize: '0.9rem' }}>
@@ -555,6 +679,188 @@ export function AsignacionPage() {
           )}
         </div>
       )}
+
+      <Modal
+        isOpen={editandoLabrado}
+        onClose={() => {
+          if (!guardandoLabrado) setEditandoLabrado(false)
+        }}
+        title="Editar labrado"
+        maxWidth="1100px"
+      >
+        <div style={{ display: 'grid', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '0.92rem' }}>
+              Actualiza ejes, ruedas y medidas. El backend recibe el arreglo completo por inspección.
+            </p>
+            <button type="button" onClick={agregarEje} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+              Agregar eje
+            </button>
+          </div>
+
+          {errorEditorLabrado && (
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', color: '#991b1b' }}>
+              <AlertCircle size={16} />
+              <span>{errorEditorLabrado}</span>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gap: 14 }}>
+            {labradoDraft.map((axle, axleIndex) => (
+              <article key={`${axle.axle_code || 'axle'}-${axleIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#f8fafc' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end', marginBottom: 12 }}>
+                  <label style={{ display: 'grid', gap: 6 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de eje</span>
+                    <input
+                      value={axle.axle_code}
+                      onChange={(e) => actualizarEje(axleIndex, (current) => ({ ...current, axle_code: e.target.value }))}
+                      placeholder="EJE001"
+                    />
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <button type="button" onClick={() => agregarRueda(axleIndex)} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                      Agregar rueda
+                    </button>
+                    <button type="button" onClick={() => quitarEje(axleIndex)} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                      Eliminar eje
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {axle.wheels.map((wheel, wheelIndex) => (
+                    <section key={`${wheel.wheel_code || 'wheel'}-${wheelIndex}`} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, background: '#fff' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end', marginBottom: 12 }}>
+                        <label style={{ display: 'grid', gap: 6 }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de rueda</span>
+                          <input
+                            value={wheel.wheel_code}
+                            onChange={(e) => actualizarEje(axleIndex, (current) => ({
+                              ...current,
+                              wheels: current.wheels.map((currentWheel, idx) => (idx === wheelIndex ? { ...currentWheel, wheel_code: e.target.value } : currentWheel)),
+                            }))}
+                            placeholder="RUEDA001"
+                          />
+                        </label>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          <button type="button" onClick={() => agregarLlanta(axleIndex, wheelIndex)} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                            Agregar llanta
+                          </button>
+                          <button type="button" onClick={() => quitarRueda(axleIndex, wheelIndex)} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                            Eliminar rueda
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gap: 10 }}>
+                        {wheel.tires.map((tire, tireIndex) => (
+                          <div key={`${tire.tire_code || 'tire'}-${tireIndex}`} style={{ border: '1px dashed #cbd5e1', borderRadius: 10, padding: 12, background: '#f8fafc' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.3fr repeat(3, 0.7fr) auto', gap: 10, alignItems: 'end' }}>
+                              <label style={{ display: 'grid', gap: 6 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de llanta</span>
+                                <input
+                                  value={tire.tire_code}
+                                  onChange={(e) => actualizarEje(axleIndex, (current) => ({
+                                    ...current,
+                                    wheels: current.wheels.map((currentWheel, idx) => {
+                                      if (idx !== wheelIndex) return currentWheel
+                                      return {
+                                        ...currentWheel,
+                                        tires: currentWheel.tires.map((currentTire, tIdx) => (tIdx === tireIndex ? { ...currentTire, tire_code: e.target.value } : currentTire)),
+                                      }
+                                    }),
+                                  }))}
+                                  placeholder="LLANTA001"
+                                />
+                              </label>
+
+                              <label style={{ display: 'grid', gap: 6 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Exterior</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={tire.outer_mm}
+                                  onChange={(e) => actualizarEje(axleIndex, (current) => ({
+                                    ...current,
+                                    wheels: current.wheels.map((currentWheel, idx) => {
+                                      if (idx !== wheelIndex) return currentWheel
+                                      return {
+                                        ...currentWheel,
+                                        tires: currentWheel.tires.map((currentTire, tIdx) => (
+                                          tIdx === tireIndex ? { ...currentTire, outer_mm: Number(e.target.value) || 0 } : currentTire
+                                        )),
+                                      }
+                                    }),
+                                  }))}
+                                />
+                              </label>
+
+                              <label style={{ display: 'grid', gap: 6 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Centro</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={tire.middle_mm}
+                                  onChange={(e) => actualizarEje(axleIndex, (current) => ({
+                                    ...current,
+                                    wheels: current.wheels.map((currentWheel, idx) => {
+                                      if (idx !== wheelIndex) return currentWheel
+                                      return {
+                                        ...currentWheel,
+                                        tires: currentWheel.tires.map((currentTire, tIdx) => (
+                                          tIdx === tireIndex ? { ...currentTire, middle_mm: Number(e.target.value) || 0 } : currentTire
+                                        )),
+                                      }
+                                    }),
+                                  }))}
+                                />
+                              </label>
+
+                              <label style={{ display: 'grid', gap: 6 }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Interior</span>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={tire.inner_mm}
+                                  onChange={(e) => actualizarEje(axleIndex, (current) => ({
+                                    ...current,
+                                    wheels: current.wheels.map((currentWheel, idx) => {
+                                      if (idx !== wheelIndex) return currentWheel
+                                      return {
+                                        ...currentWheel,
+                                        tires: currentWheel.tires.map((currentTire, tIdx) => (
+                                          tIdx === tireIndex ? { ...currentTire, inner_mm: Number(e.target.value) || 0 } : currentTire
+                                        )),
+                                      }
+                                    }),
+                                  }))}
+                                />
+                              </label>
+
+                              <button type="button" onClick={() => quitarLlanta(axleIndex, wheelIndex, tireIndex)} disabled={guardandoLabrado} style={{ padding: '8px 12px' }}>
+                                Quitar
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 }}>
+            <button type="button" onClick={() => setEditandoLabrado(false)} disabled={guardandoLabrado} style={{ padding: '10px 16px' }}>
+              Cancelar
+            </button>
+            <button type="button" onClick={guardarLabrado} disabled={guardandoLabrado} style={{ padding: '10px 16px' }}>
+              {guardandoLabrado ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

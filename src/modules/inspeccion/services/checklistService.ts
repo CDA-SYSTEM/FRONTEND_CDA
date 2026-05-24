@@ -42,6 +42,56 @@ function extractArray<T>(responseData: unknown): T[] {
   return []
 }
 
+function extractFirstObject(responseData: unknown): Record<string, unknown> | null {
+  if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
+    return responseData as Record<string, unknown>
+  }
+
+  const array = extractArray<unknown>(responseData)
+  const first = array.find((item) => item && typeof item === 'object' && !Array.isArray(item))
+  return first ? (first as Record<string, unknown>) : null
+}
+
+function extractLabradoContainer(responseData: unknown): Record<string, unknown> | null {
+  const queue: unknown[] = [responseData]
+
+  while (queue.length > 0) {
+    const current = queue.shift()
+
+    if (!current) continue
+
+    if (Array.isArray(current)) {
+      queue.push(...current)
+      continue
+    }
+
+    if (typeof current !== 'object') continue
+
+    const body = current as Record<string, unknown>
+
+    if (body.labrado && typeof body.labrado === 'object') {
+      const labrado = body.labrado as Record<string, unknown>
+      return {
+        ...labrado,
+        inspection_id: body.inspection_id ?? body.inspectionId ?? body.inspectionID,
+        id: body.id ?? body._id,
+        created_at: body.created_at ?? body.createdAt,
+        updated_at: body.updated_at ?? body.updatedAt,
+      }
+    }
+
+    if (body.axles && Array.isArray(body.axles)) {
+      return body
+    }
+
+    if (body.data != null) {
+      queue.push(body.data)
+    }
+  }
+
+  return extractFirstObject(responseData)
+}
+
 function toStringId(value: unknown): string {
   if (typeof value === 'string') return value.trim()
   if (typeof value === 'number' && Number.isFinite(value)) return String(value)
@@ -165,11 +215,13 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
 }
 
 function normalizeLabradoRecord(raw: unknown): LabradoRecord {
-  const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const body = extractLabradoContainer(raw) ?? {}
   const inspection = (body.inspection && typeof body.inspection === 'object' ? body.inspection : {}) as Record<string, unknown>
   return {
     id: toStringId(body.id ?? body._id),
-    inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? inspection.id),
+    inspection_id: toStringId(body.inspection_id ?? body.inspectionId ?? body.inspectionID ?? inspection.id),
+    minimum_mm: toNumberId(body.minimum_mm ?? body.minimumMm),
+    measured_at: toStringId(body.measured_at ?? body.measuredAt),
     axles: Array.isArray(body.axles) ? (body.axles as LabradoRecord['axles']) : [],
     created_at: toStringId(body.created_at ?? body.createdAt),
     updated_at: toStringId(body.updated_at ?? body.updatedAt),
@@ -354,7 +406,7 @@ export const checklistService = {
   async obtenerLabradoPorInspeccion(inspectionId: string): Promise<LabradoRecord | null> {
     try {
       const response = await apiClient.get(`/api/v1/checklist/labrado/by-inspection/${inspectionId}`)
-      return normalizeLabradoRecord(extractItem<unknown>(response.data))
+      return normalizeLabradoRecord(response.data)
     } catch {
       return null
     }
@@ -363,7 +415,7 @@ export const checklistService = {
   async actualizarLabradoPorInspeccion(inspectionId: string, dto: UpdateLabradoDTO): Promise<LabradoRecord | null> {
     try {
       const response = await apiClient.put(`/api/v1/checklist/labrado/by-inspection/${inspectionId}`, dto)
-      return normalizeLabradoRecord(extractItem<unknown>(response.data))
+      return normalizeLabradoRecord(response.data)
     } catch {
       return null
     }
@@ -371,6 +423,11 @@ export const checklistService = {
 
   async subirFoto(blob: Blob): Promise<string | null> {
     try {
+      // Temporary debug: log when uploading a photo
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[checklistService] subirFoto called, size:', blob.size)
+      } catch {}
       const formData = new FormData()
       formData.append('file', blob, `photo-${Date.now()}.jpg`)
       const response = await apiClient.post('/api/v1/storage/upload', formData, {

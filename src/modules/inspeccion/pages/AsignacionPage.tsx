@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   Calendar,
@@ -98,6 +98,10 @@ function renderLabrado(record: LabradoRecord | null) {
         <div>
           <h3 style={{ margin: 0, color: '#1e293b' }}>Labrado de la inspección</h3>
           <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: '0.9rem' }}>ID inspección: {record.inspection_id}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 6, color: '#475569', fontSize: '0.88rem' }}>
+            {typeof record.minimum_mm === 'number' && <span><strong>Mínimo:</strong> {record.minimum_mm.toFixed(1)} mm</span>}
+            {record.measured_at && <span><strong>Medido:</strong> {formatearFecha(record.measured_at)}</span>}
+          </div>
         </div>
       </div>
 
@@ -185,6 +189,7 @@ export function AsignacionPage() {
   const [errorEditorLabrado, setErrorEditorLabrado] = useState<string | null>(null)
   const [cargandoLabrado, setCargandoLabrado] = useState(false)
   const [errorLabrado, setErrorLabrado] = useState<string | null>(null)
+  const labradoRequestSeq = useRef(0)
 
   const tieneAcceso = ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
 
@@ -234,18 +239,25 @@ export function AsignacionPage() {
       setErrorLabrado(null)
       return
     }
+
+    const requestSeq = ++labradoRequestSeq.current
     setCargandoLabrado(true)
     setErrorLabrado(null)
     try {
       const record = await checklistService.obtenerLabradoPorInspeccion(inspectionId)
+      if (requestSeq !== labradoRequestSeq.current) return
       setLabrado(record)
       if (!record) {
         setErrorLabrado('No se encontró labrado para esta inspección.')
+      } else if (!record.axles?.length) {
+        setErrorLabrado('El backend devolvió el labrado, pero no incluyó ejes/ruedas/llantas para mostrar.')
       }
     } catch (err) {
+      if (requestSeq !== labradoRequestSeq.current) return
       setLabrado(null)
       setErrorLabrado(err instanceof Error ? err.message : 'No se pudo cargar el labrado')
     } finally {
+      if (requestSeq !== labradoRequestSeq.current) return
       setCargandoLabrado(false)
     }
   }, [])
@@ -619,7 +631,6 @@ export function AsignacionPage() {
                       onClick={() => {
                         setSelectedInspectionId(insp.id)
                         setTab('labrado')
-                        cargarLabrado(insp.id)
                       }}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#155DFC', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                     >

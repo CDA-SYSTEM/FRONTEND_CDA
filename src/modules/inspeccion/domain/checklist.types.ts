@@ -168,6 +168,8 @@ export interface UpdateLabradoDTO {
 export interface LabradoRecord {
   id?: string
   inspection_id: string
+  minimum_mm?: number
+  measured_at?: string
   axles: AxleMeasurement[]
   created_at?: string
   updated_at?: string

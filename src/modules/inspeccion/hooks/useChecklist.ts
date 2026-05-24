@@ -277,6 +277,25 @@ export function useChecklist(inspectionId: string) {
 
   const construirPayloadInspeccion = useCallback(() => {
     if (!checklistInspection) return null
+    const rawResponses = obtenerRespuestasArray()
+    // Normalizar cada response para evitar objetos con propiedades undefined
+    const normalizedResponses = rawResponses
+      .map((r) => ({
+        section_code: String(r.section_code ?? '').trim(),
+        subsection_code: String(r.subsection_code ?? '').trim(),
+        item_code: String(r.item_code ?? '').trim(),
+        response: String(r.response ?? 'CUMPLE'),
+        defect_type: (r as any).defect_type ?? undefined,
+        observation: (r as any).observation ?? undefined,
+        photos: Array.isArray((r as any).photos) ? (r as any).photos : undefined,
+      }))
+      .filter((r) => r.section_code && r.subsection_code && r.item_code)
+
+    if (normalizedResponses.length !== rawResponses.length) {
+      // Al menos uno fue descartado por estar incompleto — útil para depuración
+      // eslint-disable-next-line no-console
+      console.warn('useChecklist: Some responses were omitted from payload because they were incomplete', { raw: rawResponses.length, sent: normalizedResponses.length })
+    }
 
     return {
       plate: checklistInspection.plate || plate,
@@ -286,7 +305,7 @@ export function useChecklist(inspectionId: string) {
       template_id: checklistInspection.template_id || checklistInspection.template_ref?.template_id || template?.id,
       inspection_datetime: checklistInspection.inspection_datetime,
       inspector_id: checklistInspection.inspector_id,
-      responses: obtenerRespuestasArray(),
+      responses: normalizedResponses,
       observations: observaciones,
     }
   }, [checklistInspection, obtenerRespuestasArray, observaciones, plate, template?.id, vehicleId, vehicleType])

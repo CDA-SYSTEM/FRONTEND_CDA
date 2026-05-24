@@ -707,11 +707,15 @@ export function AsignacionPage() {
 
           <div style={{ display: 'grid', gap: 14 }}>
             {labradoDraft.map((axle, axleIndex) => (
-              <article key={`${axle.axle_code || 'axle'}-${axleIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#f8fafc' }}>
+              <article key={`axle-${axleIndex}`} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#f8fafc' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end', marginBottom: 12 }}>
                   <label style={{ display: 'grid', gap: 6 }}>
                     <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de eje</span>
                     <input
+                      type="text"
+                      inputMode="text"
+                      autoComplete="off"
+                      spellCheck={false}
                       value={axle.axle_code}
                       onChange={(e) => actualizarEje(axleIndex, (current) => ({ ...current, axle_code: e.target.value }))}
                       placeholder="EJE001"
@@ -729,11 +733,15 @@ export function AsignacionPage() {
 
                 <div style={{ display: 'grid', gap: 12 }}>
                   {axle.wheels.map((wheel, wheelIndex) => (
-                    <section key={`${wheel.wheel_code || 'wheel'}-${wheelIndex}`} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, background: '#fff' }}>
+                    <section key={`wheel-${axleIndex}-${wheelIndex}`} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, background: '#fff' }}>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end', marginBottom: 12 }}>
                         <label style={{ display: 'grid', gap: 6 }}>
                           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de rueda</span>
                           <input
+                            type="text"
+                            inputMode="text"
+                            autoComplete="off"
+                            spellCheck={false}
                             value={wheel.wheel_code}
                             onChange={(e) => actualizarEje(axleIndex, (current) => ({
                               ...current,
@@ -754,11 +762,15 @@ export function AsignacionPage() {
 
                       <div style={{ display: 'grid', gap: 10 }}>
                         {wheel.tires.map((tire, tireIndex) => (
-                          <div key={`${tire.tire_code || 'tire'}-${tireIndex}`} style={{ border: '1px dashed #cbd5e1', borderRadius: 10, padding: 12, background: '#f8fafc' }}>
+                          <div key={`tire-${axleIndex}-${wheelIndex}-${tireIndex}`} style={{ border: '1px dashed #cbd5e1', borderRadius: 10, padding: 12, background: '#f8fafc' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1.3fr repeat(3, 0.7fr) auto', gap: 10, alignItems: 'end' }}>
                               <label style={{ display: 'grid', gap: 6 }}>
                                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Código de llanta</span>
                                 <input
+                                  type="text"
+                                  inputMode="text"
+                                  autoComplete="off"
+                                  spellCheck={false}
                                   value={tire.tire_code}
                                   onChange={(e) => actualizarEje(axleIndex, (current) => ({
                                     ...current,

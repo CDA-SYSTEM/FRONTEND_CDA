@@ -353,16 +353,26 @@ export function useChecklist(inspectionId: string) {
       return false
     }
 
-    const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
-    if (cerradoOk) {
-      /* HU-037: Limpiar datos offline tras cierre exitoso */
-      await offlineStorage.limpiarTodo(inspectionId)
-      setEstado('exito')
-      return true
+    try {
+      const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
+      if (cerradoOk) {
+        /* HU-037: Limpiar datos offline tras cierre exitoso */
+        await offlineStorage.limpiarTodo(inspectionId)
+        setEstado('exito')
+        return true
+      }
+      setEstado('error_envio')
+      setErrorMensaje('Error al cerrar la inspección')
+      return false
+    } catch (error) {
+      setEstado('error_envio')
+      setErrorMensaje(
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as Record<string, unknown>).message)
+          : 'Error al cerrar la inspección',
+      )
+      return false
     }
-    setEstado('error_envio')
-    setErrorMensaje('Error al cerrar la inspección')
-    return false
   }, [checklistInspection, inspectionKey, itemsSinResponder, observaciones, responses, inspectionId, construirPayloadInspeccion])
 
   return {

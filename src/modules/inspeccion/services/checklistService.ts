@@ -57,6 +57,21 @@ function toNumberId(value: unknown): number | undefined {
   return undefined
 }
 
+function obtenerMensajeError(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object') {
+    const anyError = error as Record<string, unknown>
+    const response = anyError.response as Record<string, unknown> | undefined
+    const data = response?.data as Record<string, unknown> | undefined
+    const nestedError = data?.error as Record<string, unknown> | undefined
+    const mensaje =
+      (typeof data?.message === 'string' && data.message) ||
+      (typeof nestedError?.message === 'string' && nestedError.message) ||
+      (typeof anyError.message === 'string' && anyError.message)
+    if (mensaje) return mensaje
+  }
+  return fallback
+}
+
 function normalizeTemplateSnapshot(raw: unknown): ChecklistTemplate | null {
   const body = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const sections = Array.isArray(body.sections)
@@ -313,8 +328,8 @@ export const checklistService = {
         general_result: generalResult,
       })
       return true
-    } catch {
-      return false
+    } catch (error) {
+      throw new Error(obtenerMensajeError(error, 'No se pudo cerrar la inspección'))
     }
   },
 

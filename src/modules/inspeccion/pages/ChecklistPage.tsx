@@ -663,6 +663,7 @@ function ItemRow({
   const videoRef = useRef<HTMLVideoElement>(null)
   const webStreamRef = useRef<MediaStream | null>(null)
   const fotos = obtenerFotos()
+  const selectedType = initialResponse === 'A' || initialResponse === 'B' ? initialResponse : item.defect_type
 
   const procesarArchivoFoto = useCallback(async (file: File) => {
     if (!FORMATOS_PERMITIDOS.includes(file.type)) {
@@ -790,7 +791,7 @@ function ItemRow({
     }
   }, [procesarArchivoFoto])
 
-  // Eliminada la interacción A/B: no se cambia respuesta aquí desde el item
+  // Selección A/B visible desde la tarjeta del ítem
 
   const handleObservation = useCallback((value: string) => {
     setObservation(value)
@@ -831,18 +832,25 @@ function ItemRow({
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        {/* Mostrar el tipo de defecto (A/B) junto al control de nota */}
-        <span
-          title={`Tipo por plantilla: ${item.defect_type}`}
+        <button
+          type="button"
+          onClick={() => onResponder(sectionCode, subsectionCode, item.code, displayType, initialResponse == null)}
+          title={`Seleccionar tipo ${displayType}`}
+          aria-pressed={selectedType === displayType}
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            minWidth: 24, height: 24, padding: '0 8px', borderRadius: 999,
-            fontSize: '0.72rem', fontWeight: 800,
-            background: defectTone.chipBg, color: defectTone.chipColor, border: `1px solid ${defectTone.chipBorder}`,
+            minWidth: 28, height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
+            border: `1.5px solid ${selectedType === displayType ? (displayType === 'B' ? '#f59e0b' : '#16a34a') : (displayType === 'B' ? '#fed7aa' : '#bbf7d0')}`,
+            background: selectedType === displayType ? (displayType === 'B' ? '#fef3c7' : '#dcfce7') : '#fff',
+            color: displayType === 'B' ? '#92400e' : '#166534',
+            fontWeight: 700,
+            fontSize: '0.76rem',
+            lineHeight: 1,
+            boxShadow: selectedType === displayType ? '0 1px 4px rgba(15, 23, 42, 0.08)' : 'none',
           }}
         >
           {displayType}
-        </span>
+        </button>
 
         {!isDefect && !showObservation && (
           <button

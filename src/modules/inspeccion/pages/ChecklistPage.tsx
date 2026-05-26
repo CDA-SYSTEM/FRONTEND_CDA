@@ -663,7 +663,7 @@ function ItemRow({
   const videoRef = useRef<HTMLVideoElement>(null)
   const webStreamRef = useRef<MediaStream | null>(null)
   const fotos = obtenerFotos()
-  const selectedType = initialResponse === 'A' || initialResponse === 'B' ? initialResponse : item.defect_type
+  const selectedType = initialResponse === 'A' || initialResponse === 'B' ? initialResponse : null
 
   const procesarArchivoFoto = useCallback(async (file: File) => {
     if (!FORMATOS_PERMITIDOS.includes(file.type)) {
@@ -800,8 +800,17 @@ function ItemRow({
 
   // Mostrar sólo el defect_type que viene en la plantilla/backend
   const displayType = item.defect_type
+  const isSelected = selectedType === displayType
   const isDefect = displayType === 'B'
-  const defectTone = displayType === 'B'
+  const defectTone = !isSelected
+    ? {
+        bg: '#f0fdf4',
+        border: '#bbf7d0',
+        chipBg: '#dcfce7',
+        chipColor: '#166534',
+        chipBorder: '#86efac',
+      }
+    : displayType === 'B'
     ? {
         bg: '#fff7ed',
         border: '#fed7aa',
@@ -810,11 +819,11 @@ function ItemRow({
         chipBorder: '#f59e0b',
       }
     : {
-        bg: '#f0fdf4',
-        border: '#bbf7d0',
-        chipBg: '#dcfce7',
-        chipColor: '#166534',
-        chipBorder: '#86efac',
+        bg: '#fef2f2',
+        border: '#fecaca',
+        chipBg: '#fee2e2',
+        chipColor: '#991b1b',
+        chipBorder: '#fca5a5',
       }
 
   return (
@@ -836,17 +845,17 @@ function ItemRow({
           type="button"
           onClick={() => onResponder(sectionCode, subsectionCode, item.code, displayType, initialResponse == null)}
           title={`Seleccionar tipo ${displayType}`}
-          aria-pressed={selectedType === displayType}
+          aria-pressed={isSelected}
           style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             minWidth: 28, height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
-            border: `1.5px solid ${selectedType === displayType ? (displayType === 'B' ? '#f59e0b' : '#16a34a') : (displayType === 'B' ? '#fed7aa' : '#bbf7d0')}`,
-            background: selectedType === displayType ? (displayType === 'B' ? '#fef3c7' : '#dcfce7') : '#fff',
-            color: displayType === 'B' ? '#92400e' : '#166534',
+            border: `1.5px solid ${isSelected ? (displayType === 'B' ? '#f59e0b' : '#dc2626') : '#16a34a'}`,
+            background: isSelected ? (displayType === 'B' ? '#fef3c7' : '#fee2e2') : '#dcfce7',
+            color: isSelected ? (displayType === 'B' ? '#92400e' : '#991b1b') : '#166534',
             fontWeight: 700,
             fontSize: '0.76rem',
             lineHeight: 1,
-            boxShadow: selectedType === displayType ? '0 1px 4px rgba(15, 23, 42, 0.08)' : 'none',
+            boxShadow: isSelected ? '0 1px 4px rgba(15, 23, 42, 0.08)' : 'none',
           }}
         >
           {displayType}

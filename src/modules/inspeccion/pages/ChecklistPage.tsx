@@ -843,7 +843,7 @@ function ItemRow({
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <button
           type="button"
-          onClick={() => onResponder(sectionCode, subsectionCode, item.code, displayType, initialResponse == null)}
+          onClick={() => onResponder(sectionCode, subsectionCode, item.code, isSelected ? '' : displayType, initialResponse == null)}
           title={`Seleccionar tipo ${displayType}`}
           aria-pressed={isSelected}
           style={{

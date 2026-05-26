@@ -146,6 +146,13 @@ export function useChecklist(inspectionId: string) {
       const next = new Map(prev)
       const key = `${section_code}:${subsection_code}:${item_code}`
       const existing = next.get(key)
+
+      // Toggle de selección: si llega vacío o la misma respuesta previa, se desmarca.
+      if (!String(response).trim() || existing?.response === response) {
+        next.delete(key)
+        return next
+      }
+
       next.set(key, {
         section_code,
         subsection_code,

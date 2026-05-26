@@ -209,6 +209,17 @@ export function useCrearRecepcion() {
       setEstadoEnvio('error')
       return
     }
+    if (!confirmacionAcuerdo) {
+      setErrorEnvio('Debe aceptar los términos y condiciones antes de finalizar.')
+      setEstadoEnvio('error')
+      return
+    }
+    const presionesIncompletas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
+    if (presionesIncompletas) {
+      setErrorEnvio('Registre la presión PSI de todas las llantas antes de finalizar.')
+      setEstadoEnvio('error')
+      return
+    }
 
     setEstadoEnvio('enviando')
     setErrorEnvio(null)
@@ -233,10 +244,10 @@ export function useCrearRecepcion() {
           ? tires.map((t) => ({
               position: t.position,
               code: t.code || 'PENDIENTE',
-              tire_pressure: t.tire_pressure || 32.5,
+              tire_pressure: Number(t.tire_pressure) || 0,
             }))
-          : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32.5 }],
-        checklist: { is_clean: false },
+          : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 0 }],
+        checklist: { is_clean: confirmacionAcuerdo },
       }
 
       const response = await ordenServicioService.crearOrdenServicio(dto, {

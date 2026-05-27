@@ -217,6 +217,8 @@ export function RecepcionWizard({ onCancelar }: Props) {
           setSignatureBlob={wizard.setSignatureBlob}
           confirmacionAcuerdo={wizard.confirmacionAcuerdo}
           setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
+            tires={wizard.tires}
+            setTires={wizard.setTires}
           estadoEnvio={wizard.estadoEnvio}
           errorEnvio={wizard.errorEnvio}
           tintedWindows={wizard.tintedWindows}
@@ -644,6 +646,8 @@ interface PasoCondicionesProps {
   setSignatureBlob: (b: Blob | null) => void
   confirmacionAcuerdo: boolean
   setConfirmacionAcuerdo: (v: boolean) => void
+  tires: { position: string; code: string; tire_pressure: number }[]
+  setTires: (v: { position: string; code: string; tire_pressure: number }[]) => void
   estadoEnvio: 'idle' | 'enviando' | 'exito' | 'error'
   errorEnvio: string | null
   tintedWindows: string
@@ -661,6 +665,7 @@ function PasoCondiciones({
   photoFile, setPhotoFile,
   setSignatureBlob,
   confirmacionAcuerdo, setConfirmacionAcuerdo,
+  tires, setTires,
   estadoEnvio, errorEnvio,
   tintedWindows, setTintedWindows,
   armoredVehicle, setArmoredVehicle,
@@ -668,6 +673,28 @@ function PasoCondiciones({
   onSubmit, onVolver,
 }: PasoCondicionesProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const presionesInvalidas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
+  const puedeFinalizar = confirmacionAcuerdo && !presionesInvalidas && estadoEnvio !== 'enviando'
+
+  const actualizarPresion = (index: number, value: string) => {
+    setTires(
+      tires.map((tire, tireIndex) => (
+        tireIndex === index
+          ? { ...tire, tire_pressure: Number(value) || 0 }
+          : tire
+      )),
+    )
+  }
+
+  const etiquetaLlanta = (position: string) => {
+    switch (position) {
+      case 'FRONT_LEFT': return 'Delantera izquierda'
+      case 'FRONT_RIGHT': return 'Delantera derecha'
+      case 'REAR_LEFT': return 'Trasera izquierda'
+      case 'REAR_RIGHT': return 'Trasera derecha'
+      default: return position
+    }
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -728,6 +755,76 @@ function PasoCondiciones({
             </select>
           </label>
         </div>
+
+        {/* Presión de llantas */}
+        <section style={{ gridColumn: '1 / -1', padding: 18, borderRadius: 16, border: '1px solid #bfdbfe', background: 'linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)', boxShadow: '0 8px 24px rgba(37, 99, 235, 0.06)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Presión de llantas</h3>
+              <p style={{ margin: '4px 0 0', color: '#475569', fontSize: '0.9rem' }}>
+                Registre la presión en PSI de cada llanta antes de finalizar la recepción.
+              </p>
+            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', padding: '6px 10px', borderRadius: 999, background: '#dbeafe', color: '#1d4ed8', fontWeight: 700, fontSize: '0.82rem' }}>
+              {tires.length} llanta(s)
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+            {tires.map((tire, index) => {
+              const invalida = !Number.isFinite(tire.tire_pressure) || tire.tire_pressure <= 0
+              return (
+                <article
+                  key={`${tire.position}-${index}`}
+                  style={{
+                    borderRadius: 14,
+                    border: `1px solid ${invalida ? '#fecaca' : '#bfdbfe'}`,
+                    background: invalida ? '#fff1f2' : '#ffffff',
+                    padding: 14,
+                    display: 'grid',
+                    gap: 10,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        {etiquetaLlanta(tire.position)}
+                      </div>
+                      <div style={{ marginTop: 4, color: '#0f172a', fontWeight: 700 }}>{tire.code || 'Código pendiente'}</div>
+                    </div>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 9px', borderRadius: 999, background: invalida ? '#fee2e2' : '#dcfce7', color: invalida ? '#991b1b' : '#166534', fontWeight: 700, fontSize: '0.78rem' }}>
+                      {invalida ? 'Requerida' : 'OK'}
+                    </span>
+                  </div>
+
+                  <label style={{ display: 'grid', gap: 6 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Presión PSI</span>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.1"
+                        inputMode="decimal"
+                        value={tire.tire_pressure}
+                        onChange={(e) => actualizarPresion(index, e.target.value)}
+                        placeholder="Ej: 32.5"
+                        disabled={estadoEnvio === 'enviando'}
+                        style={{ paddingRight: 56, borderColor: invalida ? '#fca5a5' : undefined }}
+                      />
+                      <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.82rem', fontWeight: 700 }}>PSI</span>
+                    </div>
+                  </label>
+                </article>
+              )
+            })}
+          </div>
+
+          {presionesInvalidas && (
+            <p style={{ margin: '12px 0 0', color: '#b91c1c', fontSize: '0.86rem' }}>
+              Complete la presión de todas las llantas para poder continuar.
+            </p>
+          )}
+        </section>
 
         {/* Observaciones */}
         <label style={{ gridColumn: '1 / -1' }}>
@@ -841,11 +938,23 @@ function PasoCondiciones({
           </div>
         </label>
 
+        <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'grid', gap: 2 }}>
+            <strong style={{ color: '#0f172a' }}>Aceptación requerida</strong>
+            <span style={{ color: '#64748b', fontSize: '0.86rem' }}>
+              No podrá registrar la recepción si falta la presión PSI o la confirmación de condiciones.
+            </span>
+          </div>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 999, background: puedeFinalizar ? '#dcfce7' : '#fee2e2', color: puedeFinalizar ? '#166534' : '#991b1b', fontWeight: 700, fontSize: '0.82rem' }}>
+            {puedeFinalizar ? 'Listo para registrar' : 'Información pendiente'}
+          </span>
+        </div>
+
         {/* Botón de envío */}
         <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
           <button
             onClick={onSubmit}
-            disabled={estadoEnvio === 'enviando' || !confirmacionAcuerdo}
+            disabled={!puedeFinalizar}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -854,7 +963,7 @@ function PasoCondiciones({
               width: '100%',
               padding: '12px 24px',
               fontSize: '1rem',
-              opacity: (estadoEnvio === 'enviando' || !confirmacionAcuerdo) ? 0.7 : 1,
+              opacity: puedeFinalizar ? 1 : 0.7,
             }}
           >
             {estadoEnvio === 'enviando' ? (

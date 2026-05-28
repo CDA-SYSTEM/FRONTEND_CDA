@@ -21,14 +21,14 @@ export type EstadoChecklist =
   | 'exito'
   | 'error_envio'
 
-export function useChecklist(inspectionId: string) {
+export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleType | null) {
   const [estado, setEstado] = useState<EstadoChecklist>('cargando')
   const [template, setTemplate] = useState<ChecklistTemplate | null>(null)
   const [checklistInspection, setChecklistInspection] = useState<ChecklistInspection | null>(null)
   const [responses, setResponses] = useState<Map<string, InspectionItemResponse>>(new Map())
   const [itemPhotos, setItemPhotos] = useState<Map<string, InspectionItemPhoto[]>>(new Map())
   const [observaciones, setObservaciones] = useState('')
-  const [vehicleType, setVehicleType] = useState<VehicleType | null>(null)
+  const [vehicleType, setVehicleType] = useState<VehicleType | null>(vehicleTypeFromUrl ?? null)
   const [plate, setPlate] = useState('')
   const [vehicleId, setVehicleId] = useState<number>(0)
   const [errorMensaje, setErrorMensaje] = useState<string | null>(null)
@@ -62,7 +62,7 @@ export function useChecklist(inspectionId: string) {
 
         const plateStr = detalle.plate || ''
         const vId = detalle.vehicle_id || 0
-        const tipo: VehicleType = detalle.vehicle_type || 'LIVIANO'
+        const tipo: VehicleType = vehicleTypeFromUrl || detalle.vehicle_type || 'LIVIANO'
 
         setChecklistInspection(detalle)
         setPlate(plateStr)

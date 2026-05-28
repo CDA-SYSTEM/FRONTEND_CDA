@@ -53,6 +53,7 @@ export function AppRouter() {
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/inspeccion" element={<InspeccionPage />} />
             <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
+            <Route path="/inspeccion/checklist/:vehicleType/:inspectionId" element={<ChecklistPage />} />
             <Route path="/inspeccion/checklist/:inspectionId" element={<ChecklistPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />

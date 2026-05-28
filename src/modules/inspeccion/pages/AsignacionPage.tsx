@@ -17,7 +17,7 @@ import { useAuthStore } from '@/core/store/authStore'
 import { Modal } from '@/core/components/Modal'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { Toast } from '@/shared/components/Toast'
-import type { AxleMeasurement, ChecklistInspection, LabradoRecord } from '@/modules/inspeccion/domain/checklist.types'
+import type { AxleMeasurement, ChecklistInspection, LabradoRecord, VehicleType } from '@/modules/inspeccion/domain/checklist.types'
 import { LabradoWizard, ChassisGrid, buildAxlesForType, getLayout, inferirConfig, mergeIntoLayout } from '@/modules/inspeccion/components/LabradoWizard'
 import type { UserRole } from '@/modules/auth/domain/auth.types'
 
@@ -42,6 +42,15 @@ function formatearFecha(fecha?: string) {
 
 function infoVehiculo(insp: ChecklistInspection): string {
   return insp.plate || `Vehículo ${insp.vehicle_id || '—'}`
+}
+
+function tipoBadge(tipo: VehicleType) {
+  const map: Record<VehicleType, { label: string; bg: string; color: string }> = {
+    MOTO: { label: 'Moto', bg: '#fef3c7', color: '#92400e' },
+    LIVIANO: { label: 'Liviano', bg: '#dbeafe', color: '#1d4ed8' },
+    PESADO: { label: 'Pesado', bg: '#fee2e2', color: '#991b1b' },
+  }
+  return map[tipo] || { label: tipo, bg: '#f1f5f9', color: '#475569' }
 }
 
 function estadoBadge(insp: ChecklistInspection) {
@@ -133,6 +142,7 @@ export function AsignacionPage() {
   const [statusFiltro, setStatusFiltro] = useState('')
   const [vehicleIdFiltro, setVehicleIdFiltro] = useState('')
   const [inspectionIdFiltro, setInspectionIdFiltro] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState<VehicleType | ''>('')
   const [pageActual, setPageActual] = useState(1)
   const [tamanoPagina] = useState(20)
 
@@ -151,6 +161,11 @@ export function AsignacionPage() {
   const selectedInspection = useMemo(
     () => inspecciones.find((i) => i.id === selectedInspectionId) ?? null,
     [inspecciones, selectedInspectionId],
+  )
+
+  const inspeccionesFiltradas = useMemo(
+    () => (filtroTipo ? inspecciones.filter((i) => i.vehicle_type === filtroTipo) : inspecciones),
+    [inspecciones, filtroTipo],
   )
 
   const cargarInspecciones = useCallback(async () => {
@@ -278,6 +293,7 @@ export function AsignacionPage() {
     setStatusFiltro('')
     setVehicleIdFiltro('')
     setInspectionIdFiltro('')
+    setFiltroTipo('')
     setPageActual(1)
   }
 
@@ -369,6 +385,33 @@ export function AsignacionPage() {
         </div>
       </div>
 
+      <div className="panel" style={{ display: 'flex', gap: 8, padding: '12px 16px', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Filtrar por tipo:</span>
+        {(['', 'MOTO', 'LIVIANO', 'PESADO'] as const).map((t) => {
+          const label = t === '' ? 'Todos' : t === 'MOTO' ? 'Motos' : t === 'LIVIANO' ? 'Livianos' : 'Pesados'
+          const icon = t === 'MOTO' ? '🏍️' : t === 'LIVIANO' ? '🚗' : t === 'PESADO' ? '🚛' : null
+          const isActive = filtroTipo === t
+          return (
+            <button key={t} onClick={() => setFiltroTipo(t)} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 999, border: isActive ? '2px solid #155DFC' : '2px solid #e2e8f0',
+              background: isActive ? '#eff6ff' : '#fff',
+              color: isActive ? '#155DFC' : '#475569',
+              fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
+              cursor: 'pointer',
+            }}>
+              {icon && <span>{icon}</span>}
+              {label}
+              {t !== '' && (
+                <span style={{ background: isActive ? '#155DFC' : '#e2e8f0', color: isActive ? '#fff' : '#64748b', borderRadius: 999, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 700 }}>
+                  {inspecciones.filter((i) => i.vehicle_type === t).length}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
       <div style={{ display: 'flex', gap: 8 }}>
         <button
           onClick={() => setTab('inspecciones')}
@@ -390,14 +433,11 @@ export function AsignacionPage() {
           <ClipboardList size={18} />
           Inspecciones
           <span style={{ background: '#155DFC', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: '0.75rem', fontWeight: 700, marginLeft: 4 }}>
-            {inspecciones.length}
+            {inspeccionesFiltradas.length}
           </span>
         </button>
         <button
-          onClick={() => {
-            setTab('labrado')
-            if (selectedInspectionId) cargarLabrado(selectedInspectionId)
-          }}
+          onClick={() => setTab('labrado')}
           style={{
             flex: 1,
             padding: '10px 16px',
@@ -442,17 +482,19 @@ export function AsignacionPage() {
           <article className="panel" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem' }}>
             <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
           </article>
-        ) : inspecciones.length === 0 ? (
+        ) : inspeccionesFiltradas.length === 0 ? (
           <article className="panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
             <CheckCircle size={48} color="#16a34a" strokeWidth={1.5} style={{ marginBottom: 16 }} />
-            <h3 style={{ color: '#374151', marginBottom: 8 }}>No hay checklist-inspections</h3>
+            <h3 style={{ color: '#374151', marginBottom: 8 }}>
+              {filtroTipo ? `No hay inspecciones de tipo ${filtroTipo.toLowerCase()}` : 'No hay checklist-inspections'}
+            </h3>
             <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>
-              El backend no devolvió registros para esta página y estos filtros.
+              {filtroTipo ? 'No hay registros para el tipo de vehículo seleccionado.' : 'El backend no devolvió registros para esta página y estos filtros.'}
             </p>
           </article>
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>
-            {inspecciones.map((insp) => {
+            {inspeccionesFiltradas.map((insp) => {
               const estado = estadoBadge(insp)
               const resultado = resultadoBadge(insp.general_result)
               return (
@@ -466,17 +508,23 @@ export function AsignacionPage() {
                     alignItems: 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <ClipboardList size={20} color="#155DFC" />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#1e293b' }}>{infoVehiculo(insp)}</div>
-                      <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                        {insp.id} {insp.inspection_number ? `· ${insp.inspection_number}` : ''}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ClipboardList size={20} color="#155DFC" />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontWeight: 700, color: '#1e293b' }}>{infoVehiculo(insp)}</span>
+                          {(() => {
+                            const tb = tipoBadge(insp.vehicle_type)
+                            return <span style={{ display: 'inline-flex', padding: '2px 8px', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, background: tb.bg, color: tb.color }}>{tb.label}</span>
+                          })()}
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                          {insp.id} {insp.inspection_number ? `· ${insp.inspection_number}` : ''}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
                   <div style={{ display: 'grid', gap: 6, fontSize: '0.86rem', color: '#475569' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -505,7 +553,8 @@ export function AsignacionPage() {
                           setToast({ tipo: 'error', mensaje: 'La inspección no tiene un identificador válido para editar.' })
                           return
                         }
-                        navigate(`/inspeccion/checklist/${insp.id}`)
+                        const tipo = (insp.vehicle_type || 'LIVIANO').toLowerCase()
+                        navigate(`/inspeccion/checklist/${tipo}/${insp.id}`)
                       }}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#0f172a', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
                     >

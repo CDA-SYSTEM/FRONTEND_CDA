@@ -1,7 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera'
 import {
   AlertCircle,
   AlertTriangle,
@@ -27,7 +26,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
-import { type TemplateSection } from '@/modules/inspeccion/domain/checklist.types'
+import { type TemplateSection, type VehicleType } from '@/modules/inspeccion/domain/checklist.types'
 
 /* ═══════════════════════════════════════════════
    Helpers
@@ -147,8 +146,14 @@ async function obtenerCamaraWebPreferida(): Promise<MediaStream> {
 }
 
 export function ChecklistPage() {
-  const { inspectionId } = useParams<{ inspectionId: string }>()
+  const { inspectionId, vehicleType: vehicleTypeParam } = useParams<{ inspectionId: string; vehicleType?: string }>()
   const navigate = useNavigate()
+  const vehicleTypeFromUrl: VehicleType | null = useMemo(() => {
+    if (!vehicleTypeParam) return null
+    const upper = vehicleTypeParam.toUpperCase()
+    if (upper === 'MOTO' || upper === 'LIVIANO' || upper === 'PESADO') return upper as VehicleType
+    return null
+  }, [vehicleTypeParam])
   const {
     estado,
     template,
@@ -168,7 +173,7 @@ export function ChecklistPage() {
     responderItem,
     guardar,
     cerrar,
-  } = useChecklist(inspectionId || '')
+  } = useChecklist(inspectionId || '', vehicleTypeFromUrl)
 
 
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))

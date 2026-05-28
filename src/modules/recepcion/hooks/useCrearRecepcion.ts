@@ -165,28 +165,6 @@ export function useCrearRecepcion() {
     setPaso('condiciones')
   }, [])
 
-  const volver = useCallback(() => {
-    if (paso === 'vehiculo') {
-      setCliente(null)
-      setVehiculos([])
-      setVehiculo(null)
-      setPaso('cliente')
-    } else if (paso === 'detalle') {
-      if (vehiculo) {
-        setVehiculo(null)
-        setPaso('vehiculo')
-      } else {
-        setCliente(null)
-        setVehiculos([])
-        setPaso('cliente')
-      }
-    } else if (paso === 'condiciones') {
-      setPaso('detalle')
-    } else if (paso === 'confirmacion') {
-      reset()
-    }
-  }, [paso, vehiculo, reset])
-
   const enviar = useCallback(async () => {
     if (!cliente || !user) return
     if (!vehiculo) {
@@ -270,6 +248,28 @@ export function useCrearRecepcion() {
     if (tiposRevision.length > 0) setRevisionType(String(tiposRevision[0].id))
     if (tiposCliente.length > 0) setCustomerType(String(tiposCliente[0].id))
   }, [tiposRevision, tiposCliente])
+
+  const volver = useCallback(() => {
+    if (paso === 'vehiculo') {
+      setCliente(null)
+      setVehiculos([])
+      setVehiculo(null)
+      setPaso('cliente')
+    } else if (paso === 'detalle') {
+      if (vehiculo) {
+        setVehiculo(null)
+        setPaso('vehiculo')
+      } else {
+        setCliente(null)
+        setVehiculos([])
+        setPaso('cliente')
+      }
+    } else if (paso === 'condiciones') {
+      setPaso('detalle')
+    } else if (paso === 'confirmacion') {
+      reset()
+    }
+  }, [paso, vehiculo, reset])
 
   return {
     paso,

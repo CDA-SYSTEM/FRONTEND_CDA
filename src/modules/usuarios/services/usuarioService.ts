@@ -196,9 +196,9 @@ export const usuarioService = {
   },
 
   /** @deprecated usar obtenerPersonalAsignable */
-  async obtenerUsuariosAsignables(role: string, rolSesion?: string): Promise<Usuario[]> {
+  async obtenerUsuariosAsignables(role: string): Promise<Usuario[]> {
     const r = role.toUpperCase()
     if (r !== 'OPERARIO' && r !== 'INSPECTOR') return []
-    return this.obtenerPersonalAsignable(r, rolSesion)
+    return this.obtenerPersonalAsignable(r)
   },
 }

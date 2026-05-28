@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { useAuthStore } from '@/core/store/authStore'
 import {
   AlertCircle,
   ArrowLeft,
@@ -197,8 +196,6 @@ export function RecepcionWizard({ onCancelar }: Props) {
           setCustomerType={wizard.setCustomerType}
           tiposRevision={wizard.tiposRevision}
           tiposCliente={wizard.tiposCliente}
-          rolAsignado={wizard.rolAsignado}
-          setRolAsignado={wizard.setRolAsignado}
           usuarioAsignadoId={wizard.usuarioAsignadoId}
           setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
           usuariosAsignables={wizard.usuariosAsignables}
@@ -475,8 +472,6 @@ interface PasoDetalleProps {
   setCustomerType: (v: string) => void
   tiposRevision: { id: number | string; nombre: string }[]
   tiposCliente: { id: number | string; nombre: string }[]
-  rolAsignado: 'INSPECTOR' | 'OPERARIO'
-  setRolAsignado: (v: 'INSPECTOR' | 'OPERARIO') => void
   usuarioAsignadoId: string
   setUsuarioAsignadoId: (v: string) => void
   usuariosAsignables: Usuario[]
@@ -492,23 +487,13 @@ function labelPersonal(u: Usuario): string {
   return nombre || u.email || `Personal #${u.id}`
 }
 
-const ROL_PERSONAL_LABEL: Record<'INSPECTOR' | 'OPERARIO', string> = {
-  OPERARIO: 'Operario',
-  INSPECTOR: 'Inspector',
-}
-
 function PasoDetalle({
   mileage, setMileage, revisionType, setRevisionType, customerType, setCustomerType,
   tiposRevision, tiposCliente,
-  rolAsignado, setRolAsignado,
   usuarioAsignadoId, setUsuarioAsignadoId,
   usuariosAsignables, cargandoUsuariosAsignables, errorUsuariosAsignables,
   onSiguiente, onVolver,
 }: PasoDetalleProps) {
-  const currentUserRole = useAuthStore((s) => s.user?.role)
-  const rolesPersonal: Array<'INSPECTOR' | 'OPERARIO'> =
-    currentUserRole === 'OPERARIO' ? ['OPERARIO'] : ['OPERARIO', 'INSPECTOR']
-
   const puedeContinuar =
     Boolean(revisionType && customerType && usuarioAsignadoId && !cargandoUsuariosAsignables)
 
@@ -559,37 +544,19 @@ function PasoDetalle({
           </select>
         </label>
 
-        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <label>
-            <span style={{ fontWeight: 500 }}>Rol del personal</span>
-            <select
-              value={rolAsignado}
-              onChange={(e) => setRolAsignado(e.target.value as 'INSPECTOR' | 'OPERARIO')}
-              disabled={rolesPersonal.length === 1}
-            >
-              {rolesPersonal.map((rol) => (
-                <option key={rol} value={rol}>
-                  {ROL_PERSONAL_LABEL[rol]}
-                </option>
-              ))}
-            </select>
-            <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.78rem', display: 'block' }}>
-              {currentUserRole === 'ADMIN' || currentUserRole === 'MANAGER'
-                ? 'Lista de personal registrado (requiere rol Admin o Manager en el API).'
-                : 'Con su rol se asigna su propia cuenta como operario.'}
-            </span>
-          </label>
+        <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 12 }}>
+          <div style={{ padding: '10px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', fontSize: '0.85rem' }}>
+            La recepción asigna personal con rol <strong>Operario</strong>. La lista de usuarios está filtrada automáticamente.
+          </div>
 
           <label>
-            <span style={{ fontWeight: 500 }}>
-              {ROL_PERSONAL_LABEL[rolAsignado]} a asignar <span style={{ color: '#ef4444' }}>*</span>
-            </span>
+            <span style={{ fontWeight: 500 }}>Operario a asignar <span style={{ color: '#ef4444' }}>*</span></span>
             <select
               value={usuarioAsignadoId}
               onChange={(e) => setUsuarioAsignadoId(e.target.value)}
               disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
             >
-              <option value="">Seleccione personal...</option>
+              <option value="">Seleccione operario...</option>
               {usuariosAsignables.map((u) => (
                 <option key={u.id} value={u.id}>
                   {labelPersonal(u)}
@@ -598,7 +565,7 @@ function PasoDetalle({
             </select>
             {cargandoUsuariosAsignables && (
               <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
-                Cargando personal de su cuenta...
+                Cargando operarios disponibles...
               </span>
             )}
             {errorUsuariosAsignables && (

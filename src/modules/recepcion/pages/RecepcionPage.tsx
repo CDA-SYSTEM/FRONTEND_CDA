@@ -593,7 +593,7 @@ export function RecepcionPage() {
                       <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <Calendar size={14} style={{ color: '#64748b' }} />
-                          {formatDate(insp.createdAt)}
+                          {formatDate(insp.inspection_date || insp.date || insp.createdAt)}
                         </span>
                       </td>
                       <td style={{ padding: '12px 16px' }}>
@@ -909,7 +909,7 @@ export function RecepcionPage() {
                     <div>
                       <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Registrado el:</span>
                       <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
-                        {formatDate(inspectionDetail.createdAt)}
+                        {formatDate(inspectionDetail.inspection_date || inspectionDetail.date || inspectionDetail.createdAt)}
                       </p>
                     </div>
                   </div>

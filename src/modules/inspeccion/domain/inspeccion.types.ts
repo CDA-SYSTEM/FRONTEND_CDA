@@ -31,6 +31,8 @@ export interface InspectionSummary {
   mileage?: number
   createdAt?: string
   updatedAt?: string
+  date?: string
+  inspection_date?: string
   operator?: {
     id?: string
     firstName?: string

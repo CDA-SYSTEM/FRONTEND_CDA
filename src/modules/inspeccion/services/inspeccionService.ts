@@ -42,8 +42,10 @@ function extractItem(responseData: unknown): unknown {
 
 function sortCronologico(inspecciones: InspectionSummary[]): InspectionSummary[] {
   return [...inspecciones].sort((a, b) => {
-    const fechaA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-    const fechaB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    const dateA = a.inspection_date || a.date || a.createdAt
+    const dateB = b.inspection_date || b.date || b.createdAt
+    const fechaA = dateA ? new Date(dateA).getTime() : 0
+    const fechaB = dateB ? new Date(dateB).getTime() : 0
     return fechaB - fechaA
   })
 }

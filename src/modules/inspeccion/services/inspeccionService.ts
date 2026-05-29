@@ -42,8 +42,10 @@ function extractItem(responseData: unknown): unknown {
 
 function sortCronologico(inspecciones: InspectionSummary[]): InspectionSummary[] {
   return [...inspecciones].sort((a, b) => {
-    const fechaA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-    const fechaB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    const dateA = a.inspection_date || a.date || a.createdAt
+    const dateB = b.inspection_date || b.date || b.createdAt
+    const fechaA = dateA ? new Date(dateA).getTime() : 0
+    const fechaB = dateB ? new Date(dateB).getTime() : 0
     return fechaB - fechaA
   })
 }
@@ -90,5 +92,23 @@ export const inspeccionService = {
     await apiClient.patch(`/api/v1/inspections/${inspectionId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+  },
+
+  async eliminar(id: string): Promise<void> {
+    await apiClient.delete(`/api/v1/inspections/${id}`)
+  },
+
+  async actualizar(id: string, data: FormData | Record<string, unknown>): Promise<void> {
+    if (data instanceof FormData) {
+      await apiClient.patch(`/api/v1/inspections/${id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    } else {
+      await apiClient.patch(`/api/v1/inspections/${id}`, data)
+    }
+  },
+
+  async actualizarChecklist(id: string, checklistId: string): Promise<void> {
+    await apiClient.patch(`/api/v1/inspections/${id}/checklist-id`, { checklistId })
   },
 }

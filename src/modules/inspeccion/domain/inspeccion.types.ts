@@ -31,6 +31,9 @@ export interface InspectionSummary {
   mileage?: number
   createdAt?: string
   updatedAt?: string
+  date?: string
+  inspection_date?: string
+  observations?: string
   operator?: {
     id?: string
     firstName?: string
@@ -50,18 +53,28 @@ export interface InspectionDetail extends InspectionSummary {
   tires?: TireData[]
   photo_url?: string
   signature_url?: string
+  vehicle_type?: string
   client?: {
     id?: string
     nombre?: string
     apellido?: string
     identity?: string
+    celular?: string
+    email?: string
+    documentType?: {
+      id?: number
+      type?: string
+    }
   }
   vehicle?: {
-    id?: string
+    id?: string | number
     placa?: string
-    marca?: string
-    linea?: string
+    marca?: string | { id?: number; nombre?: string }
+    linea?: string | { id?: number; nombre?: string }
     modelo?: string
+    tipoVehiculo?: { id?: number; nombre?: string }
+    tipoCombustible?: { id?: number; nombre?: string }
+    tipoServicio?: { id?: number; nombre?: string }
   }
   operator_data?: {
     id?: string
@@ -70,3 +83,4 @@ export interface InspectionDetail extends InspectionSummary {
     name?: string
   }
 }
+

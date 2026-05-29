@@ -1,6 +1,5 @@
 import { apiClient } from '@/core/api/apiClient'
 import { extractApiArray, extractApiData } from '@/core/api/extractApiData'
-import { authService } from '@/modules/auth/services/authService'
 import type {
   ActualizarUsuarioDTO,
   CrearUsuarioDTO,
@@ -43,16 +42,6 @@ function normalizeUsuario(raw: unknown): Usuario {
 
 function onlyActive(usuarios: Usuario[]): Usuario[] {
   return usuarios.filter((u) => u.isActive)
-}
-
-function meToUsuario(me: { id: string; name: string; role: RolUsuario }): Usuario {
-  return {
-    id: me.id,
-    name: me.name,
-    email: '',
-    role: me.role,
-    isActive: true,
-  }
 }
 
 export const usuarioService = {
@@ -126,37 +115,22 @@ export const usuarioService = {
 
   /**
    * Personal para asignar en recepción (operator_id).
-   * - Admin/Manager: GET /auth/users/options → operarios|inspectors
-   * - Operario/Inspector: GET /auth/me (solo su propia cuenta)
+   * - Recepción usa operarios.
+   * - Si /auth/users/options falla, hace fallback a /auth/users/operarios.
    */
   async obtenerPersonalAsignable(
     role: 'OPERARIO' | 'INSPECTOR',
-    rolSesion?: string,
   ): Promise<Usuario[]> {
-    const sesion = (rolSesion ?? '').toUpperCase()
-    const rolDropdown: RolPersonalDropdown =
-      role === 'OPERARIO' ? 'operario' : 'inspector'
-
-    if (sesion === 'ADMIN' || sesion === 'MANAGER') {
-      const opciones = await this.obtenerOpcionesUsuarios(rolDropdown)
+    if (role === 'OPERARIO') {
+      const opciones = await this.obtenerOpcionesUsuarios('operario')
       if (opciones.length > 0) return opciones
 
-      if (role === 'OPERARIO') return this.obtenerOperarios()
-      return this.obtenerInspectores()
+      return this.obtenerOperarios()
     }
+    const opciones = await this.obtenerOpcionesUsuarios('inspector')
+    if (opciones.length > 0) return opciones
 
-    const me = await authService.getMe()
-    if (!me) return []
-
-    const rolCuenta = me.role.toUpperCase()
-    if (role === 'OPERARIO' && rolCuenta === 'OPERARIO') {
-      return [meToUsuario({ ...me, role: 'OPERARIO' })]
-    }
-    if (role === 'INSPECTOR' && rolCuenta === 'INSPECTOR') {
-      return [meToUsuario({ ...me, role: 'INSPECTOR' })]
-    }
-
-    return []
+    return this.obtenerInspectores()
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
@@ -222,9 +196,9 @@ export const usuarioService = {
   },
 
   /** @deprecated usar obtenerPersonalAsignable */
-  async obtenerUsuariosAsignables(role: string, rolSesion?: string): Promise<Usuario[]> {
+  async obtenerUsuariosAsignables(role: string): Promise<Usuario[]> {
     const r = role.toUpperCase()
     if (r !== 'OPERARIO' && r !== 'INSPECTOR') return []
-    return this.obtenerPersonalAsignable(r, rolSesion)
+    return this.obtenerPersonalAsignable(r)
   },
 }

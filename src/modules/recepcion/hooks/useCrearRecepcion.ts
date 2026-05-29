@@ -40,7 +40,7 @@ export function useCrearRecepcion() {
   const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
   const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
 
-  const [rolAsignado, setRolAsignado] = useState<RolAsignacion>('OPERARIO')
+  const rolAsignado: RolAsignacion = 'OPERARIO'
   const [usuarioAsignadoId, setUsuarioAsignadoId] = useState('')
   const [usuariosAsignables, setUsuariosAsignables] = useState<Usuario[]>([])
   const [cargandoUsuariosAsignables, setCargandoUsuariosAsignables] = useState(false)
@@ -91,7 +91,6 @@ export function useCrearRecepcion() {
 
   useEffect(() => {
     let mounted = true
-    // Cargar personal ligado a la cuenta (GET /auth/users/operarios|inspectors)
     if (paso !== 'detalle') {
       return
     }
@@ -104,22 +103,13 @@ export function useCrearRecepcion() {
       setErrorUsuariosAsignables(null)
 
       try {
-        const personal = await usuarioService.obtenerPersonalAsignable(
-          rolAsignado,
-          user?.role,
-        )
+        const personal = await usuarioService.obtenerPersonalAsignable('OPERARIO')
         if (!mounted) return
 
         if (personal.length === 0) {
           setUsuariosAsignables([])
           setUsuarioAsignadoId('')
-          setErrorUsuariosAsignables(
-            user?.role === 'OPERARIO' || user?.role === 'INSPECTOR'
-              ? 'Su rol solo permite asignarse a sí mismo. Si necesita elegir otro personal, use una cuenta Admin o Manager.'
-              : rolAsignado === 'OPERARIO'
-                ? 'No hay personal operario registrado. Regístrelo en Gestión de usuarios.'
-                : 'No hay personal inspector registrado. Regístrelo en Gestión de usuarios.',
-          )
+          setErrorUsuariosAsignables('No hay personal operario registrado. Regístrelo en Gestión de usuarios.')
           return
         }
 
@@ -144,7 +134,7 @@ export function useCrearRecepcion() {
       mounted = false
       loadingRef.current = false
     }
-  }, [rolAsignado, paso, user?.role])
+  }, [paso, user?.role])
 
   const seleccionarCliente = useCallback(async (c: ClienteConVehiculos) => {
     setCliente(c)
@@ -174,28 +164,6 @@ export function useCrearRecepcion() {
   const irACondiciones = useCallback(() => {
     setPaso('condiciones')
   }, [])
-
-  const volver = useCallback(() => {
-    if (paso === 'vehiculo') {
-      setCliente(null)
-      setVehiculos([])
-      setVehiculo(null)
-      setPaso('cliente')
-    } else if (paso === 'detalle') {
-      if (vehiculo) {
-        setVehiculo(null)
-        setPaso('vehiculo')
-      } else {
-        setCliente(null)
-        setVehiculos([])
-        setPaso('cliente')
-      }
-    } else if (paso === 'condiciones') {
-      setPaso('detalle')
-    } else if (paso === 'confirmacion') {
-      reset()
-    }
-  }, [paso, vehiculo])
 
   const enviar = useCallback(async () => {
     if (!cliente || !user) return
@@ -292,6 +260,28 @@ export function useCrearRecepcion() {
     if (tiposCliente.length > 0) setCustomerType(String(tiposCliente[0].id))
   }, [tiposRevision, tiposCliente])
 
+  const volver = useCallback(() => {
+    if (paso === 'vehiculo') {
+      setCliente(null)
+      setVehiculos([])
+      setVehiculo(null)
+      setPaso('cliente')
+    } else if (paso === 'detalle') {
+      if (vehiculo) {
+        setVehiculo(null)
+        setPaso('vehiculo')
+      } else {
+        setCliente(null)
+        setVehiculos([])
+        setPaso('cliente')
+      }
+    } else if (paso === 'condiciones') {
+      setPaso('detalle')
+    } else if (paso === 'confirmacion') {
+      reset()
+    }
+  }, [paso, vehiculo, reset])
+
   return {
     paso,
     cargandoCatalogos,
@@ -310,7 +300,6 @@ export function useCrearRecepcion() {
     signatureBlob,
     confirmacionAcuerdo,
     rolAsignado,
-    setRolAsignado,
     usuarioAsignadoId,
     setUsuarioAsignadoId,
     usuariosAsignables,

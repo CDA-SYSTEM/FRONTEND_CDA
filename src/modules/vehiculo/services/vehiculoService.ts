@@ -38,6 +38,16 @@ function extractArray(responseData: unknown): any[] {
   return []
 }
 
+function normalizarCatalogo(raw: unknown[]): CatalogoItem[] {
+  return raw.map((item) => {
+    if (item && typeof item === 'object' && 'id' in (item as Record<string, unknown>) && 'nombre' in (item as Record<string, unknown>)) {
+      const obj = item as Record<string, unknown>
+      return { id: Number(obj.id), nombre: String(obj.nombre) }
+    }
+    return { id: Number(item) || 0, nombre: String(item).replace(/_/g, ' ') }
+  })
+}
+
 export const vehiculoService = {
   async crearVehiculo(payload: CreateVehicleDto): Promise<VehiculoResponse> {
     const response = await apiClient.post('/api/v1/vehiculo', payload)
@@ -83,17 +93,17 @@ export const vehiculoService = {
   },
 
   async listarTiposVehiculo(): Promise<CatalogoItem[]> {
-    const response = await apiClient.get('/api/v1/tipo-vehiculo')
-    return extractArray(response.data) as CatalogoItem[]
+    const response = await apiClient.get('/api/v1/catalogs/vehicle-types')
+    return normalizarCatalogo(extractArray(response.data) as unknown[])
   },
 
   async listarTiposCombustible(): Promise<CatalogoItem[]> {
-    const response = await apiClient.get('/api/v1/tipo-combustible')
-    return extractArray(response.data) as CatalogoItem[]
+    const response = await apiClient.get('/api/v1/catalogs/fuel-types')
+    return normalizarCatalogo(extractArray(response.data) as unknown[])
   },
 
   async listarTiposServicio(): Promise<CatalogoItem[]> {
-    const response = await apiClient.get('/api/v1/tipo-servicio')
-    return extractArray(response.data) as CatalogoItem[]
+    const response = await apiClient.get('/api/v1/catalogs/service-types')
+    return normalizarCatalogo(extractArray(response.data) as unknown[])
   },
 }

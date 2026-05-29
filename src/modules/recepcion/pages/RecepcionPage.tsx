@@ -1,8 +1,29 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AlertCircle, Car, Calendar, Clock, ClipboardList, Loader2, Plus, RefreshCw, Wrench, X } from 'lucide-react'
+import {
+  AlertCircle,
+  Car,
+  Calendar,
+  Clock,
+  ClipboardList,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Wrench,
+  X,
+  Trash2,
+  Search,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Hash,
+  Pencil
+} from 'lucide-react'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
-import type { InspectionSummary } from '@/modules/inspeccion/domain/inspeccion.types'
+import { SignaturePad } from '@/shared/components/SignaturePad'
+import { useAuthStore } from '@/core/store/authStore'
+import type { InspectionSummary, InspectionDetail } from '@/modules/inspeccion/domain/inspeccion.types'
 
 /* ── Helpers para datos enriquecidos ──────────────────────────────────────── */
 
@@ -51,7 +72,7 @@ interface BadgeInfo {
   color: string
 }
 
-function estadoBadge(insp: InspectionSummary): BadgeInfo {
+function estadoBadge(insp: InspectionSummary | InspectionDetail): BadgeInfo {
   if (insp.result === 'APROBADO') return { label: 'Aprobado', bg: '#dcfce7', color: '#166534' }
   if (insp.result === 'REPROBADO') return { label: 'Rechazado', bg: '#fee2e2', color: '#991b1b' }
   if ((insp.operator_id || insp.responsible_id) && !insp.result) return { label: 'En inspección', bg: '#dbeafe', color: '#1e40af' }
@@ -67,11 +88,38 @@ export function RecepcionPage() {
   const [error, setError] = useState<string | null>(null)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
 
+  // Filtros y Paginación
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('todos')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
+  // Modal de Detalle
+  const [selectedInspectionId, setSelectedInspectionId] = useState<string | null>(null)
+  const [inspectionDetail, setInspectionDetail] = useState<InspectionDetail | null>(null)
+  const [cargandoDetalle, setCargandoDetalle] = useState(false)
+
+  // Modal de Edición
+  const [editInspectionId, setEditInspectionId] = useState<string | null>(null)
+  const [editMileage, setEditMileage] = useState<number | string>('')
+  const [editObservations, setEditObservations] = useState('')
+  const [editPhoto, setEditPhoto] = useState<File | null>(null)
+  const [editSignatureBlob, setEditSignatureBlob] = useState<Blob | null>(null)
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false)
+
+  // Modal de Eliminación
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [eliminandoId, setEliminandoId] = useState<string | null>(null)
+
+  // Obtener rol de usuario
+  const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role === 'ADMIN'
+
   const cargarDatos = useCallback(async () => {
     setCargando(true)
     setError(null)
     try {
-      const data = await inspeccionService.listarTodas(1, 50)
+      const data = await inspeccionService.listarTodas(1, 100)
       setInspecciones(data)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al cargar las recepciones'
@@ -84,6 +132,121 @@ export function RecepcionPage() {
   useEffect(() => {
     cargarDatos()
   }, [cargarDatos])
+
+  // Cargar detalle cuando se selecciona
+  useEffect(() => {
+    if (!selectedInspectionId) {
+      setInspectionDetail(null)
+      return
+    }
+    let active = true
+    const fetchDetail = async () => {
+      setCargandoDetalle(true)
+      try {
+        const detail = await inspeccionService.obtenerDetalle(selectedInspectionId)
+        if (active) setInspectionDetail(detail)
+      } catch (err) {
+        console.error('Error al cargar detalle', err)
+      } finally {
+        if (active) setCargandoDetalle(false)
+      }
+    }
+    fetchDetail()
+    return () => {
+      active = false
+    }
+  }, [selectedInspectionId])
+
+  // Cargar datos en el formulario de edición al seleccionar
+  const iniciarEdicion = async (insp: InspectionSummary) => {
+    setEditInspectionId(insp.id)
+    setEditMileage(insp.mileage || '')
+    setEditObservations('')
+    setEditPhoto(null)
+    setEditSignatureBlob(null)
+    
+    try {
+      const detail = await inspeccionService.obtenerDetalle(insp.id)
+      if (detail) {
+        setEditMileage(detail.mileage || '')
+        setEditObservations(detail.observations || '')
+      }
+    } catch (err) {
+      console.error('Error al precargar observaciones para edición', err)
+    }
+  }
+
+  // Guardar cambios de edición
+  const handleGuardarEdicion = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editInspectionId) return
+    setGuardandoEdicion(true)
+    try {
+      const payload: Record<string, unknown> = {
+        mileage: Number(editMileage),
+        observations: editObservations,
+      }
+      
+      const formData = new FormData()
+      formData.append('data', JSON.stringify(payload))
+      
+      if (editPhoto) {
+        formData.append('photo', editPhoto)
+      }
+      if (editSignatureBlob) {
+        formData.append('signature', editSignatureBlob, 'signature.png')
+      }
+      
+      await inspeccionService.actualizar(editInspectionId, formData)
+      await cargarDatos()
+      setEditInspectionId(null)
+    } catch (err) {
+      alert('Error: No se pudieron guardar los cambios.')
+    } finally {
+      setGuardandoEdicion(false)
+    }
+  }
+
+  // Filtrado
+  const filteredInspecciones = inspecciones.filter((insp) => {
+    const plate = infoVehiculo(insp).toLowerCase()
+    const client = infoCliente(insp).toLowerCase()
+    const matchesSearch = plate.includes(searchTerm.toLowerCase()) || client.includes(searchTerm.toLowerCase())
+
+    if (statusFilter === 'todos') return matchesSearch
+    const badge = estadoBadge(insp)
+    if (statusFilter === 'aprobado' && badge.label === 'Aprobado') return matchesSearch
+    if (statusFilter === 'rechazado' && badge.label === 'Rechazado') return matchesSearch
+    if (statusFilter === 'inspeccion' && badge.label === 'En inspección') return matchesSearch
+    if (statusFilter === 'recepcion' && badge.label === 'En recepción') return matchesSearch
+    return false
+  })
+
+  // Paginación
+  const totalPages = Math.ceil(filteredInspecciones.length / itemsPerPage)
+  const paginatedInspecciones = filteredInspecciones.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
+  // Reset de página al filtrar
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, statusFilter])
+
+  // Manejar Eliminación
+  const handleEliminar = async (id: string) => {
+    setEliminandoId(id)
+    try {
+      await inspeccionService.eliminar(id)
+      setInspecciones((prev) => prev.filter((i) => i.id !== id))
+      setDeleteConfirmId(null)
+    } catch (err) {
+      alert('Error: No se pudo eliminar la recepción.')
+    } finally {
+      setEliminandoId(null)
+    }
+  }
 
   /* ── Wizard de nueva orden ──────────────────────────────────────────────── */
   if (modo === 'wizard') {
@@ -210,6 +373,72 @@ export function RecepcionPage() {
         </div>
       </div>
 
+      {/* ── Controles de Filtros y Búsqueda ── */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '1rem',
+        background: '#fff',
+        padding: '1.25rem',
+        borderRadius: 12,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        alignItems: 'center',
+      }}>
+        {/* Barra de Búsqueda */}
+        <div style={{ position: 'relative', flex: '1 1 300px' }}>
+          <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <input
+            type="text"
+            placeholder="Buscar por placa o nombre de cliente..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px 10px 40px',
+              borderRadius: 8,
+              border: '1px solid #cbd5e1',
+              fontSize: '0.875rem',
+              outline: 'none',
+              transition: 'border-color 0.2s',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = '#155DFC')}
+            onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+          />
+        </div>
+
+        {/* Filtro de Estado */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {[
+            { value: 'todos', label: 'Todos' },
+            { value: 'recepcion', label: 'En recepción' },
+            { value: 'inspeccion', label: 'En inspección' },
+            { value: 'aprobado', label: 'Aprobado' },
+            { value: 'rechazado', label: 'Rechazado' },
+          ].map((opt) => {
+            const isSelected = statusFilter === opt.value
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setStatusFilter(opt.value)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 20,
+                  border: 'none',
+                  background: isSelected ? '#155DFC' : '#f1f5f9',
+                  color: isSelected ? '#fff' : '#475569',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* ── Contenido Principal ── */}
       <div style={{
         background: '#fff',
@@ -263,7 +492,7 @@ export function RecepcionPage() {
         )}
 
         {/* Empty state */}
-        {!cargando && !error && inspecciones.length === 0 && (
+        {!cargando && !error && filteredInspecciones.length === 0 && (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
@@ -282,16 +511,16 @@ export function RecepcionPage() {
               <ClipboardList size={32} style={{ color: '#94a3b8' }} />
             </div>
             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>
-              No hay recepciones registradas
+              No hay recepciones que coincidan
             </h3>
             <p style={{ margin: 0, color: '#64748b', textAlign: 'center', maxWidth: 400 }}>
-              Aún no se han registrado recepciones de vehículos. Haz clic en "+ Nueva Recepción" para comenzar.
+              No encontramos recepciones que coincidan con la búsqueda o el filtro activo.
             </p>
           </div>
         )}
 
         {/* Table */}
-        {!cargando && !error && inspecciones.length > 0 && (
+        {!cargando && !error && filteredInspecciones.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
             <table style={{
               width: '100%',
@@ -300,7 +529,7 @@ export function RecepcionPage() {
             }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                  {['#', 'Placa', 'Cliente', 'Tipo de revisión', 'Kilometraje', 'Fecha', 'Estado'].map((col) => (
+                  {['#', 'Placa', 'Cliente', 'Tipo de revisión', 'Kilometraje', 'Fecha', 'Estado', 'Acciones'].map((col) => (
                     <th
                       key={col}
                       style={{
@@ -320,7 +549,7 @@ export function RecepcionPage() {
                 </tr>
               </thead>
               <tbody>
-                {inspecciones.map((insp, idx) => {
+                {paginatedInspecciones.map((insp, idx) => {
                   const badge = estadoBadge(insp)
                   const isHovered = hoveredRow === insp.id
                   return (
@@ -381,13 +610,72 @@ export function RecepcionPage() {
                           {badge.label}
                         </span>
                       </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button
+                            onClick={() => setSelectedInspectionId(insp.id)}
+                            title="Ver Detalle"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: '#eff6ff',
+                              border: 'none',
+                              borderRadius: 6,
+                              padding: 6,
+                              cursor: 'pointer',
+                              color: '#155DFC',
+                            }}
+                          >
+                            <Eye size={16} />
+                          </button>
+                          
+                          <button
+                            onClick={() => iniciarEdicion(insp)}
+                            title="Editar Recepción"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: 6,
+                              padding: 6,
+                              cursor: 'pointer',
+                              color: '#475569',
+                            }}
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          {isAdmin && (
+                            <button
+                              onClick={() => setDeleteConfirmId(insp.id)}
+                              title="Eliminar"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: '#fee2e2',
+                                border: 'none',
+                                borderRadius: 6,
+                                padding: 6,
+                                cursor: 'pointer',
+                                color: '#ef4444',
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}
               </tbody>
             </table>
 
-            {/* Footer con contador */}
+            {/* Paginación y Contador */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -396,16 +684,533 @@ export function RecepcionPage() {
               borderTop: '1px solid #e2e8f0',
               color: '#64748b',
               fontSize: '0.8rem',
+              flexWrap: 'wrap',
+              gap: 12,
             }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Clock size={14} />
                 Última actualización: {new Date().toLocaleTimeString('es-CO')}
               </span>
-              <span>{inspecciones.length} recepción(es) encontrada(s)</span>
+
+              {/* Botones de Paginación */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: 6,
+                      background: '#f1f5f9',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      opacity: currentPage === 1 ? 0.5 : 1,
+                    }}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span style={{ fontWeight: 500, color: '#1e293b' }}>
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: 6,
+                      background: '#f1f5f9',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      opacity: currentPage === totalPages ? 0.5 : 1,
+                    }}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
+
+              <span>{filteredInspecciones.length} de {inspecciones.length} recepciones</span>
             </div>
           </div>
         )}
       </div>
+
+      {/* ── Modal de Detalle de Recepción ── */}
+      {selectedInspectionId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem',
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 600,
+            maxHeight: '90vh',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            {/* Cabecera Modal */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #f1f5f9',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fafbfc',
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: '#0f172a' }}>
+                  Detalle de Recepción #{inspectionDetail?.inspection_number || selectedInspectionId.substring(0, 8)}
+                </h3>
+                <p style={{ margin: '0.15rem 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                  ID: {selectedInspectionId}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedInspectionId(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  padding: 4,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido Modal */}
+            <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {cargandoDetalle ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40, gap: 12 }}>
+                  <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
+                  <p style={{ color: '#64748b', margin: 0, fontSize: '0.85rem' }}>Cargando información detallada...</p>
+                </div>
+              ) : inspectionDetail ? (
+                <>
+                  {/* Estado Principal */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 1rem',
+                    background: estadoBadge(inspectionDetail).bg,
+                    borderRadius: 8,
+                  }}>
+                    <span style={{ fontWeight: 600, color: estadoBadge(inspectionDetail).color, fontSize: '0.875rem' }}>
+                      Estado del Vehículo
+                    </span>
+                    <span style={{
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      background: estadoBadge(inspectionDetail).color,
+                      color: '#fff',
+                    }}>
+                      {estadoBadge(inspectionDetail).label.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Ficha técnica */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                    {/* Cliente */}
+                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                        <User size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                        Cliente
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
+                        {inspectionDetail.client ? `${inspectionDetail.client.nombre} ${inspectionDetail.client.apellido || ''}` : '—'}
+                      </span>
+                    </div>
+
+                    {/* Vehículo */}
+                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                        <Car size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                        Vehículo
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
+                        {inspectionDetail.vehicle ? `${inspectionDetail.vehicle.placa} (${inspectionDetail.vehicle.modelo || '—'})` : '—'}
+                      </span>
+                    </div>
+
+                    {/* Kilometraje */}
+                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                        <Hash size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                        Kilometraje
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
+                        {inspectionDetail.mileage != null ? `${inspectionDetail.mileage.toLocaleString()} km` : '—'}
+                      </span>
+                    </div>
+
+                    {/* Tipo Revisión */}
+                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                        <Wrench size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                        Tipo de Revisión
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
+                        {formatRevisionType(inspectionDetail.revision_type)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Observaciones */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
+                      Observaciones de Ingreso
+                    </span>
+                    <div style={{
+                      background: '#f8fafc',
+                      padding: '0.85rem',
+                      borderRadius: 8,
+                      border: '1px solid #e2e8f0',
+                      fontSize: '0.85rem',
+                      color: '#334155',
+                      minHeight: '60px',
+                    }}>
+                      {inspectionDetail.observations || 'Sin observaciones registradas.'}
+                    </div>
+                  </div>
+
+                  {/* Datos del Operario */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', background: '#f8fafc', padding: '0.85rem', borderRadius: 8 }}>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Operador Asignado:</span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
+                        {inspectionDetail.operator_id ? `ID: ${inspectionDetail.operator_id}` : 'No asignado'}
+                      </p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Registrado el:</span>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
+                        {formatDate(inspectionDetail.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p style={{ textAlign: 'center', color: '#ef4444' }}>No se pudo cargar la información.</p>
+              )}
+            </div>
+
+            {/* Pie de Modal */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #f1f5f9',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              background: '#fafbfc',
+            }}>
+              <button
+                onClick={() => setSelectedInspectionId(null)}
+                style={{
+                  background: '#155DFC',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de Edición de Recepción ── */}
+      {editInspectionId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '1rem',
+        }}>
+          <form onSubmit={handleGuardarEdicion} style={{
+            background: '#fff',
+            borderRadius: 16,
+            width: '100%',
+            maxWidth: 500,
+            maxHeight: '90vh',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            {/* Cabecera Modal */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #f1f5f9',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fafbfc',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Pencil size={18} style={{ color: '#155DFC' }} />
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#0f172a' }}>
+                  Editar Recepción
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditInspectionId(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748b',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Contenido Formulario */}
+            <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {/* Kilometraje */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  Kilometraje Actual (km) *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  value={editMileage}
+                  onChange={(e) => setEditMileage(e.target.value)}
+                  style={{
+                    padding: '10px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Observaciones */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  Observaciones de Ingreso
+                </label>
+                <textarea
+                  rows={3}
+                  value={editObservations}
+                  onChange={(e) => setEditObservations(e.target.value)}
+                  style={{
+                    padding: '10px',
+                    borderRadius: 8,
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              {/* Foto Adjunta */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  Actualizar Foto del Vehículo (Opcional)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setEditPhoto(e.target.files?.[0] || null)}
+                  style={{
+                    fontSize: '0.8rem',
+                    color: '#64748b',
+                  }}
+                />
+              </div>
+
+              {/* Firma Adjunta */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  Actualizar Firma del Cliente (Opcional)
+                </label>
+                <div style={{
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 8,
+                  padding: 10,
+                  background: '#f8fafc',
+                }}>
+                  <SignaturePad onSave={(blob) => setEditSignatureBlob(blob)} height={120} />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Pie de Formulario */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #f1f5f9',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 10,
+              background: '#fafbfc',
+            }}>
+              <button
+                type="button"
+                onClick={() => setEditInspectionId(null)}
+                style={{
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={guardandoEdicion}
+                style={{
+                  background: '#155DFC',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                {guardandoEdicion ? (
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  'Guardar Cambios'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── Modal de Confirmación de Eliminación ── */}
+      {deleteConfirmId && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '1rem',
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 12,
+            width: '100%',
+            maxWidth: 400,
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#991b1b' }}>
+              Confirmar Eliminación
+            </h3>
+            <p style={{ margin: 0, color: '#475569', fontSize: '0.875rem', lineHeight: '1.4' }}>
+              ¿Estás seguro de que deseas eliminar esta recepción? Esta acción es irreversible y realizará un borrado lógico en el sistema.
+            </p>
+            <div style={{ display: 'flex', justifySelf: 'flex-end', gap: 10, marginTop: 8 }}>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={eliminandoId !== null}
+                style={{
+                  flex: 1,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: 8,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleEliminar(deleteConfirmId)}
+                disabled={eliminandoId !== null}
+                style={{
+                  flex: 1,
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: 8,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                {eliminandoId !== null ? (
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  'Eliminar'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

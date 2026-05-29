@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { apiClient } from '@/core/api/apiClient'
 
 vi.mock('@/core/api/apiClient', () => ({
-  apiClient: { get: vi.fn() },
+  apiClient: { get: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }))
 
 import { inspeccionService } from './inspeccionService'
@@ -89,6 +89,39 @@ describe('inspeccionService', () => {
 
       const result = await inspeccionService.obtenerDetalle('1')
       expect(result?.id).toBe('1')
+    })
+  })
+
+  describe('eliminar', () => {
+    it('llama a DELETE con el ID correcto', async () => {
+      vi.mocked(apiClient.delete).mockResolvedValue({})
+      await inspeccionService.eliminar('123')
+      expect(apiClient.delete).toHaveBeenCalledWith('/api/v1/inspections/123')
+    })
+  })
+
+  describe('actualizar', () => {
+    it('llama a PATCH con un objeto plano', async () => {
+      vi.mocked(apiClient.patch).mockResolvedValue({})
+      await inspeccionService.actualizar('123', { mileage: 60000 })
+      expect(apiClient.patch).toHaveBeenCalledWith('/api/v1/inspections/123', { mileage: 60000 })
+    })
+
+    it('llama a PATCH con un FormData y cabeceras adecuadas', async () => {
+      vi.mocked(apiClient.patch).mockResolvedValue({})
+      const fd = new FormData()
+      await inspeccionService.actualizar('123', fd)
+      expect(apiClient.patch).toHaveBeenCalledWith('/api/v1/inspections/123', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    })
+  })
+
+  describe('actualizarChecklist', () => {
+    it('llama a PATCH con el checklistId correcto', async () => {
+      vi.mocked(apiClient.patch).mockResolvedValue({})
+      await inspeccionService.actualizarChecklist('123', 'chk-999')
+      expect(apiClient.patch).toHaveBeenCalledWith('/api/v1/inspections/123/checklist-id', { checklistId: 'chk-999' })
     })
   })
 })

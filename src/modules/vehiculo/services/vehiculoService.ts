@@ -42,9 +42,9 @@ function normalizarCatalogo(raw: unknown[]): CatalogoItem[] {
   return raw.map((item) => {
     if (item && typeof item === 'object' && 'id' in (item as Record<string, unknown>) && 'nombre' in (item as Record<string, unknown>)) {
       const obj = item as Record<string, unknown>
-      return { id: String(obj.id), nombre: String(obj.nombre) }
+      return { id: Number(obj.id), nombre: String(obj.nombre) }
     }
-    return { id: String(item), nombre: String(item).replace(/_/g, ' ') }
+    return { id: Number(item) || 0, nombre: String(item).replace(/_/g, ' ') }
   })
 }
 

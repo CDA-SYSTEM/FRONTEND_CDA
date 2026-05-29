@@ -15,8 +15,6 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  User,
-  Hash,
   Pencil
 } from 'lucide-react'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
@@ -56,8 +54,10 @@ function formatDate(iso?: string): string {
   try {
     return new Date(iso).toLocaleDateString('es-CO', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     })
   } catch {
     return iso
@@ -114,6 +114,9 @@ export function RecepcionPage() {
   // Obtener rol de usuario
   const user = useAuthStore((state) => state.user)
   const isAdmin = user?.role === 'ADMIN'
+
+  // Dirección base de la API para imágenes
+  const apiBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
   const cargarDatos = useCallback(async () => {
     setCargando(true)
@@ -246,6 +249,12 @@ export function RecepcionPage() {
     } finally {
       setEliminandoId(null)
     }
+  }
+
+  const getMediaUrl = (path?: string) => {
+    if (!path) return ''
+    if (path.startsWith('http')) return path
+    return `${apiBaseURL}/api/v1/storage/files/${path}`
   }
 
   /* ── Wizard de nueva orden ──────────────────────────────────────────────── */
@@ -759,7 +768,7 @@ export function RecepcionPage() {
             background: '#fff',
             borderRadius: 16,
             width: '100%',
-            maxWidth: 600,
+            maxWidth: 680,
             maxHeight: '90vh',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             display: 'flex',
@@ -833,52 +842,114 @@ export function RecepcionPage() {
                     </span>
                   </div>
 
-                  {/* Ficha técnica */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                    {/* Cliente */}
-                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                        <User size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                        Cliente
-                      </span>
-                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
-                        {inspectionDetail.client ? `${inspectionDetail.client.nombre} ${inspectionDetail.client.apellido || ''}` : '—'}
-                      </span>
+                  {/* Ficha técnica del Cliente */}
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                      INFORMACIÓN DEL CLIENTE
                     </div>
-
-                    {/* Vehículo */}
-                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                        <Car size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                        Vehículo
-                      </span>
-                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
-                        {inspectionDetail.vehicle ? `${inspectionDetail.vehicle.placa} (${inspectionDetail.vehicle.modelo || '—'})` : '—'}
-                      </span>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Nombre: </strong> {inspectionDetail.client ? `${inspectionDetail.client.nombre} ${inspectionDetail.client.apellido || ''}` : '—'}
                     </div>
-
-                    {/* Kilometraje */}
-                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                        <Hash size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                        Kilometraje
-                      </span>
-                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
-                        {inspectionDetail.mileage != null ? `${inspectionDetail.mileage.toLocaleString()} km` : '—'}
-                      </span>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Identificación: </strong> {inspectionDetail.client ? `${inspectionDetail.client.documentType?.type || 'CC'}: ${inspectionDetail.client.identity}` : '—'}
                     </div>
-
-                    {/* Tipo Revisión */}
-                    <div style={{ padding: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: 4 }}>
-                        <Wrench size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
-                        Tipo de Revisión
-                      </span>
-                      <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
-                        {formatRevisionType(inspectionDetail.revision_type)}
-                      </span>
-                    </div>
+                    {inspectionDetail.client?.celular && (
+                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                        <strong>Celular: </strong> {inspectionDetail.client.celular}
+                      </div>
+                    )}
+                    {inspectionDetail.client?.email && (
+                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                        <strong>Email: </strong> {inspectionDetail.client.email}
+                      </div>
+                    )}
                   </div>
+
+                  {/* Ficha técnica del Vehículo */}
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                      INFORMACIÓN DEL VEHÍCULO
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Placa: </strong> {inspectionDetail.vehicle?.placa || '—'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Clase / Tipo: </strong> {inspectionDetail.vehicle?.tipoVehiculo?.nombre || inspectionDetail.vehicle_type || '—'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Marca: </strong> {typeof inspectionDetail.vehicle?.marca === 'object' && inspectionDetail.vehicle.marca ? (inspectionDetail.vehicle.marca as any).nombre : (inspectionDetail.vehicle?.marca || '—')}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Línea / Modelo: </strong> {inspectionDetail.vehicle ? `${typeof inspectionDetail.vehicle.linea === 'object' && inspectionDetail.vehicle.linea ? (inspectionDetail.vehicle.linea as any).nombre : (inspectionDetail.vehicle.linea || '—')} (${inspectionDetail.vehicle.modelo || '—'})` : '—'}
+                    </div>
+                    {inspectionDetail.vehicle?.tipoCombustible?.nombre && (
+                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                        <strong>Combustible: </strong> {inspectionDetail.vehicle.tipoCombustible.nombre}
+                      </div>
+                    )}
+                    {inspectionDetail.vehicle?.tipoServicio?.nombre && (
+                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                        <strong>Servicio: </strong> {inspectionDetail.vehicle.tipoServicio.nombre}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Ficha técnica de la Recepción */}
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                      CONDICIONES DE INGRESO
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Kilometraje: </strong> {inspectionDetail.mileage != null ? `${inspectionDetail.mileage.toLocaleString()} km` : '—'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Tipo Revisión: </strong> {formatRevisionType(inspectionDetail.revision_type)}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Vidrios Polarizados: </strong> {inspectionDetail.tinted_windows || 'NO'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <strong>Vehículo Blindado: </strong> {inspectionDetail.armored_vehicle || 'NO'}
+                    </div>
+                    {inspectionDetail.brake_fluid_sight_glass && (
+                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                        <strong>Líquido de frenos: </strong> {inspectionDetail.brake_fluid_sight_glass.replace(/_/g, ' ')}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Detalle de Llantas y Ejes */}
+                  {((inspectionDetail.tires && inspectionDetail.tires.length > 0) || (inspectionDetail.axles && inspectionDetail.axles.length > 0)) && (
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                        CONFIGURACIÓN DE EJES Y LLANTAS
+                      </div>
+                      {inspectionDetail.axles && inspectionDetail.axles.length > 0 && (
+                        <div style={{ fontSize: '0.85rem' }}>
+                          <span style={{ fontWeight: 600, display: 'block', marginBottom: 4, color: '#475569' }}>Ejes:</span>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {inspectionDetail.axles.map((ax, idx) => (
+                              <span key={idx} style={{ background: '#f1f5f9', color: '#334155', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem' }}>
+                                Eje {ax.index || idx + 1}: {ax.axle_type || '—'}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {inspectionDetail.tires && inspectionDetail.tires.length > 0 && (
+                        <div style={{ fontSize: '0.85rem', marginTop: 6 }}>
+                          <span style={{ fontWeight: 600, display: 'block', marginBottom: 4, color: '#475569' }}>Llantas:</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {inspectionDetail.tires.map((t, idx) => (
+                              <div key={idx} style={{ fontSize: '0.8rem', color: '#334155' }}>
+                                • {t.position ? t.position.replace(/_/g, ' ') : `Rueda ${idx + 1}`} — Presión: {t.tire_pressure ?? '—'} PSI — DOT: {t.code || 'PENDIENTE'}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Observaciones */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -897,6 +968,50 @@ export function RecepcionPage() {
                       {inspectionDetail.observations || 'Sin observaciones registradas.'}
                     </div>
                   </div>
+
+
+                  {/* Evidencias (Fotos y Firma) */}
+                  {((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url || inspectionDetail.signature_url) && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                      {/* Foto */}
+                      {((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url) && (
+                        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                          <span style={{ display: 'block', background: '#f8fafc', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
+                            Evidencia Fotográfica
+                          </span>
+                          <div style={{ padding: 10, display: 'flex', justifyContent: 'center', background: '#f8fafc' }}>
+                            <img
+                              src={getMediaUrl((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url)}
+                              alt="Evidencia vehículo"
+                              style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain', borderRadius: 6 }}
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=300'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Firma */}
+                      {inspectionDetail.signature_url && (
+                        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+                          <span style={{ display: 'block', background: '#f8fafc', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
+                            Firma del Cliente
+                          </span>
+                          <div style={{ padding: 10, display: 'flex', justifyContent: 'center', background: '#fff' }}>
+                            <img
+                              src={getMediaUrl(inspectionDetail.signature_url)}
+                              alt="Firma del cliente"
+                              style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain' }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Datos del Operario */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', background: '#f8fafc', padding: '0.85rem', borderRadius: 8 }}>

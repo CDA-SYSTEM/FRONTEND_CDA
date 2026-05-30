@@ -47,6 +47,12 @@ export function RegistroVehiculoPage() {
     cargandoVehiculos,
     errorVehiculos,
     eliminarVehiculo,
+    pagina,
+    setPagina,
+    limite,
+    setLimite,
+    totalElementos,
+    totalPaginas,
   } = useRegistrarVehiculo()
 
   const {
@@ -327,6 +333,96 @@ export function RegistroVehiculoPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {!cargandoVehiculos && !errorVehiculos && vehiculos.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fff',
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #f1f5f9',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: '#64748b' }}>
+              <span>Mostrar</span>
+              <select
+                value={limite}
+                onChange={(e) => {
+                  setLimite(Number(e.target.value))
+                  setPagina(0)
+                }}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  outline: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span>por página</span>
+            </div>
+
+            <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
+              Mostrando{' '}
+              <strong>
+                {totalElementos === 0 ? 0 : pagina * limite + 1}
+              </strong>{' '}
+              a{' '}
+              <strong>
+                {Math.min((pagina + 1) * limite, totalElementos)}
+              </strong>{' '}
+              de <strong>{totalElementos}</strong> vehículos
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
+                disabled={pagina === 0}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #cbd5e1',
+                  background: pagina === 0 ? '#f1f5f9' : '#fff',
+                  color: pagina === 0 ? '#94a3b8' : '#334155',
+                  cursor: pagina === 0 ? 'not-allowed' : 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                }}
+              >
+                Anterior
+              </button>
+              <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
+                Página {pagina + 1} de {Math.max(1, totalPaginas)}
+              </span>
+              <button
+                onClick={() => setPagina((prev) => Math.min(totalPaginas - 1, prev + 1))}
+                disabled={pagina >= totalPaginas - 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: '1px solid #cbd5e1',
+                  background: pagina >= totalPaginas - 1 ? '#f1f5f9' : '#fff',
+                  color: pagina >= totalPaginas - 1 ? '#94a3b8' : '#334155',
+                  cursor: pagina >= totalPaginas - 1 ? 'not-allowed' : 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                }}
+              >
+                Siguiente
+              </button>
+            </div>
           </div>
         )}
       </article>

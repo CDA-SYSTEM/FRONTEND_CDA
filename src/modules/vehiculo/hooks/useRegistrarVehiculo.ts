@@ -48,19 +48,26 @@ export function useRegistrarVehiculo() {
   const [cargandoVehiculos, setCargandoVehiculos] = useState(false)
   const [errorVehiculos, setErrorVehiculos] = useState<string | null>(null)
 
+  const [pagina, setPagina] = useState(0)
+  const [limite, setLimite] = useState(10)
+  const [totalElementos, setTotalElementos] = useState(0)
+  const [totalPaginas, setTotalPaginas] = useState(0)
+
   const cargarVehiculos = useCallback(async () => {
     setCargandoVehiculos(true)
     setErrorVehiculos(null)
     try {
-      const data = await vehiculoService.listarVehiculos(0, 100)
-      setVehiculos(data)
+      const data = await vehiculoService.listarVehiculos(pagina, limite)
+      setVehiculos(data.content)
+      setTotalElementos(data.totalElements)
+      setTotalPaginas(data.totalPages)
     } catch (err) {
       console.error(err)
       setErrorVehiculos('No se pudieron cargar los vehículos. Verifique la conexión.')
     } finally {
       setCargandoVehiculos(false)
     }
-  }, [])
+  }, [pagina, limite])
 
   const eliminarVehiculo = useCallback(async (id: string | number) => {
     if (!window.confirm('¿Seguro que desea eliminar este vehículo?')) return
@@ -278,5 +285,11 @@ export function useRegistrarVehiculo() {
     errorVehiculos,
     cargarVehiculos,
     eliminarVehiculo,
+    pagina,
+    setPagina,
+    limite,
+    setLimite,
+    totalElementos,
+    totalPaginas,
   }
 }

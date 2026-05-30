@@ -63,11 +63,21 @@ export const vehiculoService = {
     }
   },
 
-  async listarVehiculos(page = 0, size = 20): Promise<VehiculoResponse[]> {
+  async listarVehiculos(page = 0, size = 20): Promise<{
+    content: VehiculoResponse[]
+    totalElements: number
+    totalPages: number
+  }> {
     const response = await apiClient.get('/api/v1/vehiculo', {
       params: { page, size },
     })
-    return extractArray(response.data) as VehiculoResponse[]
+    const body = response.data as Record<string, any>
+    const data = body?.data
+    return {
+      content: (data?.content || []) as VehiculoResponse[],
+      totalElements: data?.totalElements || 0,
+      totalPages: data?.totalPages || 0,
+    }
   },
 
   // ── Catálogos ─────────────────────────────────────────────────────────────

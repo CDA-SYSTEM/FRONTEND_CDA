@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -43,6 +43,46 @@ export function useRegistrarVehiculo() {
   const [vehiculoGuardado, setVehiculoGuardado] = useState<VehiculoResponse | null>(null)
 
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
+
+  const [vehiculos, setVehiculos] = useState<VehiculoResponse[]>([])
+  const [cargandoVehiculos, setCargandoVehiculos] = useState(false)
+  const [errorVehiculos, setErrorVehiculos] = useState<string | null>(null)
+
+  const [pagina, setPagina] = useState(0)
+  const [limite, setLimite] = useState(10)
+  const [totalElementos, setTotalElementos] = useState(0)
+  const [totalPaginas, setTotalPaginas] = useState(0)
+
+  const cargarVehiculos = useCallback(async () => {
+    setCargandoVehiculos(true)
+    setErrorVehiculos(null)
+    try {
+      const data = await vehiculoService.listarVehiculos(pagina, limite)
+      setVehiculos(data.content)
+      setTotalElementos(data.totalElements)
+      setTotalPaginas(data.totalPages)
+    } catch (err) {
+      console.error(err)
+      setErrorVehiculos('No se pudieron cargar los vehículos. Verifique la conexión.')
+    } finally {
+      setCargandoVehiculos(false)
+    }
+  }, [pagina, limite])
+
+  const eliminarVehiculo = useCallback(async (id: string | number) => {
+    if (!window.confirm('¿Seguro que desea eliminar este vehículo?')) return
+    try {
+      await vehiculoService.eliminarVehiculo(id)
+      await cargarVehiculos()
+    } catch (err) {
+      alert('No se pudo eliminar el vehículo.')
+    }
+  }, [cargarVehiculos])
+
+  useEffect(() => {
+    cargarVehiculos()
+  }, [cargarVehiculos])
+
 
   const form = useForm<VehiculoSchema>({
     resolver: zodResolver(vehiculoSchema),
@@ -170,6 +210,7 @@ export function useRegistrarVehiculo() {
       setEstado('exito')
       reset()
       setClienteSeleccionado(null)
+      cargarVehiculos()
     } catch (error: unknown) {
       const e = error as {
         response?: { status?: number; data?: { message?: string } }
@@ -239,5 +280,16 @@ export function useRegistrarVehiculo() {
     setQueryCliente,
     resultadosCliente,
     buscandoCliente,
+    vehiculos,
+    cargandoVehiculos,
+    errorVehiculos,
+    cargarVehiculos,
+    eliminarVehiculo,
+    pagina,
+    setPagina,
+    limite,
+    setLimite,
+    totalElementos,
+    totalPaginas,
   }
 }

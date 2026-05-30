@@ -10,8 +10,26 @@ export function useBuscarCliente() {
 
   // Debounce simple
   useEffect(() => {
+    if (query.trim().length === 0) {
+      const cargarTodos = async () => {
+        setCargando(true)
+        setError(null)
+        try {
+          const res = await clienteService.obtenerTodosLosClientes()
+          setResultados(res)
+        } catch (err) {
+          console.error('Error al cargar todos los clientes:', err)
+          setError('Ocurrió un error al cargar la lista de clientes.')
+          setResultados([])
+        } finally {
+          setCargando(false)
+        }
+      }
+      cargarTodos()
+      return
+    }
+
     if (query.trim().length < 3) {
-      setResultados([])
       return
     }
 
@@ -34,11 +52,15 @@ export function useBuscarCliente() {
   }, [query])
 
   const refrescar = useCallback(async () => {
-    if (query.trim().length < 3) return
     setCargando(true)
     try {
-      const res = await clienteService.buscarClientes(query)
-      setResultados(res)
+      if (query.trim().length === 0) {
+        const res = await clienteService.obtenerTodosLosClientes()
+        setResultados(res)
+      } else if (query.trim().length >= 3) {
+        const res = await clienteService.buscarClientes(query)
+        setResultados(res)
+      }
     } catch (err) {
       console.error('Error refrescando clientes:', err)
     } finally {

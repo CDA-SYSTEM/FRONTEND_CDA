@@ -311,23 +311,6 @@ export function ClientesPage() {
           )}
         </label>
 
-        {/* ── Fecha de nacimiento (opcional) ── */}
-        <label>
-          Fecha de nacimiento{' '}
-          <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-            (opcional)
-          </span>
-          <input
-            type="date"
-            {...register('birthDate')}
-            disabled={enviando}
-            max={new Date().toISOString().split('T')[0]}
-          />
-          {errors.birthDate && (
-            <span className="field-error">{errors.birthDate.message}</span>
-          )}
-        </label>
-
         {/* ── Dirección (opcional) ── */}
         <label>
           Dirección{' '}

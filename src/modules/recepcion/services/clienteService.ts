@@ -78,10 +78,16 @@ export const clienteService = {
   async obtenerTiposPersona(): Promise<PersonType[]> {
     const response = await apiClient.get('/api/v1/person-types')
     const items = extractArray(response.data)
-    return items.map((item) => ({
-      id: item.id,
-      nombre: item.type || item.nombre || item.name || String(item.id),
-    }))
+    return items.map((item) => {
+      let nombre = item.type || item.nombre || item.name || String(item.id)
+      if (nombre.toLowerCase() === 'dueño') {
+        nombre = 'Responsable'
+      }
+      return {
+        id: item.id,
+        nombre: nombre,
+      }
+    })
   },
 
   /**

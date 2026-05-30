@@ -131,4 +131,51 @@ export const clienteService = {
     )
     return response.data
   },
+
+  /**
+   * Elimina un cliente de forma lógica (soft delete).
+   * Usa DELETE /api/v1/clients/:id
+   */
+  async eliminarCliente(id: number | string): Promise<void> {
+    await apiClient.delete(`/api/v1/clients/${id}`)
+  },
+
+  /**
+   * Obtiene la lista completa de todos los clientes sin paginación.
+   * Usa GET /api/v1/clients/all
+   */
+  async obtenerTodosLosClientes(): Promise<ClientePersonaNatural[]> {
+    const response = await apiClient.get('/api/v1/clients/all')
+    return extractArray(response.data)
+  },
+
+  /**
+   * Obtiene un cliente por ID incluyendo los que tienen soft delete.
+   * Usa GET /api/v1/clients/:id/full
+   */
+  async obtenerClienteCompletoPorId(
+    id: number | string,
+  ): Promise<ClientePersonaNatural | null> {
+    try {
+      const response = await apiClient.get<ClientePersonaNatural>(
+        `/api/v1/clients/${id}/full`,
+      )
+      return response.data
+    } catch (error: unknown) {
+      const e = error as { response?: { status?: number } }
+      if (e.response?.status === 404) return null
+      throw error
+    }
+  },
+
+  /**
+   * Activa un cliente que ha sido eliminado lógicamente.
+   * Usa PUT /api/v1/clients/:id/activate
+   */
+  async activarCliente(id: number | string): Promise<ClientePersonaNatural> {
+    const response = await apiClient.put<ClientePersonaNatural>(
+      `/api/v1/clients/${id}/activate`,
+    )
+    return response.data
+  },
 }

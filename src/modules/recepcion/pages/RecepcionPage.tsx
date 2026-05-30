@@ -41,18 +41,6 @@ function infoCliente(insp: InspectionSummary): string {
   return insp.client_id || '—'
 }
 
-function nombreOperario(insp: InspectionSummary | InspectionDetail): string {
-  if ('operator_data' in insp && insp.operator_data) {
-    const d = (insp as any).operator_data
-    return `${d.firstName || ''} ${d.lastName || ''}`.trim() || d.name || '—'
-  }
-  if (insp.operator) {
-    const o = insp.operator
-    return `${o.firstName || ''} ${o.lastName || ''}`.trim() || o.name || '—'
-  }
-  return insp.operator_id ? `ID: ${insp.operator_id}` : 'No asignado'
-}
-
 function formatRevisionType(type?: string): string {
   if (!type) return '—'
   return type
@@ -1030,7 +1018,7 @@ export function RecepcionPage() {
                     <div>
                       <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Operador Asignado:</span>
                       <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
-                        {nombreOperario(inspectionDetail)}
+                        {inspectionDetail.operator_id ? `ID: ${inspectionDetail.operator_id}` : 'No asignado'}
                       </p>
                     </div>
                     <div>

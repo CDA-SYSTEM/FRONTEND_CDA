@@ -468,4 +468,66 @@ export const checklistService = {
       return []
     }
   },
+
+  async obtenerTodasLasInspecciones(): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get('/api/v1/checklist/inspections')
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async actualizarInspeccion(
+    id: string,
+    dto: Partial<CreateChecklistInspectionDTO> & { responses?: InspectionItemResponse[] },
+  ): Promise<ChecklistInspection | null> {
+    try {
+      const response = await apiClient.put(`/api/v1/checklist/inspections/${id}`, dto)
+      return normalizeChecklistInspection(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async eliminarInspeccion(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/checklist/inspections/${id}`)
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  async guardarComoBorrador(
+    id: string,
+    payload: {
+      plate: string
+      vehicle_id: number
+      client_id?: number
+      vehicle_type: VehicleType
+      template_id?: string
+      inspection_datetime?: string
+      inspector_id?: string
+      responses: InspectionItemResponse[]
+      observations?: string
+    },
+  ): Promise<boolean> {
+    try {
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/draft`, {
+        plate: payload.plate,
+        vehicle_id: payload.vehicle_id,
+        client_id: payload.client_id,
+        vehicle_type: payload.vehicle_type,
+        template_id: payload.template_id,
+        inspection_datetime: payload.inspection_datetime,
+        inspector_id: payload.inspector_id,
+        responses: payload.responses,
+        observations: payload.observations,
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
 }

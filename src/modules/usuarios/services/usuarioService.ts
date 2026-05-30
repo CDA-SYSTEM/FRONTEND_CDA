@@ -127,7 +127,7 @@ export const usuarioService = {
     if (r === 'OPERARIO' || r === 'INSPECTOR') {
       try {
         const queryTerm = r.toLowerCase()
-        const results = await this.buscarUsuarios(queryTerm)
+        const results = await this.obtenerUsuarios(queryTerm)
         const activeUser = useAuthStore.getState().user
         if (activeUser) {
           const self = results.filter((u) => String(u.id) === String(activeUser.id))
@@ -135,7 +135,7 @@ export const usuarioService = {
         }
         if (results.length > 0) return results
       } catch (err) {
-        console.error('Error fetching assignable user by search:', err)
+        console.error('Error fetching assignable user by role list:', err)
       }
 
       // Fallback

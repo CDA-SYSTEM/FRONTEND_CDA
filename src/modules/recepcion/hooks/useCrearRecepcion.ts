@@ -103,7 +103,7 @@ export function useCrearRecepcion() {
       setErrorUsuariosAsignables(null)
 
       try {
-        const personal = await usuarioService.obtenerPersonalAsignable('OPERARIO')
+        const personal = await usuarioService.obtenerPersonalAsignable('OPERARIO', user?.role)
         if (!mounted) return
 
         if (personal.length === 0) {

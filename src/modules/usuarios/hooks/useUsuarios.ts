@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { usuarioService } from '@/modules/usuarios/services/usuarioService'
+import { authService } from '@/modules/auth/services/authService'
 import type {
   CrearUsuarioDTO,
   RolUsuario,
@@ -31,6 +32,14 @@ export function useUsuarios() {
   const [errorMensaje, setErrorMensaje] = useState('')
   const [formData, setFormData] = useState<CrearUsuarioDTO>(INITIAL_FORM)
 
+  // Catálogos dinámicos
+  const [rolesList, setRolesList] = useState<{ code: string; name: string }[]>([])
+  const [identificacionesList, setIdentificacionesList] = useState<{ code: string; name: string }[]>([])
+
+  // Restablecimiento de contraseña
+  const [resetUserId, setResetUserId] = useState<string | null>(null)
+  const [resetPasswordVal, setResetPasswordVal] = useState('')
+
   const clearFeedback = () => {
     setMensaje('')
     setErrorMensaje('')
@@ -57,6 +66,23 @@ export function useUsuarios() {
   useEffect(() => {
     cargarUsuarios(filtroRol)
   }, [filtroRol, cargarUsuarios])
+
+  // Cargar catálogos dinámicos
+  useEffect(() => {
+    async function loadCatalogs() {
+      try {
+        const [roles, idTypes] = await Promise.all([
+          authService.obtenerRoles(),
+          usuarioService.obtenerTiposIdentificacion(),
+        ])
+        setRolesList(roles)
+        setIdentificacionesList(idTypes)
+      } catch (err) {
+        console.error('Error cargando catálogos de usuarios:', err)
+      }
+    }
+    loadCatalogs()
+  }, [])
 
   const handleCambiarRol = async (id: string, nuevoRol: string) => {
     if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
@@ -104,6 +130,20 @@ export function useUsuarios() {
       cargarUsuarios()
     } catch {
       setErrorMensaje('Hubo un error al registrar el usuario.')
+    }
+  }
+
+  const handleResetPassword = async (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    if (!resetUserId || !resetPasswordVal.trim()) return
+    try {
+      clearFeedback()
+      await usuarioService.restablecerPassword(resetUserId, resetPasswordVal.trim())
+      setMensaje('Contraseña restablecida correctamente.')
+      setResetUserId(null)
+      setResetPasswordVal('')
+    } catch {
+      setErrorMensaje('No se pudo restablecer la contraseña del usuario.')
     }
   }
 
@@ -161,6 +201,10 @@ export function useUsuarios() {
     mensaje,
     errorMensaje,
     formData,
+    rolesList,
+    identificacionesList,
+    resetUserId,
+    resetPasswordVal,
     // acciones
     setMostrarModal,
     setFiltroRol,
@@ -172,5 +216,8 @@ export function useUsuarios() {
     handleBuscar,
     handleLimpiarBusqueda,
     handleEliminarUsuario,
+    setResetUserId,
+    setResetPasswordVal,
+    handleResetPassword,
   }
 }

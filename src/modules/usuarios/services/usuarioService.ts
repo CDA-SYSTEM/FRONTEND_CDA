@@ -1,5 +1,6 @@
 import { apiClient } from '@/core/api/apiClient'
 import { extractApiArray, extractApiData } from '@/core/api/extractApiData'
+import { useAuthStore } from '@/core/store/authStore'
 import type {
   ActualizarUsuarioDTO,
   CrearUsuarioDTO,
@@ -120,17 +121,41 @@ export const usuarioService = {
    */
   async obtenerPersonalAsignable(
     role: 'OPERARIO' | 'INSPECTOR',
+    userRole?: string,
   ): Promise<Usuario[]> {
-    if (role === 'OPERARIO') {
-      const opciones = await this.obtenerOpcionesUsuarios('operario')
+    const targetRole = role.toLowerCase() as RolPersonalDropdown
+    try {
+      const opciones = await this.obtenerOpcionesUsuarios(targetRole)
+      const r = userRole?.toUpperCase()
+      if (r === 'OPERARIO' || r === 'INSPECTOR') {
+        const activeUser = useAuthStore.getState().user
+        if (activeUser) {
+          const self = opciones.filter((u) => String(u.id) === String(activeUser.id))
+          if (self.length > 0) return self
+        }
+      }
       if (opciones.length > 0) return opciones
-
-      return this.obtenerOperarios()
+    } catch (err) {
+      console.error('Error fetching assignable user options:', err)
     }
-    const opciones = await this.obtenerOpcionesUsuarios('inspector')
-    if (opciones.length > 0) return opciones
 
-    return this.obtenerInspectores()
+    // Fallback
+    const r = userRole?.toUpperCase()
+    if (r === 'OPERARIO' || r === 'INSPECTOR') {
+      const activeUser = useAuthStore.getState().user
+      if (activeUser) {
+        return [
+          {
+            id: String(activeUser.id),
+            name: activeUser.name,
+            email: '',
+            role: activeUser.role as RolUsuario,
+            isActive: true,
+          },
+        ]
+      }
+    }
+    return []
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
@@ -174,6 +199,15 @@ export const usuarioService = {
 
   async eliminarUsuario(id: string): Promise<void> {
     await apiClient.delete(`/auth/users/${id}`)
+  },
+
+  /**
+   * PATCH /auth/admin/personnel/{id}/reset-password
+   */
+  async restablecerPassword(userId: string, newPassword: string): Promise<void> {
+    await apiClient.patch(`/auth/admin/personnel/${userId}/reset-password`, {
+      newPassword,
+    })
   },
 
   /**

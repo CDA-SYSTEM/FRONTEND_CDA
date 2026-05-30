@@ -125,6 +125,20 @@ export const usuarioService = {
   ): Promise<Usuario[]> {
     const r = userRole?.toUpperCase()
     if (r === 'OPERARIO' || r === 'INSPECTOR') {
+      try {
+        const queryTerm = r.toLowerCase()
+        const results = await this.buscarUsuarios(queryTerm)
+        const activeUser = useAuthStore.getState().user
+        if (activeUser) {
+          const self = results.filter((u) => String(u.id) === String(activeUser.id))
+          if (self.length > 0) return self
+        }
+        if (results.length > 0) return results
+      } catch (err) {
+        console.error('Error fetching assignable user by search:', err)
+      }
+
+      // Fallback
       const activeUser = useAuthStore.getState().user
       if (activeUser) {
         return [

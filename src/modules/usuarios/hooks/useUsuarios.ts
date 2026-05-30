@@ -33,7 +33,7 @@ export function useUsuarios() {
   const [formData, setFormData] = useState<CrearUsuarioDTO>(INITIAL_FORM)
 
   // Catálogos dinámicos
-  const [rolesList, setRolesList] = useState<string[]>([])
+  const [rolesList, setRolesList] = useState<{ code: string; name: string }[]>([])
   const [identificacionesList, setIdentificacionesList] = useState<{ code: string; name: string }[]>([])
 
   // Restablecimiento de contraseña

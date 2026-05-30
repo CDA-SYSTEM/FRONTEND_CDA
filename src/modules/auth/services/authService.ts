@@ -194,14 +194,15 @@ export const authService = {
   /**
    * GET /auth/roles
    */
-  async obtenerRoles(): Promise<string[]> {
+  async obtenerRoles(): Promise<{ code: string; name: string }[]> {
     const response = await apiClient.get('/auth/roles')
     const raw = extractApiArray(response.data)
     return raw.map((r) => {
-      if (typeof r === 'object' && r !== null && 'role' in r) {
-        return String((r as Record<string, unknown>).role)
+      const obj = r as Record<string, unknown>
+      return {
+        code: String(obj.code ?? obj.id ?? ''),
+        name: String(obj.scope ?? obj.code ?? ''),
       }
-      return String(r)
     })
   },
 }

@@ -376,8 +376,8 @@ export function UsuariosPage() {
                 >
                   {rolesList.length > 0 ? (
                     rolesList.map((role) => (
-                      <option key={role} value={role.toLowerCase()}>
-                        {role.charAt(0) + role.slice(1).toLowerCase()}
+                      <option key={role.code} value={role.code.toLowerCase()}>
+                        {role.name}
                       </option>
                     ))
                   ) : (

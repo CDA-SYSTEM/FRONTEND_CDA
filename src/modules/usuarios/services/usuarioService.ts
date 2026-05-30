@@ -1,5 +1,6 @@
 import { apiClient } from '@/core/api/apiClient'
 import { extractApiArray, extractApiData } from '@/core/api/extractApiData'
+import { useAuthStore } from '@/core/store/authStore'
 import type {
   ActualizarUsuarioDTO,
   CrearUsuarioDTO,
@@ -120,7 +121,25 @@ export const usuarioService = {
    */
   async obtenerPersonalAsignable(
     role: 'OPERARIO' | 'INSPECTOR',
+    userRole?: string,
   ): Promise<Usuario[]> {
+    const r = userRole?.toUpperCase()
+    if (r === 'OPERARIO' || r === 'INSPECTOR') {
+      const activeUser = useAuthStore.getState().user
+      if (activeUser) {
+        return [
+          {
+            id: String(activeUser.id),
+            name: activeUser.name,
+            email: '',
+            role: activeUser.role as RolUsuario,
+            isActive: true,
+          },
+        ]
+      }
+      return []
+    }
+
     if (role === 'OPERARIO') {
       const opciones = await this.obtenerOpcionesUsuarios('operario')
       if (opciones.length > 0) return opciones

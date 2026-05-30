@@ -123,22 +123,25 @@ export const usuarioService = {
     role: 'OPERARIO' | 'INSPECTOR',
     userRole?: string,
   ): Promise<Usuario[]> {
-    const r = userRole?.toUpperCase()
-    if (r === 'OPERARIO' || r === 'INSPECTOR') {
-      try {
-        const queryTerm = r.toLowerCase()
-        const results = await this.obtenerUsuarios(queryTerm)
+    const targetRole = role.toLowerCase() as RolPersonalDropdown
+    try {
+      const opciones = await this.obtenerOpcionesUsuarios(targetRole)
+      const r = userRole?.toUpperCase()
+      if (r === 'OPERARIO' || r === 'INSPECTOR') {
         const activeUser = useAuthStore.getState().user
         if (activeUser) {
-          const self = results.filter((u) => String(u.id) === String(activeUser.id))
+          const self = opciones.filter((u) => String(u.id) === String(activeUser.id))
           if (self.length > 0) return self
         }
-        if (results.length > 0) return results
-      } catch (err) {
-        console.error('Error fetching assignable user by role list:', err)
       }
+      if (opciones.length > 0) return opciones
+    } catch (err) {
+      console.error('Error fetching assignable user options:', err)
+    }
 
-      // Fallback
+    // Fallback
+    const r = userRole?.toUpperCase()
+    if (r === 'OPERARIO' || r === 'INSPECTOR') {
       const activeUser = useAuthStore.getState().user
       if (activeUser) {
         return [
@@ -151,19 +154,8 @@ export const usuarioService = {
           },
         ]
       }
-      return []
     }
-
-    if (role === 'OPERARIO') {
-      const opciones = await this.obtenerOpcionesUsuarios('operario')
-      if (opciones.length > 0) return opciones
-
-      return this.obtenerOperarios()
-    }
-    const opciones = await this.obtenerOpcionesUsuarios('inspector')
-    if (opciones.length > 0) return opciones
-
-    return this.obtenerInspectores()
+    return []
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {

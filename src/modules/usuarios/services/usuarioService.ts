@@ -177,6 +177,15 @@ export const usuarioService = {
   },
 
   /**
+   * PATCH /auth/admin/personnel/{id}/reset-password
+   */
+  async restablecerPassword(userId: string, newPassword: string): Promise<void> {
+    await apiClient.patch(`/auth/admin/personnel/${userId}/reset-password`, {
+      newPassword,
+    })
+  },
+
+  /**
    * GET /auth/identification-types — Admin, Manager
    */
   async obtenerTiposIdentificacion(): Promise<{ code: string; name: string }[]> {

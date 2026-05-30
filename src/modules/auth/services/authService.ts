@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/api/apiClient'
-import { extractApiData } from '@/core/api/extractApiData'
+import { extractApiData, extractApiArray } from '@/core/api/extractApiData'
 import type { AuthUser, LoginFormData } from '@/modules/auth/domain/auth.types'
 
 interface LoginResponse {
@@ -179,5 +179,29 @@ export const authService = {
     } catch {
       return false
     }
+  },
+
+  /**
+   * PATCH /auth/change-password
+   */
+  async cambiarPassword(oldPassword: string, newPassword: string): Promise<void> {
+    await apiClient.patch('/auth/change-password', {
+      oldPassword,
+      newPassword,
+    })
+  },
+
+  /**
+   * GET /auth/roles
+   */
+  async obtenerRoles(): Promise<string[]> {
+    const response = await apiClient.get('/auth/roles')
+    const raw = extractApiArray(response.data)
+    return raw.map((r) => {
+      if (typeof r === 'object' && r !== null && 'role' in r) {
+        return String((r as Record<string, unknown>).role)
+      }
+      return String(r)
+    })
   },
 }

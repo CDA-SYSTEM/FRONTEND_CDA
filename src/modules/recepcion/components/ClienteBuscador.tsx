@@ -57,7 +57,7 @@ export function ClienteBuscador({
       )}
 
       {/* Empty State / No hay resultados */}
-      {(query.length < 3 || (resultados.length === 0 && !cargando)) && !error && (
+      {resultados.length === 0 && !cargando && !error && (
         <div style={{
           display: 'flex',
           flexDirection: 'column',

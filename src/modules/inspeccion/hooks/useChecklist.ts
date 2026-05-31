@@ -284,10 +284,38 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
   const construirPayloadInspeccion = useCallback(() => {
     if (!checklistInspection) return null
-    const rawResponses = obtenerRespuestasArray()
-    // Normalizar cada response para evitar objetos con propiedades undefined
-    const normalizedResponses = rawResponses
-      .map((r) => ({
+    const finalResponses: InspectionItemResponse[] = []
+
+    if (template) {
+      for (const section of template.sections) {
+        for (const sub of section.subsections) {
+          for (const item of sub.items) {
+            const key = `${section.code || ''}:${sub.code || ''}:${item.code}`
+            const existing = responses.get(key)
+            if (existing) {
+              finalResponses.push({
+                section_code: String(existing.section_code ?? '').trim(),
+                subsection_code: String(existing.subsection_code ?? '').trim(),
+                item_code: String(existing.item_code ?? '').trim(),
+                response: String(existing.response ?? 'CUMPLE'),
+                defect_type: (existing as any).defect_type ?? undefined,
+                observation: (existing as any).observation ?? undefined,
+                photos: Array.isArray((existing as any).photos) ? (existing as any).photos : undefined,
+              })
+            } else {
+              finalResponses.push({
+                section_code: String(section.code || '').trim(),
+                subsection_code: String(sub.code || '').trim(),
+                item_code: String(item.code).trim(),
+                response: 'CUMPLE',
+              })
+            }
+          }
+        }
+      }
+    } else {
+      const rawResponses = obtenerRespuestasArray()
+      finalResponses.push(...rawResponses.map((r) => ({
         section_code: String(r.section_code ?? '').trim(),
         subsection_code: String(r.subsection_code ?? '').trim(),
         item_code: String(r.item_code ?? '').trim(),
@@ -295,14 +323,10 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
         defect_type: (r as any).defect_type ?? undefined,
         observation: (r as any).observation ?? undefined,
         photos: Array.isArray((r as any).photos) ? (r as any).photos : undefined,
-      }))
-      .filter((r) => r.section_code && r.subsection_code && r.item_code)
-
-    if (normalizedResponses.length !== rawResponses.length) {
-      // Al menos uno fue descartado por estar incompleto — útil para depuración
-      // eslint-disable-next-line no-console
-      console.warn('useChecklist: Some responses were omitted from payload because they were incomplete', { raw: rawResponses.length, sent: normalizedResponses.length })
+      })))
     }
+
+    const normalizedResponses = finalResponses.filter((r) => r.section_code && r.subsection_code && r.item_code)
 
     return {
       plate: checklistInspection.plate || plate,
@@ -315,7 +339,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
       responses: normalizedResponses,
       observations: observaciones,
     }
-  }, [checklistInspection, obtenerRespuestasArray, observaciones, plate, template?.id, vehicleId, vehicleType])
+  }, [checklistInspection, template, responses, obtenerRespuestasArray, observaciones, plate, vehicleId, vehicleType])
 
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
@@ -337,11 +361,6 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
     if (!checklistInspection) return false
-    const sinResponder = itemsSinResponder()
-    if (sinResponder > 0) {
-      setErrorMensaje(`Faltan ${sinResponder} ítems por responder`)
-      return false
-    }
 
     setEstado('enviando')
 
@@ -380,7 +399,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
       )
       return false
     }
-  }, [checklistInspection, inspectionKey, itemsSinResponder, observaciones, responses, inspectionId, construirPayloadInspeccion])
+  }, [checklistInspection, inspectionKey, observaciones, responses, inspectionId, construirPayloadInspeccion])
 
   return {
     estado,

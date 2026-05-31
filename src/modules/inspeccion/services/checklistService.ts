@@ -113,11 +113,15 @@ function obtenerMensajeError(error: unknown, fallback: string): string {
     const response = anyError.response as Record<string, unknown> | undefined
     const data = response?.data as Record<string, unknown> | undefined
     const nestedError = data?.error as Record<string, unknown> | undefined
-    const mensaje =
-      (typeof data?.message === 'string' && data.message) ||
-      (typeof nestedError?.message === 'string' && nestedError.message) ||
-      (typeof anyError.message === 'string' && anyError.message)
-    if (mensaje) return mensaje
+    
+    const nestedMsg = typeof nestedError?.message === 'string' ? nestedError.message : undefined
+    const topMsg = typeof data?.message === 'string' ? data.message : undefined
+    const errorMsg = typeof anyError.message === 'string' ? anyError.message : undefined
+
+    if (nestedMsg) return nestedMsg
+    if (topMsg && topMsg !== 'Http Exception') return topMsg
+    if (errorMsg) return errorMsg
+    if (topMsg) return topMsg
   }
   return fallback
 }

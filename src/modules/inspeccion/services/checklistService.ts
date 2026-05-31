@@ -113,11 +113,15 @@ function obtenerMensajeError(error: unknown, fallback: string): string {
     const response = anyError.response as Record<string, unknown> | undefined
     const data = response?.data as Record<string, unknown> | undefined
     const nestedError = data?.error as Record<string, unknown> | undefined
-    const mensaje =
-      (typeof data?.message === 'string' && data.message) ||
-      (typeof nestedError?.message === 'string' && nestedError.message) ||
-      (typeof anyError.message === 'string' && anyError.message)
-    if (mensaje) return mensaje
+    
+    const nestedMsg = typeof nestedError?.message === 'string' ? nestedError.message : undefined
+    const topMsg = typeof data?.message === 'string' ? data.message : undefined
+    const errorMsg = typeof anyError.message === 'string' ? anyError.message : undefined
+
+    if (nestedMsg) return nestedMsg
+    if (topMsg && topMsg !== 'Http Exception') return topMsg
+    if (errorMsg) return errorMsg
+    if (topMsg) return topMsg
   }
   return fallback
 }
@@ -466,6 +470,68 @@ export const checklistService = {
       return normalizeInspectionList(response.data)
     } catch {
       return []
+    }
+  },
+
+  async obtenerTodasLasInspecciones(): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get('/api/v1/checklist/inspections')
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async actualizarInspeccion(
+    id: string,
+    dto: Partial<CreateChecklistInspectionDTO> & { responses?: InspectionItemResponse[] },
+  ): Promise<ChecklistInspection | null> {
+    try {
+      const response = await apiClient.put(`/api/v1/checklist/inspections/${id}`, dto)
+      return normalizeChecklistInspection(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async eliminarInspeccion(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/checklist/inspections/${id}`)
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  async guardarComoBorrador(
+    id: string,
+    payload: {
+      plate: string
+      vehicle_id: number
+      client_id?: number
+      vehicle_type: VehicleType
+      template_id?: string
+      inspection_datetime?: string
+      inspector_id?: string
+      responses: InspectionItemResponse[]
+      observations?: string
+    },
+  ): Promise<boolean> {
+    try {
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/draft`, {
+        plate: payload.plate,
+        vehicle_id: payload.vehicle_id,
+        client_id: payload.client_id,
+        vehicle_type: payload.vehicle_type,
+        template_id: payload.template_id,
+        inspection_datetime: payload.inspection_datetime,
+        inspector_id: payload.inspector_id,
+        responses: payload.responses,
+        observations: payload.observations,
+      })
+      return true
+    } catch {
+      return false
     }
   },
 }

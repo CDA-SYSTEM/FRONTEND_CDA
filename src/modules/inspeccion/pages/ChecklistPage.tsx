@@ -156,6 +156,7 @@ export function ChecklistPage() {
     return null
   }, [vehicleTypeParam])
   const {
+    checklistInspection,
     estado,
     template,
     responses,
@@ -175,6 +176,16 @@ export function ChecklistPage() {
     guardar,
     cerrar,
   } = useChecklist(inspectionId || '', vehicleTypeFromUrl)
+
+  const inspectorName = useMemo(() => {
+    if (!checklistInspection?.inspector) return null
+    const ins = checklistInspection.inspector as Record<string, unknown>
+    if (typeof ins.name === 'string' && ins.name.trim()) return ins.name.trim()
+    const built = [ins.firstName, ins.lastName].filter(Boolean).join(' ').trim()
+    if (built) return built
+    if (typeof ins.email === 'string' && ins.email.trim()) return ins.email.trim()
+    return null
+  }, [checklistInspection?.inspector])
 
 
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
@@ -327,8 +338,8 @@ export function ChecklistPage() {
           </div>
         )}
 
-        {/* Placa + Fecha */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Placa + Inspector + Fecha */}
+        <div style={{ display: 'grid', gridTemplateColumns: inspectorName ? '1fr 1fr 1fr' : '1fr 1fr', gap: 16 }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>
@@ -345,6 +356,23 @@ export function ChecklistPage() {
               }}
             />
           </div>
+          {inspectorName && (
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+                Inspector Asignado
+              </label>
+              <input
+                type="text"
+                value={inspectorName}
+                readOnly
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 8,
+                  border: '1px solid #e2e8f0', background: '#f8fafc',
+                  fontSize: '0.95rem', color: '#475569', boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          )}
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Fecha de Inspección

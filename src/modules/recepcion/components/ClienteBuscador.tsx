@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { Search, Loader2, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 
@@ -9,6 +8,12 @@ interface Props {
   cargando: boolean
   error: string | null
   onSeleccionarCliente: (cliente: ClientePersonaNatural) => void
+  pagina: number
+  onPageChange: (p: number) => void
+  limite: number
+  onLimitChange: (l: number) => void
+  totalElementos: number
+  totalPages: number
 }
 
 export function ClienteBuscador({
@@ -18,18 +23,13 @@ export function ClienteBuscador({
   cargando,
   error,
   onSeleccionarCliente,
+  pagina,
+  onPageChange,
+  limite,
+  onLimitChange,
+  totalElementos,
+  totalPages,
 }: Props) {
-  const [pagina, setPagina] = useState(0)
-  const [limite, setLimite] = useState(10)
-
-  useEffect(() => {
-    setPagina(0)
-  }, [query, resultados.length])
-
-  const totalElementos = resultados.length
-  const totalPages = Math.ceil(totalElementos / limite)
-  const resultadosPaginados = resultados.slice(pagina * limite, (pagina + 1) * limite)
-
   return (
     <div>
       <div style={{ position: 'relative', marginBottom: 24 }}>
@@ -101,7 +101,7 @@ export function ClienteBuscador({
                 </tr>
               </thead>
               <tbody>
-                {resultadosPaginados.map((c) => (
+                {resultados.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '16px 24px', fontWeight: 500 }}>{c.identity}</td>
                     <td style={{ padding: '16px 24px' }}>
@@ -132,7 +132,7 @@ export function ClienteBuscador({
           </div>
 
           <div className="clients-cards-mobile">
-            {resultadosPaginados.map((c) => (
+            {resultados.map((c) => (
               <div key={c.id} className="client-card">
                 <div className="client-card-header">
                   <span className="client-card-identity" style={{ fontSize: '1.05rem', color: '#1e293b' }}>
@@ -190,8 +190,7 @@ export function ClienteBuscador({
               <select
                 value={limite}
                 onChange={(e) => {
-                  setLimite(Number(e.target.value))
-                  setPagina(0)
+                  onLimitChange(Number(e.target.value))
                 }}
                 style={{
                   padding: '4px 8px',
@@ -227,7 +226,7 @@ export function ClienteBuscador({
 
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <button
-                onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
+                onClick={() => onPageChange(Math.max(0, pagina - 1))}
                 disabled={pagina === 0}
                 style={{
                   display: 'flex',
@@ -249,7 +248,7 @@ export function ClienteBuscador({
                 Página {pagina + 1} de {totalPages || 1}
               </span>
               <button
-                onClick={() => setPagina((prev) => Math.min(totalPages - 1, prev + 1))}
+                onClick={() => onPageChange(Math.min(totalPages - 1, pagina + 1))}
                 disabled={pagina >= totalPages - 1}
                 style={{
                   display: 'flex',

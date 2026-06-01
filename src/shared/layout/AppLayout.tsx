@@ -134,11 +134,16 @@ export function AppLayout() {
                 border: '1px solid #cbd5e1',
                 marginRight: 6,
               }}
+              title="Cambiar contraseña"
             >
-              Cambiar contraseña
+              <KeyRound size={16} />
+              <span className="btn-text">Cambiar contraseña</span>
             </button>
           )}
-          <button className="btn-logout-topbar" onClick={openConfirm}>Cerrar sesión</button>
+          <button className="btn-logout-topbar" onClick={openConfirm} title="Cerrar sesión">
+            <LogOut size={16} />
+            <span className="btn-text">Cerrar sesión</span>
+          </button>
         </div>
       </header>
 

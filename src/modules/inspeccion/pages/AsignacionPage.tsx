@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
+  Bike,
   Calendar,
+  Car,
   CheckCircle,
   ClipboardList,
   Eye,
   Filter,
+  Layers,
   Loader2,
   RefreshCw,
   Search,
+  Truck,
   UserCheck,
   Wrench,
 } from 'lucide-react'
@@ -311,17 +315,7 @@ export function AsignacionPage() {
         />
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
+      <div className="page-header-responsive">
         <div>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
             Checklist y Labrado
@@ -330,28 +324,30 @@ export function AsignacionPage() {
             Consulte inspecciones reales del backend y el labrado asociado a cada una.
           </p>
         </div>
-        <button
-          onClick={onBuscar}
-          disabled={cargando}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            height: 40,
-            padding: '0 16px',
-            background: '#f8fafc',
-            color: '#475569',
-            border: '1px solid #e2e8f0',
-            borderRadius: 8,
-          }}
-        >
-          <RefreshCw size={16} className={cargando ? 'spin' : ''} />
-          Actualizar
-        </button>
+        <div className="page-header-responsive-actions">
+          <button
+            onClick={onBuscar}
+            disabled={cargando}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              height: 40,
+              padding: '0 16px',
+              background: '#f8fafc',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+            }}
+          >
+            <RefreshCw size={16} className={cargando ? 'spin' : ''} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
-      <div className="panel" style={{ display: 'grid', gap: 12 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr auto auto', gap: 12, alignItems: 'end' }}>
+      <div className="panel">
+        <div className="filters-grid">
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>ID de inspección</span>
             <input autoComplete="off" spellCheck={false} name="inspectionIdFiltro" value={inspectionIdFiltro} onChange={(e) => setInspectionIdFiltro(e.target.value)} placeholder="6a11dda1fae01e695e137789" />
@@ -385,11 +381,12 @@ export function AsignacionPage() {
         </div>
       </div>
 
-      <div className="panel" style={{ display: 'flex', gap: 8, padding: '12px 16px', alignItems: 'center' }}>
+      <div className="panel filters-type-bar" style={{ padding: '12px 16px' }}>
         <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Filtrar por tipo:</span>
         {(['', 'MOTO', 'LIVIANO', 'PESADO'] as const).map((t) => {
           const label = t === '' ? 'Todos' : t === 'MOTO' ? 'Motos' : t === 'LIVIANO' ? 'Livianos' : 'Pesados'
-          const icon = t === 'MOTO' ? '🏍️' : t === 'LIVIANO' ? '🚗' : t === 'PESADO' ? '🚛' : null
+          const icon = t === '' ? <Layers size={16} /> : t === 'MOTO' ? <Bike size={16} /> : t === 'LIVIANO' ? <Car size={16} /> : <Truck size={16}
+          />
           const isActive = filtroTipo === t
           return (
             <button key={t} onClick={() => setFiltroTipo(t)} style={{
@@ -400,7 +397,7 @@ export function AsignacionPage() {
               fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
               cursor: 'pointer',
             }}>
-              {icon && <span>{icon}</span>}
+              {icon}
               {label}
               {t !== '' && (
                 <span style={{ background: isActive ? '#155DFC' : '#e2e8f0', color: isActive ? '#fff' : '#64748b', borderRadius: 999, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 700 }}>
@@ -500,13 +497,7 @@ export function AsignacionPage() {
               return (
                 <article
                   key={insp.id}
-                  className="panel"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.6fr 1fr 1fr auto',
-                    gap: 16,
-                    alignItems: 'center',
-                  }}
+                  className="panel inspection-card"
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                       <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -546,7 +537,7 @@ export function AsignacionPage() {
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, justifySelf: 'end' }}>
+                  <div className="inspection-card-actions">
                     <button
                       onClick={() => {
                         if (!insp.id) {
@@ -580,7 +571,7 @@ export function AsignacionPage() {
       ) : (
         <div style={{ display: 'grid', gap: 12 }}>
           <div className="panel" style={{ display: 'grid', gap: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end' }}>
+            <div className="labrado-filter-grid">
               <label style={{ display: 'grid', gap: 6 }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Inspección seleccionada</span>
                 <select value={selectedInspectionId} onChange={(e) => setSelectedInspectionId(e.target.value)}>

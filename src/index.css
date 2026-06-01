@@ -182,43 +182,45 @@ label span {
   letter-spacing: 0.04em;
 }
 
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
-  padding: 0.85rem 1rem;
-  background: rgba(226, 232, 240, 0.72);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-  position: relative;
-  z-index: 8000;
-}
+@media (min-width: 768px) {
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0.85rem 1rem;
+    background: rgba(226, 232, 240, 0.72);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    position: relative;
+    z-index: 8000;
+  }
 
-.tab {
-  text-decoration: none;
-  color: #334155;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 12px;
-  padding: 0.7rem 0.75rem;
-  text-align: center;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease,
-    color 0.2s ease;
-}
+  .tab {
+    text-decoration: none;
+    color: #334155;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 12px;
+    padding: 0.7rem 0.75rem;
+    text-align: center;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease,
+      color 0.2s ease;
+  }
 
-.tab:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
-}
+  .tab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+  }
 
-.tab.active {
-  background: linear-gradient(135deg, #155dfc 0%, #0f47d6 100%);
-  color: #fff;
-  box-shadow: 0 14px 28px rgba(21, 93, 252, 0.25);
+  .tab.active {
+    background: linear-gradient(135deg, #155dfc 0%, #0f47d6 100%);
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(21, 93, 252, 0.25);
+  }
 }
 
 .content {
@@ -441,5 +443,340 @@ a {
     width: auto;
   }
 }
+
+.users-table-desktop {
+  display: block;
+}
+
+.users-cards-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .users-table-desktop {
+    display: none;
+  }
+
+  .users-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .user-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .user-card-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+  }
+
+  .user-card-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1.05rem;
+  }
+
+  .user-card-email {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .user-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+
+  .user-card-label {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .user-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 12px;
+  }
+}
+
+.page-header-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header-responsive-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.page-header-responsive-actions button {
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .page-header-responsive {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+  }
+  
+  .page-header-responsive-actions {
+    width: auto;
+  }
+  
+  .page-header-responsive-actions button {
+    flex: initial;
+  }
+}
+
+/* Checklist and Labrado responsive filter controls */
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+@media (min-width: 640px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filters-grid {
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto auto;
+  }
+}
+
+.filters-type-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.inspection-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .inspection-card {
+    grid-template-columns: 1.6fr 1fr 1fr auto;
+  }
+}
+
+.inspection-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .inspection-card-actions {
+    width: auto;
+    justify-self: end;
+  }
+}
+
+.labrado-filter-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+@media (min-width: 768px) {
+  .labrado-filter-grid {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+/* Vehicles list responsive layout */
+.vehicles-table-desktop {
+  display: block;
+}
+
+.vehicles-cards-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .vehicles-table-desktop {
+    display: none;
+  }
+
+  .vehicles-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 12px;
+  }
+
+  .vehicle-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vehicle-card-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .vehicle-card-plate {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+  }
+
+  .vehicle-card-type {
+    font-size: 0.85rem;
+    color: #155DFC;
+    background: #eff6ff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .vehicle-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+
+  .vehicle-card-label {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .vehicle-card-value {
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .vehicle-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+}
+
+/* Reception list responsive layout */
+.receptions-table-desktop {
+  display: block;
+}
+
+.receptions-cards-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .receptions-table-desktop {
+    display: none;
+  }
+
+  .receptions-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .reception-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .reception-card-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .reception-card-number {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.95rem;
+  }
+
+  .reception-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+
+  .reception-card-label {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .reception-card-value {
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .reception-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+}
+
+
+
 
 

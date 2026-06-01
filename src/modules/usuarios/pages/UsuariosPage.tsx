@@ -167,13 +167,9 @@ export function UsuariosPage() {
         </p>
       )}
 
-      {/* Tabla envuelta para scroll horizontal en móvil */}
-      <div className="table-wrap" style={{ marginTop: '20px' }}>
-        <table
-          border={1}
-          cellPadding={10}
-          style={{ width: '100%', borderCollapse: 'collapse' }}
-        >
+      {/* Tabla envuelta para escritorio */}
+      <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
+        <table style={{ width: '100%' }}>
           <thead>
             <tr>
               <th>Nombre Completo</th>
@@ -289,6 +285,120 @@ export function UsuariosPage() {
         </table>
       </div>
 
+      {/* Tarjetas para móviles */}
+      <div className="users-cards-mobile">
+        {usuarios.map((user) => (
+          <div key={user.id} className="user-card">
+            <div className="user-card-header">
+              <div className="user-card-name">
+                {user.firstName
+                  ? `${user.firstName} ${user.lastName}`
+                  : user.name}
+              </div>
+              <div className="user-card-email">{user.email}</div>
+            </div>
+
+            <div className="user-card-row">
+              <span className="user-card-label">Rol:</span>
+              <select
+                value={user.role.toLowerCase()}
+                onChange={(e) =>
+                  handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
+                }
+                style={{
+                  marginTop: 0,
+                  minHeight: 'auto',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  width: 'auto',
+                }}
+              >
+                {ROLES.map((rol) => (
+                  <option key={rol.value} value={rol.value}>
+                    {rol.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="user-card-row">
+              <span className="user-card-label">Estado:</span>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 500,
+                }}
+              >
+                {user.isActive ? (
+                  <>
+                    <CheckCircle2 size={16} color="#16a34a" />
+                    <span style={{ color: '#166534' }}>Activo</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={16} color="#dc2626" />
+                    <span style={{ color: '#991b1b' }}>Inactivo</span>
+                  </>
+                )}
+              </span>
+            </div>
+
+            <div className="user-card-actions">
+              <button
+                onClick={() => handleToggleEstado(user)}
+                style={{
+                  padding: '6px 12px',
+                  minHeight: 'auto',
+                  borderRadius: '6px',
+                  boxShadow: 'none',
+                  fontSize: '0.85rem',
+                }}
+              >
+                {user.isActive ? 'Desactivar' : 'Activar'}
+              </button>
+              <button
+                onClick={() => setResetUserId(user.id)}
+                style={{
+                  background: '#f1f5f9',
+                  color: '#334155',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  minHeight: 'auto',
+                  boxShadow: 'none',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <Key size={14} />
+                Clave
+              </button>
+              <button
+                onClick={() => handleEliminarUsuario(user.id)}
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  minHeight: 'auto',
+                  boxShadow: 'none',
+                  fontSize: '0.85rem',
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Modal crear usuario */}
       {mostrarModal && (
         <div
@@ -302,7 +412,7 @@ export function UsuariosPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 10000,
           }}
         >
           <div
@@ -313,6 +423,8 @@ export function UsuariosPage() {
               width: '90%',
               maxWidth: '450px',
               boxSizing: 'border-box',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
           >
             <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
@@ -480,7 +592,7 @@ export function UsuariosPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 10000,
           }}
         >
           <div
@@ -491,6 +603,8 @@ export function UsuariosPage() {
               width: '90%',
               maxWidth: '400px',
               boxSizing: 'border-box',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
           >
             <h3 style={{ marginTop: 0 }}>Restablecer Contraseña</h3>

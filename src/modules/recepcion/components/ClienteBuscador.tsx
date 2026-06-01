@@ -78,7 +78,7 @@ export function ClienteBuscador({
 
       {resultados.length > 0 && (
         <article className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-wrap">
+          <div className="table-wrap clients-table-desktop">
             <table style={{ margin: 0 }}>
               <thead style={{ background: '#f8fafc' }}>
                 <tr>
@@ -117,6 +117,46 @@ export function ClienteBuscador({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="clients-cards-mobile">
+            {resultados.map((c) => (
+              <div key={c.id} className="client-card">
+                <div className="client-card-header">
+                  <span className="client-card-identity">{c.identity}</span>
+                </div>
+
+                <div className="client-card-row">
+                  <span className="client-card-label">Nombre completo:</span>
+                  <span className="client-card-value">{c.nombre} {c.apellido}</span>
+                </div>
+
+                <div className="client-card-row">
+                  <span className="client-card-label">Celular:</span>
+                  <span className="client-card-value">{c.celular || '—'}</span>
+                </div>
+
+                <div className="client-card-actions">
+                  <button
+                    onClick={() => onSeleccionarCliente(c)}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      background: '#e0e7ff',
+                      color: '#4f46e5',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Ver
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </article>
       )}

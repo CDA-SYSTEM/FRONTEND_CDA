@@ -776,6 +776,80 @@ a {
   }
 }
 
+/* Client search results responsive layout */
+.clients-table-desktop {
+  display: block;
+}
+
+.clients-cards-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .clients-table-desktop {
+    display: none;
+  }
+
+  .clients-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .client-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .client-card-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .client-card-identity {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 1rem;
+  }
+
+  .client-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+
+  .client-card-label {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .client-card-value {
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .client-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+    margin-top: 4px;
+  }
+}
+
+
 
 
 

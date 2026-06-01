@@ -54,24 +54,25 @@ export function UsuariosPage() {
   return (
     <div style={{ padding: '20px' }}>
       {/* Cabecera */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <div className="users-header">
         <div>
           <h2>Gestión de Usuarios</h2>
           <p>Administra los accesos y roles del sistema.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="users-actions-bar">
           <input
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre/correo/documento"
-            style={{ padding: '8px', borderRadius: '6px', minWidth: '260px' }}
+            style={{
+              padding: '8px',
+              borderRadius: '6px',
+              minWidth: '200px',
+              flex: '1 1 auto',
+              marginTop: 0,
+              minHeight: 'auto',
+            }}
           />
           <button
             onClick={handleBuscar}
@@ -80,6 +81,10 @@ export function UsuariosPage() {
               borderRadius: '6px',
               border: '1px solid #cbd5e1',
               cursor: 'pointer',
+              minHeight: 'auto',
+              background: '#fff',
+              color: '#334155',
+              boxShadow: 'none',
             }}
           >
             Buscar
@@ -91,6 +96,10 @@ export function UsuariosPage() {
               borderRadius: '6px',
               border: '1px solid #cbd5e1',
               cursor: 'pointer',
+              minHeight: 'auto',
+              background: '#fff',
+              color: '#334155',
+              boxShadow: 'none',
             }}
           >
             Limpiar
@@ -98,7 +107,13 @@ export function UsuariosPage() {
           <select
             value={filtroRol}
             onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
-            style={{ padding: '8px', borderRadius: '6px' }}
+            style={{
+              padding: '8px',
+              borderRadius: '6px',
+              marginTop: 0,
+              minHeight: 'auto',
+              width: 'auto',
+            }}
           >
             {ROLE_FILTERS.map((item) => (
               <option key={item.label} value={item.value}>
@@ -109,12 +124,14 @@ export function UsuariosPage() {
           <button
             onClick={() => setMostrarModal(true)}
             style={{
-              padding: '10px 16px',
+              padding: '8px 16px',
               background: '#2563eb',
               color: '#fff',
               border: 'none',
               borderRadius: '6px',
               cursor: 'pointer',
+              minHeight: 'auto',
+              boxShadow: 'none',
             }}
           >
             + Nuevo Usuario
@@ -150,105 +167,127 @@ export function UsuariosPage() {
         </p>
       )}
 
-      {/* Tabla */}
-      <table
-        border={1}
-        cellPadding={10}
-        style={{ width: '100%', marginTop: '20px', borderCollapse: 'collapse' }}
-      >
-        <thead>
-          <tr>
-            <th>Nombre Completo</th>
-            <th>Email</th>
-            <th>Rol Actual</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((user) => (
-            <tr key={user.id}>
-              <td>
-                {user.firstName
-                  ? `${user.firstName} ${user.lastName}`
-                  : user.name}
-              </td>
-              <td>{user.email}</td>
-              <td>
-                <select
-                  value={user.role.toLowerCase()}
-                  onChange={(e) =>
-                    handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
-                  }
-                >
-                  {ROLES.map((rol) => (
-                    <option key={rol.value} value={rol.value}>
-                      {rol.label}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td>
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontWeight: 500,
-                  }}
-                >
-                  {user.isActive ? (
-                    <>
-                      <CheckCircle2 size={16} color="#16a34a" />
-                      <span style={{ color: '#166534' }}>Activo</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle size={16} color="#dc2626" />
-                      <span style={{ color: '#991b1b' }}>Inactivo</span>
-                    </>
-                  )}
-                </span>
-              </td>
-              <td style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button onClick={() => handleToggleEstado(user)}>
-                  {user.isActive ? 'Desactivar' : 'Activar'}
-                </button>
-                <button
-                  onClick={() => setResetUserId(user.id)}
-                  style={{
-                    background: '#f1f5f9',
-                    color: '#334155',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '4px',
-                    padding: '4px 10px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <Key size={14} />
-                  Restablecer Clave
-                </button>
-                <button
-                  onClick={() => handleEliminarUsuario(user.id)}
-                  style={{
-                    background: '#ef4444',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '4px 10px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Eliminar
-                </button>
-              </td>
+      {/* Tabla envuelta para scroll horizontal en móvil */}
+      <div className="table-wrap" style={{ marginTop: '20px' }}>
+        <table
+          border={1}
+          cellPadding={10}
+          style={{ width: '100%', borderCollapse: 'collapse' }}
+        >
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>Email</th>
+              <th>Rol Actual</th>
+              <th>Estado</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {usuarios.map((user) => (
+              <tr key={user.id}>
+                <td>
+                  {user.firstName
+                    ? `${user.firstName} ${user.lastName}`
+                    : user.name}
+                </td>
+                <td>{user.email}</td>
+                <td>
+                  <select
+                    value={user.role.toLowerCase()}
+                    onChange={(e) =>
+                      handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
+                    }
+                    style={{
+                      marginTop: 0,
+                      minHeight: 'auto',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    {ROLES.map((rol) => (
+                      <option key={rol.value} value={rol.value}>
+                        {rol.label}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {user.isActive ? (
+                      <>
+                        <CheckCircle2 size={16} color="#16a34a" />
+                        <span style={{ color: '#166534' }}>Activo</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle size={16} color="#dc2626" />
+                        <span style={{ color: '#991b1b' }}>Inactivo</span>
+                      </>
+                    )}
+                  </span>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <button
+                      onClick={() => handleToggleEstado(user)}
+                      style={{
+                        padding: '4px 10px',
+                        minHeight: 'auto',
+                        borderRadius: '4px',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      {user.isActive ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button
+                      onClick={() => setResetUserId(user.id)}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#334155',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        padding: '4px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        minHeight: 'auto',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      <Key size={14} />
+                      Restablecer Clave
+                    </button>
+                    <button
+                      onClick={() => handleEliminarUsuario(user.id)}
+                      style={{
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '4px 10px',
+                        cursor: 'pointer',
+                        minHeight: 'auto',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Modal crear usuario */}
       {mostrarModal && (
@@ -271,8 +310,9 @@ export function UsuariosPage() {
               background: '#fff',
               padding: '24px',
               borderRadius: '8px',
-              width: '100%',
+              width: '90%',
               maxWidth: '450px',
+              boxSizing: 'border-box',
             }}
           >
             <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
@@ -448,8 +488,9 @@ export function UsuariosPage() {
               background: '#fff',
               padding: '24px',
               borderRadius: '8px',
-              width: '100%',
+              width: '90%',
               maxWidth: '400px',
+              boxSizing: 'border-box',
             }}
           >
             <h3 style={{ marginTop: 0 }}>Restablecer Contraseña</h3>

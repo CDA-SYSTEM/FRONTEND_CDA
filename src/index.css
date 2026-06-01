@@ -416,3 +416,30 @@ a {
   }
 }
 
+/* User management responsive layouts */
+.users-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.users-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .users-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .users-actions-bar {
+    width: auto;
+  }
+}
+
+

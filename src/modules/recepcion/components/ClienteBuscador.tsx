@@ -123,12 +123,14 @@ export function ClienteBuscador({
             {resultados.map((c) => (
               <div key={c.id} className="client-card">
                 <div className="client-card-header">
-                  <span className="client-card-identity">{c.identity}</span>
+                  <span className="client-card-identity" style={{ fontSize: '1.05rem', color: '#1e293b' }}>
+                    {c.nombre} {c.apellido}
+                  </span>
                 </div>
 
                 <div className="client-card-row">
-                  <span className="client-card-label">Nombre completo:</span>
-                  <span className="client-card-value">{c.nombre} {c.apellido}</span>
+                  <span className="client-card-label">Documento:</span>
+                  <span className="client-card-value">{c.identity}</span>
                 </div>
 
                 <div className="client-card-row">

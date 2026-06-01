@@ -1,4 +1,5 @@
-import { Search, Loader2, User } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Loader2, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 
 interface Props {
@@ -18,6 +19,17 @@ export function ClienteBuscador({
   error,
   onSeleccionarCliente,
 }: Props) {
+  const [pagina, setPagina] = useState(0)
+  const [limite, setLimite] = useState(10)
+
+  useEffect(() => {
+    setPagina(0)
+  }, [query, resultados.length])
+
+  const totalElementos = resultados.length
+  const totalPages = Math.ceil(totalElementos / limite)
+  const resultadosPaginados = resultados.slice(pagina * limite, (pagina + 1) * limite)
+
   return (
     <div>
       <div style={{ position: 'relative', marginBottom: 24 }}>
@@ -89,7 +101,7 @@ export function ClienteBuscador({
                 </tr>
               </thead>
               <tbody>
-                {resultados.map((c) => (
+                {resultadosPaginados.map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '16px 24px', fontWeight: 500 }}>{c.identity}</td>
                     <td style={{ padding: '16px 24px' }}>
@@ -120,7 +132,7 @@ export function ClienteBuscador({
           </div>
 
           <div className="clients-cards-mobile">
-            {resultados.map((c) => (
+            {resultadosPaginados.map((c) => (
               <div key={c.id} className="client-card">
                 <div className="client-card-header">
                   <span className="client-card-identity" style={{ fontSize: '1.05rem', color: '#1e293b' }}>
@@ -159,6 +171,103 @@ export function ClienteBuscador({
                 </div>
               </div>
             ))}
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fff',
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #f1f5f9',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: '#64748b' }}>
+              <span>Mostrar</span>
+              <select
+                value={limite}
+                onChange={(e) => {
+                  setLimite(Number(e.target.value))
+                  setPagina(0)
+                }}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  marginTop: 0,
+                  minHeight: 'auto',
+                  width: 'auto',
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span>por página</span>
+            </div>
+
+            <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
+              Mostrando{' '}
+              <strong>
+                {totalElementos === 0 ? 0 : pagina * limite + 1}
+              </strong>{' '}
+              a{' '}
+              <strong>
+                {Math.min((pagina + 1) * limite, totalElementos)}
+              </strong>{' '}
+              de <strong>{totalElementos}</strong> clientes
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
+                disabled={pagina === 0}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 6,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: pagina === 0 ? 'not-allowed' : 'pointer',
+                  opacity: pagina === 0 ? 0.5 : 1,
+                  boxShadow: 'none',
+                  minHeight: 'auto',
+                }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.9rem' }}>
+                Página {pagina + 1} de {totalPages || 1}
+              </span>
+              <button
+                onClick={() => setPagina((prev) => Math.min(totalPages - 1, prev + 1))}
+                disabled={pagina >= totalPages - 1}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 6,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: pagina >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                  opacity: pagina >= totalPages - 1 ? 0.5 : 1,
+                  boxShadow: 'none',
+                  minHeight: 'auto',
+                }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </article>
       )}

@@ -399,3 +399,20 @@ a {
     transform: rotate(360deg);
   }
 }
+
+/* Responsive checklist header grid */
+.checklist-header-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .checklist-header-grid.has-inspector {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .checklist-header-grid:not(.has-inspector) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+

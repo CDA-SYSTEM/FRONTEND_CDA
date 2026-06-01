@@ -339,7 +339,7 @@ export function ChecklistPage() {
         )}
 
         {/* Placa + Inspector + Fecha */}
-        <div style={{ display: 'grid', gridTemplateColumns: inspectorName ? '1fr 1fr 1fr' : '1fr 1fr', gap: 16 }}>
+        <div className={`checklist-header-grid ${inspectorName ? 'has-inspector' : ''}`}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>

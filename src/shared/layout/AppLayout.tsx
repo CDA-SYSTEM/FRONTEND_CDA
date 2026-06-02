@@ -15,6 +15,7 @@ const links = [
   { to: '/inspeccion/asignacion', label: 'Checklist', roles: ['ADMIN', 'INSPECTOR'] },
   { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
   { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
+  { to: '/precios', label: 'Tarifas', roles: ['ADMIN', 'MANAGER'] },
 ]
 
 export function AppLayout() {

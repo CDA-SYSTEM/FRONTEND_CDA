@@ -76,18 +76,20 @@ export async function sincronizar(): Promise<void> {
 
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
-  const apiKey = import.meta.env.VITE_API_KEY_FRONT
+  const apiKey = (import.meta.env.VITE_API_KEY_FRONT as string | undefined)?.trim()
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
 
   if (apiKey) {
+    config.headers['x-api-key'] = apiKey
     config.headers['X-API-Key'] = apiKey
   }
 
   return config
 })
+
 
 /* ── Refresh token queue ── */
 
@@ -116,7 +118,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config
 
     // HU-037: Sin conexión — encolar mutación y responder como éxito local
-    if (!error.response && originalRequest) {
+    // EXCLUIR rutas de autenticación: el login nunca debe encolarse como offline
+    const isAuthRoute = originalRequest?.url?.includes('/auth/')
+    if (!error.response && originalRequest && !isAuthRoute) {
       const method = (originalRequest.method || '').toLowerCase()
       if (METODOS_MUTACION.includes(method as typeof METODOS_MUTACION[number])) {
         let payload: unknown = undefined
@@ -137,6 +141,7 @@ apiClient.interceptors.response.use(
         return Promise.resolve({ data: { __offline: true } })
       }
     }
+
 
     // Evitar loop infinito si la ruta de refresh, login o logout devuelve 401
     if (

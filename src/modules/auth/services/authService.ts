@@ -130,7 +130,7 @@ export const authService = {
       if (!e.response) {
         // Error de red — no se pudo conectar al servidor
         throw new Error(
-          `No se pudo conectar al servidor. Verifique que el backend esté activo y que Tailscale esté conectado. (${e.message ?? e.code ?? 'Network Error'})`
+          `No se pudo conectar al servidor. Verifique su conexión a internet. (${e.message ?? e.code ?? 'Network Error'})`
         )
       }
       if (e.response?.status === 401 || e.response?.status === 400) {

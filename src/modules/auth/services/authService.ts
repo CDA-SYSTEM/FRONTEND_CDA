@@ -76,10 +76,17 @@ function unwrapTokens(body: Record<string, unknown>): {
       (inner['accessToken'] as string) ||
       (inner['access_token'] as string) ||
       (inner['token'] as string) ||
+      (inner['jwt'] as string) ||
+      (inner['jwtToken'] as string) ||
+      (body['accessToken'] as string) ||
+      (body['access_token'] as string) ||
+      (body['token'] as string) ||
       null,
     refreshToken:
       (inner['refreshToken'] as string) ||
       (inner['refresh_token'] as string) ||
+      (body['refreshToken'] as string) ||
+      (body['refresh_token'] as string) ||
       null,
   }
 }
@@ -99,6 +106,16 @@ export const authService = {
       const body = response.data as Record<string, unknown>
       const { accessToken, refreshToken } = unwrapTokens(body)
 
+      if (!accessToken) {
+        const keys = Object.keys(body).join(', ')
+        const dataKeys = body['data'] && typeof body['data'] === 'object'
+          ? Object.keys(body['data'] as object).join(', ')
+          : 'N/A'
+        throw new Error(
+          `El servidor respondió pero sin token. Campos raíz: [${keys}]. Campos en data: [${dataKeys}]`
+        )
+      }
+
       let user: AuthUser | null = null
       if (accessToken) {
         user = await this.getMe(accessToken)
@@ -109,7 +126,13 @@ export const authService = {
 
       return { token: accessToken, refreshToken, user }
     } catch (error: unknown) {
-      const e = error as { response?: { status?: number }; message?: string }
+      const e = error as { response?: { status?: number; data?: unknown }; message?: string; code?: string }
+      if (!e.response) {
+        // Error de red — no se pudo conectar al servidor
+        throw new Error(
+          `No se pudo conectar al servidor. Verifique su conexión a internet. (${e.message ?? e.code ?? 'Network Error'})`
+        )
+      }
       if (e.response?.status === 401 || e.response?.status === 400) {
         throw new Error(
           'Credenciales inválidas. Verifique su email y contraseña.',
@@ -122,6 +145,7 @@ export const authService = {
         e.message || 'Error al iniciar sesión. Por favor, intente de nuevo.',
       )
     }
+
   },
 
   /**

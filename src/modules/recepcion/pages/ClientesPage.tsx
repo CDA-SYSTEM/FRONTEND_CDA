@@ -159,6 +159,12 @@ export function ClientesPage() {
           cargando={buscador.cargando}
           error={buscador.error}
           onSeleccionarCliente={setClienteSeleccionado}
+          pagina={buscador.pagina}
+          onPageChange={buscador.setPagina}
+          limite={buscador.limite}
+          onLimitChange={buscador.setLimite}
+          totalElementos={buscador.totalElementos}
+          totalPages={buscador.totalPages}
         />
       )}
 

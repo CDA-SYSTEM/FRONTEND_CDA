@@ -1,4 +1,4 @@
-import { Search, Loader2, User } from 'lucide-react'
+import { Search, Loader2, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 
 interface Props {
@@ -8,6 +8,12 @@ interface Props {
   cargando: boolean
   error: string | null
   onSeleccionarCliente: (cliente: ClientePersonaNatural) => void
+  pagina: number
+  onPageChange: (p: number) => void
+  limite: number
+  onLimitChange: (l: number) => void
+  totalElementos: number
+  totalPages: number
 }
 
 export function ClienteBuscador({
@@ -17,6 +23,12 @@ export function ClienteBuscador({
   cargando,
   error,
   onSeleccionarCliente,
+  pagina,
+  onPageChange,
+  limite,
+  onLimitChange,
+  totalElementos,
+  totalPages,
 }: Props) {
   return (
     <div>
@@ -78,7 +90,7 @@ export function ClienteBuscador({
 
       {resultados.length > 0 && (
         <article className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-wrap">
+          <div className="table-wrap clients-table-desktop">
             <table style={{ margin: 0 }}>
               <thead style={{ background: '#f8fafc' }}>
                 <tr>
@@ -117,6 +129,144 @@ export function ClienteBuscador({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="clients-cards-mobile">
+            {resultados.map((c) => (
+              <div key={c.id} className="client-card">
+                <div className="client-card-header">
+                  <span className="client-card-identity" style={{ fontSize: '1.05rem', color: '#1e293b' }}>
+                    {c.nombre} {c.apellido}
+                  </span>
+                </div>
+
+                <div className="client-card-row">
+                  <span className="client-card-label">Documento:</span>
+                  <span className="client-card-value">{c.identity}</span>
+                </div>
+
+                <div className="client-card-row">
+                  <span className="client-card-label">Celular:</span>
+                  <span className="client-card-value">{c.celular || '—'}</span>
+                </div>
+
+                <div className="client-card-actions">
+                  <button
+                    onClick={() => onSeleccionarCliente(c)}
+                    style={{
+                      padding: '6px 16px',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      background: '#e0e7ff',
+                      color: '#4f46e5',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Ver
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#fff',
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #f1f5f9',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: '#64748b' }}>
+              <span>Mostrar</span>
+              <select
+                value={limite}
+                onChange={(e) => {
+                  onLimitChange(Number(e.target.value))
+                }}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  marginTop: 0,
+                  minHeight: 'auto',
+                  width: 'auto',
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span>por página</span>
+            </div>
+
+            <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
+              Mostrando{' '}
+              <strong>
+                {totalElementos === 0 ? 0 : pagina * limite + 1}
+              </strong>{' '}
+              a{' '}
+              <strong>
+                {Math.min((pagina + 1) * limite, totalElementos)}
+              </strong>{' '}
+              de <strong>{totalElementos}</strong> clientes
+            </div>
+
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button
+                onClick={() => onPageChange(Math.max(0, pagina - 1))}
+                disabled={pagina === 0}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 6,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: pagina === 0 ? 'not-allowed' : 'pointer',
+                  opacity: pagina === 0 ? 0.5 : 1,
+                  boxShadow: 'none',
+                  minHeight: 'auto',
+                }}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.9rem' }}>
+                Página {pagina + 1} de {totalPages || 1}
+              </span>
+              <button
+                onClick={() => onPageChange(Math.min(totalPages - 1, pagina + 1))}
+                disabled={pagina >= totalPages - 1}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 6,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: pagina >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                  opacity: pagina >= totalPages - 1 ? 0.5 : 1,
+                  boxShadow: 'none',
+                  minHeight: 'auto',
+                }}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </article>
       )}

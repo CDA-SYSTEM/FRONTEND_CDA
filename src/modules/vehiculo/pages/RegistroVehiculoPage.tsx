@@ -134,18 +134,8 @@ export function RegistroVehiculoPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Cabecera */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div className="page-header-responsive">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ background: '#eff6ff', borderRadius: 12, padding: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Truck size={24} style={{ color: '#155DFC' }} />
           </div>
@@ -159,30 +149,32 @@ export function RegistroVehiculoPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            resetFormulario()
-            setIsModalOpen(true)
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#155DFC',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: 8,
-            border: 'none',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1347d4')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#155DFC')}
-        >
-          <Plus size={18} />
-          Nuevo Vehículo
-        </button>
+        <div className="page-header-responsive-actions">
+          <button
+            onClick={() => {
+              resetFormulario()
+              setIsModalOpen(true)
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#155DFC',
+              color: '#fff',
+              padding: '10px 16px',
+              borderRadius: 8,
+              border: 'none',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1347d4')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#155DFC')}
+          >
+            <Plus size={18} />
+            Nuevo Vehículo
+          </button>
+        </div>
       </div>
 
       {/* Buscador de vehículos */}
@@ -254,86 +246,153 @@ export function RegistroVehiculoPage() {
             )}
           </div>
         ) : (
-          <div className="table-wrap">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Placa</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Tipo</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Marca / Línea</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Modelo</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Cliente</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px' }}>Certificado</th>
-                  <th style={{ textAlign: 'center', padding: '12px 16px', width: '100px' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vehiculosFiltrados.map((v) => {
-                  const marca = typeof v.marca === 'object' ? v.marca?.nombre : v.marca
-                  const linea = typeof v.linea === 'object' ? v.linea?.nombre : v.linea
-                  const tipo = typeof v.tipoVehiculo === 'object' ? v.tipoVehiculo?.nombre : v.tipoVehiculo
+          <>
+            <div className="table-wrap vehicles-table-desktop">
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Placa</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Tipo</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Marca / Línea</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Modelo</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Cliente</th>
+                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Certificado</th>
+                    <th style={{ textAlign: 'center', padding: '12px 16px', width: '100px' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehiculosFiltrados.map((v) => {
+                    const marca = typeof v.marca === 'object' ? v.marca?.nombre : v.marca
+                    const linea = typeof v.linea === 'object' ? v.linea?.nombre : v.linea
+                    const tipo = typeof v.tipoVehiculo === 'object' ? v.tipoVehiculo?.nombre : v.tipoVehiculo
 
-                  return (
-                    <tr key={v.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 16px', fontWeight: 600, textTransform: 'uppercase', color: '#1e293b' }}>
-                        {v.placa}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>
-                        {tipo || '—'}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569', textTransform: 'capitalize' }}>
-                        {marca || '—'} {linea ? `/ ${linea}` : ''}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>
-                        {v.modelo || '—'}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>
+                    return (
+                      <tr key={v.id} style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 600, textTransform: 'uppercase', color: '#1e293b' }}>
+                          {v.placa}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#475569' }}>
+                          {tipo || '—'}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#475569', textTransform: 'capitalize' }}>
+                          {marca || '—'} {linea ? `/ ${linea}` : ''}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#475569' }}>
+                          {v.modelo || '—'}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#475569' }}>
+                          {v.client ? (
+                            <div>
+                              <div style={{ fontWeight: 500 }}>
+                                {v.client.nombre} {v.client.apellido}
+                              </div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                {v.client.identity}
+                              </div>
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                              ID: {v.clienteId}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '0.85rem' }}>
+                          {v.certificadoNo || '—'}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <button
+                            onClick={() => eliminarVehiculo(v.id)}
+                            style={{
+                              background: '#fef2f2',
+                              color: '#ef4444',
+                              border: 'none',
+                              padding: '6px',
+                              borderRadius: 6,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
+                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
+                            title="Eliminar Vehículo"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="vehicles-cards-mobile">
+              {vehiculosFiltrados.map((v) => {
+                const marca = typeof v.marca === 'object' ? v.marca?.nombre : v.marca
+                const linea = typeof v.linea === 'object' ? v.linea?.nombre : v.linea
+                const tipo = typeof v.tipoVehiculo === 'object' ? v.tipoVehiculo?.nombre : v.tipoVehiculo
+
+                return (
+                  <div key={v.id} className="vehicle-card">
+                    <div className="vehicle-card-header">
+                      <span className="vehicle-card-plate">{v.placa}</span>
+                      <span className="vehicle-card-type">{tipo || 'Vehículo'}</span>
+                    </div>
+
+                    <div className="vehicle-card-row">
+                      <span className="vehicle-card-label">Marca / Línea:</span>
+                      <span className="vehicle-card-value">{marca || '—'} {linea ? `/ ${linea}` : ''}</span>
+                    </div>
+
+                    <div className="vehicle-card-row">
+                      <span className="vehicle-card-label">Modelo:</span>
+                      <span className="vehicle-card-value">{v.modelo || '—'}</span>
+                    </div>
+
+                    <div className="vehicle-card-row">
+                      <span className="vehicle-card-label">Cliente:</span>
+                      <span className="vehicle-card-value">
                         {v.client ? (
-                          <div>
-                            <div style={{ fontWeight: 500 }}>
-                              {v.client.nombre} {v.client.apellido}
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                              {v.client.identity}
-                            </div>
-                          </div>
+                          `${v.client.nombre} ${v.client.apellido} (${v.client.identity})`
                         ) : (
-                          <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                            ID: {v.clienteId}
-                          </span>
+                          `ID: ${v.clienteId}`
                         )}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '0.85rem' }}>
-                        {v.certificadoNo || '—'}
-                      </td>
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                        <button
-                          onClick={() => eliminarVehiculo(v.id)}
-                          style={{
-                            background: '#fef2f2',
-                            color: '#ef4444',
-                            border: 'none',
-                            padding: '6px',
-                            borderRadius: 6,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'background-color 0.2s',
-                          }}
-                          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
-                          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
-                          title="Eliminar Vehículo"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                    </div>
+
+                    <div className="vehicle-card-row">
+                      <span className="vehicle-card-label">Certificado:</span>
+                      <span className="vehicle-card-value">{v.certificadoNo || '—'}</span>
+                    </div>
+
+                    <div className="vehicle-card-actions">
+                      <button
+                        onClick={() => eliminarVehiculo(v.id)}
+                        style={{
+                          background: '#fef2f2',
+                          color: '#ef4444',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <Trash2 size={14} />
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
         {!cargandoVehiculos && !errorVehiculos && vehiculos.length > 0 && (

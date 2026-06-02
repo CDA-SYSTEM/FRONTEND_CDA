@@ -118,6 +118,41 @@ export const clienteService = {
   },
 
   /**
+   * Listar clientes de forma paginada y filtrada.
+   * Usa GET /api/v1/clients?search=...&page=...&size=...
+   */
+  async listarClientes(params: {
+    search?: string
+    documentTypeId?: number
+    personTypeId?: number
+    page?: number
+    size?: number
+  }): Promise<{
+    content: ClientePersonaNatural[]
+    totalElements: number
+    totalPages: number
+  }> {
+    const response = await apiClient.get('/api/v1/clients', {
+      params: {
+        search: params.search?.trim() || undefined,
+        documentTypeId: params.documentTypeId || undefined,
+        personTypeId: params.personTypeId || undefined,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+      },
+    })
+    const body = response.data as Record<string, any>
+    const nestedData = body?.data?.data || body?.data || {}
+    const content = (nestedData.clients || nestedData.content || []) as ClientePersonaNatural[]
+    
+    return {
+      content,
+      totalElements: nestedData.totalElements ?? content.length,
+      totalPages: nestedData.totalPages ?? 1,
+    }
+  },
+
+  /**
    * Actualiza los datos de un cliente existente.
    * Usa PUT /api/v1/clients/:id
    */

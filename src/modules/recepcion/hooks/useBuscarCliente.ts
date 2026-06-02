@@ -8,64 +8,52 @@ export function useBuscarCliente() {
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Debounce simple
-  useEffect(() => {
-    if (query.trim().length === 0) {
-      const cargarTodos = async () => {
-        setCargando(true)
-        setError(null)
-        try {
-          const res = await clienteService.obtenerTodosLosClientes()
-          setResultados(res)
-        } catch (err) {
-          console.error('Error al cargar todos los clientes:', err)
-          setError('Ocurrió un error al cargar la lista de clientes.')
-          setResultados([])
-        } finally {
-          setCargando(false)
-        }
-      }
-      cargarTodos()
-      return
-    }
+  // Pagination states
+  const [pagina, setPagina] = useState(0)
+  const [limite, setLimite] = useState(10)
+  const [totalElementos, setTotalElementos] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
-    if (query.trim().length < 3) {
-      return
-    }
-
-    const delayDebounceFn = setTimeout(async () => {
-      setCargando(true)
-      setError(null)
-      try {
-        const res = await clienteService.buscarClientes(query)
-        setResultados(res)
-      } catch (err) {
-        console.error('Error buscando clientes:', err)
-        setError('Ocurrió un error al buscar clientes.')
-        setResultados([])
-      } finally {
-        setCargando(false)
-      }
-    }, 500) // 500ms debounce
-
-    return () => clearTimeout(delayDebounceFn)
-  }, [query])
-
-  const refrescar = useCallback(async () => {
+  const cargarClientes = useCallback(async (q: string, p: number, s: number) => {
     setCargando(true)
+    setError(null)
     try {
-      if (query.trim().length === 0) {
-        const res = await clienteService.obtenerTodosLosClientes()
-        setResultados(res)
-      } else if (query.trim().length >= 3) {
-        const res = await clienteService.buscarClientes(query)
-        setResultados(res)
-      }
+      const res = await clienteService.listarClientes({
+        search: q,
+        page: p,
+        size: s,
+      })
+      setResultados(res.content)
+      setTotalElementos(res.totalElements)
+      setTotalPages(res.totalPages)
     } catch (err) {
-      console.error('Error refrescando clientes:', err)
+      console.error('Error al cargar clientes:', err)
+      setError('Ocurrió un error al cargar la lista de clientes.')
+      setResultados([])
+      setTotalElementos(0)
+      setTotalPages(1)
     } finally {
       setCargando(false)
     }
+  }, [])
+
+  // Refrescar
+  const refrescar = useCallback(async () => {
+    await cargarClientes(query, pagina, limite)
+  }, [query, pagina, limite, cargarClientes])
+
+  // Debounce para query, y disparar al cambiar pagina/limite
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      cargarClientes(query, pagina, limite)
+    }, query.trim() ? 500 : 0) // Debounce only when searching
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [query, pagina, limite, cargarClientes])
+
+  // Reset a página 0 cuando cambie la query
+  useEffect(() => {
+    setPagina(0)
   }, [query])
 
   return {
@@ -75,5 +63,11 @@ export function useBuscarCliente() {
     cargando,
     error,
     refrescar,
+    pagina,
+    setPagina,
+    limite,
+    setLimite,
+    totalElementos,
+    totalPages,
   }
 }

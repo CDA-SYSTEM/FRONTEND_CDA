@@ -309,15 +309,7 @@ export function RecepcionPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
       {/* ── Cabecera ── */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: '#fff',
-        padding: '1.5rem',
-        borderRadius: 12,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-      }}>
+      <div className="page-header-responsive">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{
             background: '#eff6ff',
@@ -338,7 +330,7 @@ export function RecepcionPage() {
             </p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="page-header-responsive-actions">
           <button
             onClick={cargarDatos}
             disabled={cargando}
@@ -531,11 +523,12 @@ export function RecepcionPage() {
         {/* Table */}
         {!cargando && !error && filteredInspecciones.length > 0 && (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '0.875rem',
-            }}>
+            <div className="receptions-table-desktop">
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: '0.875rem',
+              }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
                   {['#', 'Placa', 'Cliente', 'Tipo de revisión', 'Kilometraje', 'Fecha', 'Estado', 'Acciones'].map((col) => (
@@ -683,6 +676,123 @@ export function RecepcionPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          <div className="receptions-cards-mobile">
+            {paginatedInspecciones.map((insp) => {
+              const badge = estadoBadge(insp)
+              return (
+                <div key={insp.id} className="reception-card">
+                  <div className="reception-card-header">
+                    <span className="reception-card-number">{insp.inspection_number || insp.id.substring(0, 8)}</span>
+                    <span style={{
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      background: badge.bg,
+                      color: badge.color,
+                    }}>
+                      {badge.label}
+                    </span>
+                  </div>
+
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Placa:</span>
+                    <span className="reception-card-value" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Car size={12} />
+                      {infoVehiculo(insp)}
+                    </span>
+                  </div>
+
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Cliente:</span>
+                    <span className="reception-card-value">{infoCliente(insp)}</span>
+                  </div>
+
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Revisión:</span>
+                    <span className="reception-card-value">{formatRevisionType(insp.revision_type)}</span>
+                  </div>
+
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Kilometraje:</span>
+                    <span className="reception-card-value">{insp.mileage != null ? `${insp.mileage.toLocaleString()} km` : '—'}</span>
+                  </div>
+
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Fecha:</span>
+                    <span className="reception-card-value">{formatDate(insp.inspection_date || insp.date || insp.createdAt)}</span>
+                  </div>
+
+                  <div className="reception-card-actions">
+                    <button
+                      onClick={() => setSelectedInspectionId(insp.id)}
+                      style={{
+                        background: '#eff6ff',
+                        color: '#155DFC',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      <Eye size={14} />
+                      Detalle
+                    </button>
+
+                    <button
+                      onClick={() => iniciarEdicion(insp)}
+                      style={{
+                        background: '#f8fafc',
+                        color: '#475569',
+                        border: '1px solid #e2e8f0',
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      <Pencil size={14} />
+                      Editar
+                    </button>
+
+                    {isAdmin && (
+                      <button
+                        onClick={() => setDeleteConfirmId(insp.id)}
+                        style={{
+                          background: '#fee2e2',
+                          color: '#ef4444',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <Trash2 size={14} />
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
 
             {/* Paginación y Contador */}
             <div style={{

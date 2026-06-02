@@ -353,26 +353,27 @@ export function FacturacionPage() {
 
       {/* Modal de Detalle */}
       {selectedInvoice && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <header className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-xl font-bold flex items-center gap-2">
+        <div className="floating-modal-backdrop">
+          <div className="floating-modal-box">
+            <header className="floating-modal-header">
+              <h3 className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FileSpreadsheet className="text-primary" /> Factura {selectedInvoice.invoice_number}
               </h3>
               <button 
                 className="text-gray-400 hover:text-gray-600"
                 onClick={() => setSelectedInvoice(null)}
+                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
               >
                 <X size={24} />
               </button>
             </header>
-            <div className="p-6 space-y-6">
+            <div className="floating-modal-body">
               {/* Información del Cliente */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="form-row-2">
                 <div>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Información del Cliente</h4>
                   <div className="space-y-1 text-sm">
-                    <p className="font-bold flex items-center gap-2 text-gray-800">
+                    <p className="font-bold flex items-center gap-2 text-gray-800" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}>
                       <User size={14} /> {selectedInvoice.client.name}
                     </p>
                     <p className="text-gray-500">Doc: {selectedInvoice.client.document}</p>
@@ -384,12 +385,12 @@ export function FacturacionPage() {
                 <div>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Detalles del Documento</h4>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p className="flex items-center gap-2">
+                    <p className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Calendar size={14} /> Fecha: {new Date(selectedInvoice.createdAt).toLocaleString('es-CO')}
                     </p>
                     <p>ID Inspección: <span className="font-mono text-xs">{selectedInvoice.inspection_id}</span></p>
-                    <p className="flex items-center gap-2">
-                      Estado: <span className="font-bold text-primary">{selectedInvoice.statusName || 'Pendiente'}</span>
+                    <p className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Estado: <span className="font-bold text-primary" style={{ fontWeight: 'bold' }}>{selectedInvoice.statusName || 'Pendiente'}</span>
                     </p>
                   </div>
                 </div>
@@ -398,23 +399,23 @@ export function FacturacionPage() {
               {/* Items */}
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Conceptos</h4>
-                <div className="border border-gray-100 rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-100 text-sm">
-                    <thead className="bg-gray-50">
+                <div className="table-wrap">
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Concepto</th>
-                        <th className="px-4 py-2 text-center font-semibold text-gray-600">Cant</th>
-                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Precio Unit.</th>
-                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Subtotal</th>
+                        <th>Concepto</th>
+                        <th>Cant</th>
+                        <th>Precio Unit.</th>
+                        <th>Subtotal</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody>
                       {selectedInvoice.items.map((it, idx) => (
                         <tr key={idx}>
-                          <td className="px-4 py-3 text-gray-800">{it.concept}</td>
-                          <td className="px-4 py-3 text-center text-gray-600">{it.quantity}</td>
-                          <td className="px-4 py-3 text-right text-gray-600">{formatCOP(it.unitPrice)}</td>
-                          <td className="px-4 py-3 text-right text-gray-800 font-medium">
+                          <td>{it.concept}</td>
+                          <td style={{ textAlign: 'center' }}>{it.quantity}</td>
+                          <td style={{ textAlign: 'right' }}>{formatCOP(it.unitPrice)}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
                             {formatCOP(it.total ?? (it.unitPrice * it.quantity))}
                           </td>
                         </tr>
@@ -425,17 +426,17 @@ export function FacturacionPage() {
               </div>
 
               {/* Totales */}
-              <div className="flex justify-end">
-                <div className="w-64 space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <div style={{ width: '260px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Subtotal:</span>
-                    <span className="font-medium text-gray-800">{formatCOP(selectedInvoice.subtotal)}</span>
+                    <span style={{ fontWeight: '500' }}>{formatCOP(selectedInvoice.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>IVA (19%):</span>
-                    <span className="font-medium text-gray-800">{formatCOP(selectedInvoice.tax)}</span>
+                    <span style={{ fontWeight: '500' }}>{formatCOP(selectedInvoice.tax)}</span>
                   </div>
-                  <div className="flex justify-between border-t border-gray-100 pt-2 text-base font-bold text-gray-900">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '8px', fontWeight: 'bold' }}>
                     <span>Total a Pagar:</span>
                     <span>{formatCOP(selectedInvoice.total)}</span>
                   </div>
@@ -443,13 +444,13 @@ export function FacturacionPage() {
               </div>
 
               {selectedInvoice.observations && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Observaciones</h5>
+                <div className="bg-gray-50 p-4 rounded-lg" style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '12px' }}>
+                  <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1" style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Observaciones</h5>
                   <p className="text-sm text-gray-700">{selectedInvoice.observations}</p>
                 </div>
               )}
             </div>
-            <footer className="p-6 border-t border-gray-100 flex justify-end">
+            <footer className="floating-modal-footer">
               <button 
                 className="btn btn-secondary"
                 onClick={() => setSelectedInvoice(null)}
@@ -461,15 +462,14 @@ export function FacturacionPage() {
         </div>
       )}
 
-      {/* Modal Autogenerar factura */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="floating-modal-backdrop">
           <form 
             onSubmit={handleGenerateInvoice}
-            className="bg-white rounded-lg shadow-xl max-w-md w-full"
+            className="floating-modal-box max-w-md"
           >
-            <header className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold">Autogenerar Factura</h3>
+            <header className="floating-modal-header">
+              <h3>Autogenerar Factura</h3>
               <button 
                 type="button" 
                 className="text-gray-400 hover:text-gray-600"
@@ -477,12 +477,13 @@ export function FacturacionPage() {
                   setShowGenerateModal(false)
                   setInspectionIdToGen('')
                 }}
+                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
               >
                 <X size={24} />
               </button>
             </header>
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-gray-500">
+            <div className="floating-modal-body">
+              <p className="text-sm text-gray-500" style={{ color: '#64748b', fontSize: '0.9rem' }}>
                 Ingrese el ID de la inspección. El sistema consultará automáticamente el tipo de vehículo, la tarifa correspondiente y los datos del cliente para generar el cobro.
               </p>
               <div>
@@ -497,7 +498,7 @@ export function FacturacionPage() {
                 />
               </div>
             </div>
-            <footer className="p-6 border-t border-gray-100 flex justify-end gap-2">
+            <footer className="floating-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"
@@ -514,7 +515,7 @@ export function FacturacionPage() {
                 className="btn btn-primary flex items-center gap-2"
                 disabled={submitting || !inspectionIdToGen.trim()}
               >
-                {submitting ? <Loader2 className="animate-spin" size={16} /> : <DollarSign size={16} />}
+                {submitting ? <Loader2 className="spin" size={16} /> : <DollarSign size={16} />}
                 Generar Factura
               </button>
             </footer>
@@ -524,27 +525,28 @@ export function FacturacionPage() {
 
       {/* Modal Crear Factura Manual */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="floating-modal-backdrop">
           <form 
             onSubmit={handleCreateManualInvoice}
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="floating-modal-box"
           >
-            <header className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold">Crear Factura Manual</h3>
+            <header className="floating-modal-header">
+              <h3>Crear Factura Manual</h3>
               <button 
                 type="button" 
                 className="text-gray-400 hover:text-gray-600"
                 onClick={() => setShowCreateModal(false)}
+                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
               >
                 <X size={24} />
               </button>
             </header>
             
-            <div className="p-6 space-y-6">
+            <div className="floating-modal-body">
               {/* Cliente */}
               <div>
-                <h4 className="text-sm font-bold text-gray-800 border-b pb-2 mb-3">Datos del Cliente</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <h4 className="text-sm font-bold text-gray-800 mb-3" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px', fontWeight: 'bold' }}>Datos del Cliente</h4>
+                <div className="form-row-2">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Documento / NIT *</label>
                     <input
@@ -565,6 +567,8 @@ export function FacturacionPage() {
                       onChange={(e) => handleClientChange('name', e.target.value)}
                     />
                   </div>
+                </div>
+                <div className="form-row-2" style={{ marginTop: '10px' }}>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono</label>
                     <input
@@ -583,22 +587,22 @@ export function FacturacionPage() {
                       onChange={(e) => handleClientChange('email', e.target.value)}
                     />
                   </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Dirección</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={newInvoice.client.address}
-                      onChange={(e) => handleClientChange('address', e.target.value)}
-                    />
-                  </div>
+                </div>
+                <div style={{ marginTop: '10px' }}>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Dirección</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={newInvoice.client.address}
+                    onChange={(e) => handleClientChange('address', e.target.value)}
+                  />
                 </div>
               </div>
 
               {/* Referencias */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-800 border-b pb-2 mb-3">Detalles de Referencia</h4>
-                <div className="grid grid-cols-2 gap-4">
+              <div style={{ marginTop: '1.5rem' }}>
+                <h4 className="text-sm font-bold text-gray-800 mb-3" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px', fontWeight: 'bold' }}>Detalles de Referencia</h4>
+                <div className="form-row-2">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">ID de Inspección Relacionada *</label>
                     <input
@@ -617,7 +621,6 @@ export function FacturacionPage() {
                       value={newInvoice.statusId}
                       onChange={(e) => setNewInvoice({ ...newInvoice, statusId: e.target.value })}
                     >
-                      {/* En base de datos, el statusId de un estado PENDING */}
                       <option value="6a1ad9bf4d644ab738782e4b">Pendiente</option>
                       <option value="6a1ad9c04d644ab738782e4c">Pagado</option>
                     </select>
@@ -626,21 +629,22 @@ export function FacturacionPage() {
               </div>
 
               {/* Items */}
-              <div>
-                <div className="flex justify-between items-center border-b pb-2 mb-3">
-                  <h4 className="text-sm font-bold text-gray-800">Conceptos de Cobro</h4>
+              <div style={{ marginTop: '1.5rem' }}>
+                <div className="flex justify-between items-center mb-3" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                  <h4 className="text-sm font-bold text-gray-800" style={{ fontWeight: 'bold' }}>Conceptos de Cobro</h4>
                   <button 
                     type="button"
                     className="btn btn-secondary flex items-center gap-1 py-1 text-xs"
                     onClick={handleAddItem}
+                    style={{ minHeight: '32px', padding: '4px 12px' }}
                   >
                     <Plus size={14} /> Añadir Concepto
                   </button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {newInvoice.items.map((it, idx) => (
-                    <div key={idx} className="flex gap-3 items-end bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      <div className="flex-1">
+                    <div key={idx} className="flex gap-3 items-end bg-gray-50 p-3 rounded-lg border border-gray-100" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', background: '#f8fafc', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                      <div style={{ flex: 1 }}>
                         <label className="block text-xs text-gray-500 mb-1">Descripción del Concepto</label>
                         <input
                           type="text"
@@ -651,7 +655,7 @@ export function FacturacionPage() {
                           onChange={(e) => handleItemChange(idx, 'concept', e.target.value)}
                         />
                       </div>
-                      <div className="w-20">
+                      <div style={{ width: '80px' }}>
                         <label className="block text-xs text-gray-500 mb-1">Cant.</label>
                         <input
                           type="number"
@@ -662,7 +666,7 @@ export function FacturacionPage() {
                           onChange={(e) => handleItemChange(idx, 'quantity', parseInt(e.target.value) || 1)}
                         />
                       </div>
-                      <div className="w-36">
+                      <div style={{ width: '140px' }}>
                         <label className="block text-xs text-gray-500 mb-1">Valor Unitario ($)</label>
                         <input
                           type="number"
@@ -678,6 +682,7 @@ export function FacturacionPage() {
                           type="button"
                           className="btn btn-secondary p-2 text-red-500 hover:bg-red-50"
                           onClick={() => handleRemoveItem(idx)}
+                          style={{ minHeight: '44px', color: '#ef4444' }}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -688,7 +693,7 @@ export function FacturacionPage() {
               </div>
 
               {/* Observaciones */}
-              <div>
+              <div style={{ marginTop: '1.5rem' }}>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones / Notas Adicionales</label>
                 <textarea
                   className="form-control"
@@ -699,7 +704,7 @@ export function FacturacionPage() {
               </div>
             </div>
 
-            <footer className="p-6 border-t border-gray-100 flex justify-end gap-2">
+            <footer className="floating-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"

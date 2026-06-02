@@ -262,27 +262,27 @@ export function PreciosPage() {
         </div>
       )}
 
-      {/* Formulario Modal (Agregar/Editar) */}
       {showFormModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="floating-modal-backdrop">
           <form 
             onSubmit={handleSubmit}
-            className="bg-white rounded-lg shadow-xl max-w-md w-full"
+            className="floating-modal-box max-w-md"
           >
-            <header className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold">
+            <header className="floating-modal-header">
+              <h3>
                 {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
               </h3>
               <button 
                 type="button" 
                 className="text-gray-400 hover:text-gray-600"
                 onClick={() => setShowFormModal(false)}
+                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
               >
                 <X size={24} />
               </button>
             </header>
 
-            <div className="p-6 space-y-4">
+            <div className="floating-modal-body">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
                 <select
@@ -333,18 +333,19 @@ export function PreciosPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  style={{ width: 'auto', minHeight: 'initial', marginTop: 0 }}
                 />
                 <label htmlFor="isActive" className="text-sm font-semibold text-gray-700">Tarifa Activa</label>
               </div>
             </div>
 
-            <footer className="p-6 border-t border-gray-100 flex justify-end gap-2">
+            <footer className="floating-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"

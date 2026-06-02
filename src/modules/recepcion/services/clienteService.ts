@@ -135,18 +135,20 @@ export const clienteService = {
     const response = await apiClient.get('/api/v1/clients', {
       params: {
         search: params.search?.trim() || undefined,
-        documentTypeId: params.documentTypeId,
-        personTypeId: params.personTypeId,
+        documentTypeId: params.documentTypeId || undefined,
+        personTypeId: params.personTypeId || undefined,
         page: params.page ?? 0,
         size: params.size ?? 10,
       },
     })
     const body = response.data as Record<string, any>
-    const data = body?.data
+    const nestedData = body?.data?.data || body?.data || {}
+    const content = (nestedData.clients || nestedData.content || []) as ClientePersonaNatural[]
+    
     return {
-      content: (data?.content || []) as ClientePersonaNatural[],
-      totalElements: data?.totalElements || 0,
-      totalPages: data?.totalPages || 0,
+      content,
+      totalElements: nestedData.totalElements ?? content.length,
+      totalPages: nestedData.totalPages ?? 1,
     }
   },
 

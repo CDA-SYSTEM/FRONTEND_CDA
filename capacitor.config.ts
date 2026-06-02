@@ -5,9 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Frontend CDA Putumayo',
   webDir: 'dist',
   server: {
-    // Usar http en Android para que las llamadas al backend HTTP no sean bloqueadas
-    androidScheme: 'http',
-    // Permitir contenido mixto HTTP/HTTPS en el WebView
+    // Backend HTTPS — usar https como scheme nativo
+    androidScheme: 'https',
     allowNavigation: ['100.94.204.56', 'api-cda.ilesandres.online'],
   },
   android: {

@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Frontend CDA Putumayo',
   webDir: 'dist',
   server: {
-    // Backend HTTPS — usar https como scheme nativo
-    androidScheme: 'https',
+    // Usar http en Android para backend via Tailscale
+    androidScheme: 'http',
+    // Permitir contenido mixto HTTP/HTTPS en el WebView
     allowNavigation: ['100.94.204.56', 'api-cda.ilesandres.online'],
   },
   android: {

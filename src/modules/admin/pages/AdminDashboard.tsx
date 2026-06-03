@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
+  PieChart, Pie, Cell, CartesianGrid, Area, AreaChart,
 } from 'recharts'
 import {
   LayoutDashboard, Users, Car, Shield, FileText,
@@ -10,13 +10,28 @@ import {
   Activity, UserCheck, Truck, AlertTriangle, DollarSign,
   FileUp, CheckSquare, Clock, Calendar, TrendingUp,
   Wifi, Server, Globe, UserPlus, RefreshCw,
+  Zap,
 } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { useAdminStats } from '@/modules/admin/hooks/useAdminStats'
+import { useAnimatedNumber } from '@/modules/admin/hooks/useAnimatedNumber'
+import { useInvoiceSocket } from '@/modules/admin/hooks/useInvoiceSocket'
+import { facturaService } from '@/modules/facturacion/services/facturaService'
+import type { Factura } from '@/modules/facturacion/domain/factura.types'
 import type { AdminDashboardData, ClientStats, VehicleStats, InspectionStats, InvoiceStats, StorageStats, ChecklistStats, TrackerStats } from '@/modules/admin/domain/admin.types'
 import '../Admin.css'
 
 const CHART_COLORS = ['#155dfc', '#0f47d6', '#16a34a', '#d97706', '#9333ea', '#e11d48', '#0891b2', '#4f46e5', '#ca8a04']
+const CHART_GRADIENTS = [
+  { id: 'blueGrad', start: '#155dfc', end: '#0f47d6' },
+  { id: 'greenGrad', start: '#16a34a', end: '#15803d' },
+  { id: 'amberGrad', start: '#d97706', end: '#b45309' },
+  { id: 'purpleGrad', start: '#9333ea', end: '#7c3aed' },
+  { id: 'roseGrad', start: '#e11d48', end: '#be123c' },
+  { id: 'cyanGrad', start: '#0891b2', end: '#0e7490' },
+  { id: 'indigoGrad', start: '#4f46e5', end: '#3730a3' },
+  { id: 'goldGrad', start: '#ca8a04', end: '#a16207' },
+]
 const STATUS_NAMES: Record<string, string> = {
   '6a1ad9bf4d644ab738782e4b': 'COMPLETADA',
   '6a1ad9c04d644ab738782e4c': 'PENDIENTE',
@@ -40,14 +55,33 @@ function statNameDisplay(key: string): string {
 
 /* ─── Reusable Components ─── */
 
-function KpiCard({ icon, color, value, label }: { icon: React.ReactNode; color: string; value: string | number; label: string }) {
+function KpiCard({ icon, color, value, label, rawValue }: { icon: React.ReactNode; color: string; value: string | number; label: string; rawValue?: number }) {
+  const animDisplay = useAnimatedNumber(rawValue ?? 0)
+  const display = rawValue !== undefined ? animDisplay : value
   return (
-    <div className="admin-kpi-card">
+    <div className="admin-kpi-card" data-label={label}>
       <div className="admin-kpi-top">
         <div className={`admin-kpi-icon ${color}`}>{icon}</div>
       </div>
-      <div className="admin-kpi-value">{value}</div>
+      <div className="admin-kpi-value">{display}</div>
       <div className="admin-kpi-label">{label}</div>
+    </div>
+  )
+}
+
+/* ─── Custom Tooltip ─── */
+
+function ChartTooltip({ active, payload, label, formatter }: { active?: boolean; payload?: { name: string; value: number }[]; label?: string; formatter?: (v: number) => string }) {
+  if (!active || !payload || payload.length === 0) return null
+  return (
+    <div className="admin-chart-tooltip">
+      {label && <div className="admin-chart-tooltip-label">{label}</div>}
+      {payload.map((p, i) => (
+        <div className="admin-chart-tooltip-row" key={i}>
+          <span className="admin-chart-tooltip-name">{p.name}</span>
+          <span className="admin-chart-tooltip-value">{formatter ? formatter(p.value) : p.value.toLocaleString('es-CO')}</span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -103,38 +137,59 @@ function PieStatChart({ data, title, icon }: { data: Record<string, number> | un
       <h3>{icon} {title}</h3>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
-          <Pie data={entries.map(([k, v]) => ({ name: statNameDisplay(k), value: v }))} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-            {entries.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+          <defs>
+            {entries.map((_, i) => (
+              <linearGradient key={i} id={`pieGrad_${i}`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.9} />
+                <stop offset="100%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.6} />
+              </linearGradient>
+            ))}
+          </defs>
+          <Pie data={entries.map(([k, v]) => ({ name: statNameDisplay(k), value: v }))} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} isAnimationActive animationDuration={900} animationEasing="ease-out">
+            {entries.map((_, i) => <Cell key={i} fill={`url(#pieGrad_${i})`} stroke="rgba(255,255,255,0.3)" strokeWidth={2} />)}
           </Pie>
-          <Tooltip />
+          <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
         </PieChart>
       </ResponsiveContainer>
     </div>
   )
 }
 
-function BarStatChart({ data, title, icon, color = '#155dfc', layout = 'vertical' }: { data: { label: string; count: number }[] | undefined; title: string; icon: React.ReactNode; color?: string; layout?: 'vertical' | 'horizontal' }) {
+function BarStatChart({ data, title, icon, color = '#155dfc', layout = 'vertical', gradientId = 'barGrad', formatter }: { data: { label: string; count: number }[] | undefined; title: string; icon: React.ReactNode; color?: string; layout?: 'vertical' | 'horizontal'; gradientId?: string; formatter?: (v: number) => string }) {
   if (!data || data.length === 0) return null
   const chartData = data.map((d) => ({ name: d.label, count: d.count }))
+  const staggerDuration = Math.max(200, 800 / chartData.length)
   return (
     <div className="admin-chart-card">
       <h3>{icon} {title}</h3>
       <ResponsiveContainer width="100%" height={220}>
         {layout === 'vertical' ? (
           <BarChart data={chartData}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+                <stop offset="100%" stopColor={color} stopOpacity={0.4} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis type="number" tick={{ fontSize: 12 }} />
-            <Tooltip />
-            <Bar dataKey="count" fill={color} radius={[4, 4, 0, 0]} />
+            <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
+            <Bar dataKey="count" fill={`url(#${gradientId})`} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
           </BarChart>
         ) : (
           <BarChart data={chartData} layout="vertical">
+            <defs>
+              <linearGradient id={`${gradientId}_h`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                <stop offset="100%" stopColor={color} stopOpacity={0.9} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis type="number" tick={{ fontSize: 12 }} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={100} />
-            <Tooltip />
-            <Bar dataKey="count" fill={color} radius={[0, 4, 4, 0]} />
+            <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
+            <Bar dataKey="count" fill={`url(#${gradientId}_h)`} radius={[0, 4, 4, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -169,12 +224,12 @@ function DashboardTab({ data, loading, error }: { data: AdminDashboardData; load
       </div>
 
       <div className="admin-kpi-grid">
-        {loading && !cl ? <KpiSkeleton /> : <KpiCard icon={<Users size={20} />} color="blue" value={cl?.totalClients ?? '—'} label="Total Clientes" />}
-        {loading && !veh ? <KpiSkeleton /> : <KpiCard icon={<Car size={20} />} color="green" value={veh?.totalVehicles ?? '—'} label="Total Vehículos" />}
-        {loading && !ins ? <KpiSkeleton /> : <KpiCard icon={<FileText size={20} />} color="purple" value={ins?.totalInspections ?? '—'} label="Inspecciones" />}
-        {loading && !inv ? <KpiSkeleton /> : <KpiCard icon={<Receipt size={20} />} color="amber" value={inv ? formatCurrency(inv.totalRevenue) : '—'} label="Ingresos Totales" />}
-        {loading && !sto ? <KpiSkeleton /> : <KpiCard icon={<HardDrive size={20} />} color="cyan" value={sto ? formatBytes(sto.totalSizeBytes) : '—'} label="Almacenamiento" />}
-        {loading && !chk ? <KpiSkeleton /> : <KpiCard icon={<ClipboardList size={20} />} color="indigo" value={chk?.total_inspections ?? '—'} label="Checklists" />}
+        {loading && !cl ? <KpiSkeleton /> : <KpiCard icon={<Users size={20} />} color="blue" value={cl?.totalClients ?? '—'} label="Total Clientes" rawValue={cl?.totalClients} />}
+        {loading && !veh ? <KpiSkeleton /> : <KpiCard icon={<Car size={20} />} color="green" value={veh?.totalVehicles ?? '—'} label="Total Vehículos" rawValue={veh?.totalVehicles} />}
+        {loading && !ins ? <KpiSkeleton /> : <KpiCard icon={<FileText size={20} />} color="purple" value={ins?.totalInspections ?? '—'} label="Inspecciones" rawValue={ins?.totalInspections} />}
+        {loading && !inv ? <KpiSkeleton /> : <KpiCard icon={<Receipt size={20} />} color="amber" value={inv ? formatCurrency(inv.totalRevenue) : '—'} label="Ingresos Totales" rawValue={inv?.totalRevenue} />}
+        {loading && !sto ? <KpiSkeleton /> : <KpiCard icon={<HardDrive size={20} />} color="cyan" value={sto ? formatBytes(sto.totalSizeBytes) : '—'} label="Almacenamiento" rawValue={sto?.totalSizeBytes} />}
+        {loading && !chk ? <KpiSkeleton /> : <KpiCard icon={<ClipboardList size={20} />} color="indigo" value={chk?.total_inspections ?? '—'} label="Checklists" rawValue={chk?.total_inspections} />}
       </div>
 
       <div className="admin-chart-grid">
@@ -183,15 +238,21 @@ function DashboardTab({ data, loading, error }: { data: AdminDashboardData; load
         )}
         {revenueData.length === 0 ? <ChartSkeleton /> : (
           <div className="admin-chart-card">
-            <h3><TrendingUp size={16} /> Ingresos Mensuales (COP millones)</h3>
+            <h3><TrendingUp size={16} /> Ingresos Mensuales</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={revenueData}>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#155dfc" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(v) => [`$${Number(v).toFixed(1)}M`, 'Ingresos']} />
-                <Bar dataKey="revenue" fill="#155dfc" radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v.toFixed(0)}M`} />
+                <Tooltip content={<ChartTooltip formatter={(v) => `$${v.toFixed(1)}M`} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#revenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}
@@ -213,9 +274,9 @@ function ClientesTab({ data, loading, error }: { data: ClientStats | undefined; 
     <div className="admin-content">
       <h3 className="admin-section-title"><Users size={20} /> Gestión de Clientes</h3>
       <div className="admin-kpi-grid">
-        <KpiCard icon={<UserCheck size={20} />} color="blue" value={data.totalClients} label="Total Clientes" />
-        <KpiCard icon={<Activity size={20} />} color="green" value={data.activeClients} label="Clientes Activos" />
-        <KpiCard icon={<AlertTriangle size={20} />} color="rose" value={data.inactiveClients} label="Clientes Inactivos" />
+        <KpiCard icon={<UserCheck size={20} />} color="blue" value={data.totalClients} label="Total Clientes" rawValue={data.totalClients} />
+        <KpiCard icon={<Activity size={20} />} color="green" value={data.activeClients} label="Clientes Activos" rawValue={data.activeClients} />
+        <KpiCard icon={<AlertTriangle size={20} />} color="rose" value={data.inactiveClients} label="Clientes Inactivos" rawValue={data.inactiveClients} />
       </div>
 
       <div className="admin-chart-grid">
@@ -238,9 +299,9 @@ function VehiculosTab({ data, loading, error }: { data: VehicleStats | undefined
     <div className="admin-content">
       <h3 className="admin-section-title"><Car size={20} /> Gestión de Vehículos</h3>
       <div className="admin-kpi-grid">
-        <KpiCard icon={<Truck size={20} />} color="blue" value={data.totalVehicles} label="Total Vehículos" />
-        <KpiCard icon={<Activity size={20} />} color="green" value={data.byBrand?.length ?? 0} label="Marcas Diferentes" />
-        <KpiCard icon={<Car size={20} />} color="purple" value={data.byType?.length ?? 0} label="Tipos de Vehículo" />
+        <KpiCard icon={<Truck size={20} />} color="blue" value={data.totalVehicles} label="Total Vehículos" rawValue={data.totalVehicles} />
+        <KpiCard icon={<Activity size={20} />} color="green" value={data.byBrand?.length ?? 0} label="Marcas Diferentes" rawValue={data.byBrand?.length} />
+        <KpiCard icon={<Car size={20} />} color="purple" value={data.byType?.length ?? 0} label="Tipos de Vehículo" rawValue={data.byType?.length} />
       </div>
 
       <div className="admin-chart-grid">
@@ -324,10 +385,10 @@ function InspeccionesTab({ data, loading, error }: { data: InspectionStats | und
       <h3 className="admin-section-title"><FileText size={20} /> Inspecciones Técnico-Mecánicas</h3>
 
       <div className="admin-kpi-grid">
-        <KpiCard icon={<FileText size={20} />} color="blue" value={data.totalInspections} label="Total Inspecciones" />
-        <KpiCard icon={<Calendar size={20} />} color="green" value={data.todayInspections} label="Hoy" />
-        <KpiCard icon={<Calendar size={20} />} color="amber" value={data.weekInspections} label="Esta Semana" />
-        <KpiCard icon={<Calendar size={20} />} color="purple" value={data.monthInspections} label="Este Mes" />
+        <KpiCard icon={<FileText size={20} />} color="blue" value={data.totalInspections} label="Total Inspecciones" rawValue={data.totalInspections} />
+        <KpiCard icon={<Calendar size={20} />} color="green" value={data.todayInspections} label="Hoy" rawValue={data.todayInspections} />
+        <KpiCard icon={<Calendar size={20} />} color="amber" value={data.weekInspections} label="Esta Semana" rawValue={data.weekInspections} />
+        <KpiCard icon={<Calendar size={20} />} color="purple" value={data.monthInspections} label="Este Mes" rawValue={data.monthInspections} />
       </div>
 
       <div className="admin-chart-grid">
@@ -352,7 +413,57 @@ function InspeccionesTab({ data, loading, error }: { data: InspectionStats | und
   )
 }
 
+const STATUS_MAP: Record<string, string> = {
+  '6a1ad9bf4d644ab738782e4b': 'PENDIENTE',
+  '6a1ad9c04d644ab738782e4c': 'PAGADO',
+  '6a1ad9cd20d2071ac5aec90f': 'CANCELADO',
+}
+
+function statusBadge(statusId: string) {
+  const name = STATUS_MAP[statusId] || 'PENDIENTE'
+  const isPaid = name === 'PAGADO'
+  return (
+    <span className="admin-invoice-status" data-status={name}>
+      {name}
+    </span>
+  )
+}
+
 function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefined; loading: boolean; error: boolean }) {
+  const [invoices, setInvoices] = useState<Factura[]>([])
+  const [feedLoading, setFeedLoading] = useState(true)
+  const [newIds, setNewIds] = useState<Set<string>>(new Set())
+  const latestSocketInvoice = useInvoiceSocket()
+  const feedRef = useRef<HTMLDivElement>(null)
+  const prevLen = useRef(0)
+
+  useEffect(() => {
+    facturaService.listarFacturas({ size: 20 }).then((res) => {
+      setInvoices(res.data)
+      setFeedLoading(false)
+    }).catch(() => setFeedLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (!latestSocketInvoice) return
+    setInvoices((prev) => {
+      if (prev.some((inv) => inv.id === latestSocketInvoice.id)) return prev
+      setNewIds((ids) => new Set(ids).add(latestSocketInvoice.id))
+      setTimeout(() => setNewIds((ids) => { const next = new Set(ids); next.delete(latestSocketInvoice.id); return next }), 3000)
+      return [latestSocketInvoice, ...prev]
+    })
+  }, [latestSocketInvoice])
+
+  useEffect(() => {
+    if (invoices.length > prevLen.current && prevLen.current > 0) {
+      feedRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    prevLen.current = invoices.length
+  }, [invoices.length])
+
+  const formatCOP = (val: number) =>
+    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val)
+
   if (error) return <ErrorPanel message="Error al cargar estadísticas de facturación" />
   if (loading || !data) return <LoadingSkeleton lines={6} />
 
@@ -360,35 +471,81 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
 
   return (
     <div className="admin-content">
-      <h3 className="admin-section-title"><Receipt size={20} /> Facturación</h3>
+      <h3 className="admin-section-title">
+        <Receipt size={20} /> Facturación
+        <span className="admin-invoice-badge">{data.totalInvoices} emitidas</span>
+      </h3>
 
-      <div className="admin-kpi-grid">
-        <KpiCard icon={<Receipt size={20} />} color="blue" value={data.totalInvoices} label="Total Facturas" />
-        <KpiCard icon={<DollarSign size={20} />} color="green" value={formatCurrency(data.totalRevenue)} label="Ingresos Totales" />
-        <KpiCard icon={<TrendingUp size={20} />} color="amber" value={formatCurrency(data.todayRevenue)} label="Ingresos Hoy" />
-        <KpiCard icon={<TrendingUp size={20} />} color="purple" value={formatCurrency(data.monthRevenue)} label="Ingresos del Mes" />
-      </div>
-
-      <div className="admin-chart-grid">
-        {revenueData.length > 0 ? (
-          <div className="admin-chart-card">
-            <h3><TrendingUp size={16} /> Ingresos por Mes</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(Number(v) / 1000000).toFixed(0)}M`} />
-                <Tooltip formatter={(v) => [formatCurrency(Number(v)), 'Ingresos']} />
-                <Line type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2} dot={{ fill: '#155dfc', r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+      <div className="admin-invoice-layout">
+        <div className="admin-invoice-feed-panel">
+          <div className="admin-invoice-feed-header">
+            <span><Zap size={14} style={{ color: '#d97706' }} /> Facturas en vivo</span>
+            <span className="admin-invoice-feed-count">{invoices.length}</span>
           </div>
-        ) : <ChartSkeleton />}
-        <PieStatChart data={data.byStatus} title="Por Estado" icon={<Activity size={16} />} />
-      </div>
+          <div className="admin-invoice-feed" ref={feedRef}>
+            {feedLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="admin-invoice-row admin-invoice-row-skeleton" style={{ animationDelay: `${i * 0.05}s` }}>
+                  <div className="admin-invoice-row-line" style={{ width: '55%' }} />
+                  <div className="admin-invoice-row-line" style={{ width: '35%' }} />
+                </div>
+              ))
+            ) : invoices.length === 0 ? (
+              <div className="admin-empty">No hay facturas registradas</div>
+            ) : (
+              invoices.map((inv) => (
+                <div key={inv.id} className={`admin-invoice-row${newIds.has(inv.id) ? ' admin-invoice-row-new' : ''} ${!newIds.has(inv.id) && invoices.indexOf(inv) < 3 ? '' : ''}`}>
+                  <div className="admin-invoice-row-top">
+                    <span className="admin-invoice-row-number">{inv.invoice_number}</span>
+                    {statusBadge(inv.statusId)}
+                  </div>
+                  <div className="admin-invoice-row-client">
+                    <Users size={12} /> {inv.client.name} — <span className="admin-invoice-row-doc">{inv.client.document}</span>
+                  </div>
+                  <div className="admin-invoice-row-bottom">
+                    <span className="admin-invoice-row-total">{formatCOP(inv.total)}</span>
+                    <span className="admin-invoice-row-date">{new Date(inv.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-      <div className="admin-flex-row">
-        <Link to="/facturacion" className="admin-link-btn"><Receipt size={16} /> Ir a Facturación</Link>
+        <div className="admin-invoice-charts">
+          <div className="admin-invoice-kpis">
+            <KpiCard icon={<Receipt size={20} />} color="blue" value={data.totalInvoices} label="Total Facturas" rawValue={data.totalInvoices} />
+            <KpiCard icon={<DollarSign size={20} />} color="green" value={formatCurrency(data.totalRevenue)} label="Ingresos Totales" rawValue={data.totalRevenue} />
+            <KpiCard icon={<TrendingUp size={20} />} color="amber" value={formatCurrency(data.todayRevenue)} label="Ingresos Hoy" rawValue={data.todayRevenue} />
+            <KpiCard icon={<TrendingUp size={20} />} color="purple" value={formatCurrency(data.monthRevenue)} label="Ingresos del Mes" rawValue={data.monthRevenue} />
+          </div>
+          <div className="admin-chart-grid" style={{ marginTop: '1rem' }}>
+            {revenueData.length > 0 ? (
+              <div className="admin-chart-card">
+                <h3><TrendingUp size={16} /> Ingresos por Mes</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={revenueData}>
+                    <defs>
+                      <linearGradient id="invRevenueGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#155dfc" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(Number(v) / 1000000).toFixed(0)}M`} />
+                    <Tooltip content={<ChartTooltip formatter={(v) => formatCurrency(Number(v))} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
+                    <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#invRevenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#155dfc', stroke: '#fff', strokeWidth: 2 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : <ChartSkeleton />}
+            <PieStatChart data={data.byStatus} title="Por Estado" icon={<Activity size={16} />} />
+          </div>
+          <div className="admin-flex-row" style={{ marginTop: '0.5rem' }}>
+            <Link to="/facturacion" className="admin-link-btn"><Receipt size={16} /> Ir a Facturación completa</Link>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -403,10 +560,10 @@ function AlmacenamientoTab({ data, loading, error }: { data: StorageStats | unde
       <h3 className="admin-section-title"><HardDrive size={20} /> Almacenamiento de Archivos</h3>
 
       <div className="admin-kpi-grid">
-        <KpiCard icon={<FileUp size={20} />} color="blue" value={data.totalFiles} label="Total Archivos" />
-        <KpiCard icon={<HardDrive size={20} />} color="green" value={formatBytes(data.totalSizeBytes)} label="Espacio Ocupado" />
-        <KpiCard icon={<Activity size={20} />} color="amber" value={data.recentUploads} label="Subidas Recientes" />
-        <KpiCard icon={<CheckSquare size={20} />} color="purple" value={data.activeFiles} label="Archivos Activos" />
+        <KpiCard icon={<FileUp size={20} />} color="blue" value={data.totalFiles} label="Total Archivos" rawValue={data.totalFiles} />
+        <KpiCard icon={<HardDrive size={20} />} color="green" value={formatBytes(data.totalSizeBytes)} label="Espacio Ocupado" rawValue={data.totalSizeBytes} />
+        <KpiCard icon={<Activity size={20} />} color="amber" value={data.recentUploads} label="Subidas Recientes" rawValue={data.recentUploads} />
+        <KpiCard icon={<CheckSquare size={20} />} color="purple" value={data.activeFiles} label="Archivos Activos" rawValue={data.activeFiles} />
       </div>
 
       <div className="admin-chart-grid">
@@ -440,11 +597,11 @@ function ChecklistTab({ data, loading, error }: { data: ChecklistStats | undefin
       <h3 className="admin-section-title"><ClipboardList size={20} /> Inspecciones Checklist</h3>
 
       <div className="admin-kpi-grid">
-        <KpiCard icon={<ClipboardList size={20} />} color="blue" value={data.total_inspections} label="Total Checklists" />
-        <KpiCard icon={<Calendar size={20} />} color="green" value={data.today_inspections} label="Hoy" />
-        <KpiCard icon={<Calendar size={20} />} color="purple" value={data.month_inspections} label="Este Mes" />
-        <KpiCard icon={<FileText size={20} />} color="amber" value={data.total_templates} label="Plantillas" />
-        <KpiCard icon={<CheckSquare size={20} />} color="cyan" value={data.total_with_labrado} label="Con Labrado" />
+        <KpiCard icon={<ClipboardList size={20} />} color="blue" value={data.total_inspections} label="Total Checklists" rawValue={data.total_inspections} />
+        <KpiCard icon={<Calendar size={20} />} color="green" value={data.today_inspections} label="Hoy" rawValue={data.today_inspections} />
+        <KpiCard icon={<Calendar size={20} />} color="purple" value={data.month_inspections} label="Este Mes" rawValue={data.month_inspections} />
+        <KpiCard icon={<FileText size={20} />} color="amber" value={data.total_templates} label="Plantillas" rawValue={data.total_templates} />
+        <KpiCard icon={<CheckSquare size={20} />} color="cyan" value={data.total_with_labrado} label="Con Labrado" rawValue={data.total_with_labrado} />
       </div>
 
       <div className="admin-chart-grid">
@@ -478,24 +635,30 @@ function TrackerTab({ data, loading, error }: { data: TrackerStats | undefined; 
       <h3 className="admin-section-title"><MapPin size={20} /> Tracker Externo</h3>
 
       <div className="admin-kpi-grid">
-        <KpiCard icon={<Users size={20} />} color="blue" value={data.total_clientes ?? '—'} label="Clientes Tracker" />
-        <KpiCard icon={<Truck size={20} />} color="green" value={data.total_vehiculos ?? '—'} label="Vehículos Tracker" />
-        <KpiCard icon={<ClipboardList size={20} />} color="purple" value={data.total_planillas ?? '—'} label="Planillas" />
+        <KpiCard icon={<Users size={20} />} color="blue" value={data.total_clientes ?? '—'} label="Clientes Tracker" rawValue={data.total_clientes} />
+        <KpiCard icon={<Truck size={20} />} color="green" value={data.total_vehiculos ?? '—'} label="Vehículos Tracker" rawValue={data.total_vehiculos} />
+        <KpiCard icon={<ClipboardList size={20} />} color="purple" value={data.total_planillas ?? '—'} label="Planillas" rawValue={data.total_planillas} />
       </div>
 
       <div className="admin-chart-grid">
         <BarStatChart data={data.vehiculos_por_marca?.map((v) => ({ label: v.marca, count: v.total }))} title="Vehículos por Marca (Tracker)" icon={<Truck size={16} />} color="#9333ea" />
-        <div className="admin-chart-card">
+          <div className="admin-chart-card">
           <h3><Calendar size={16} /> Planillas por Fecha</h3>
           {(data.planillas_por_fecha?.filter((p) => p.fecha) ?? []).length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={data.planillas_por_fecha.filter((p) => p.fecha).map((p) => ({ fecha: p.fecha!.split('T')[0], total: p.total }))}>
+              <AreaChart data={data.planillas_por_fecha.filter((p) => p.fecha).map((p) => ({ fecha: p.fecha!.split('T')[0], total: p.total }))}>
+                <defs>
+                  <linearGradient id="trackerGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#9333ea" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="#9333ea" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="fecha" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="total" stroke="#9333ea" strokeWidth={2} dot={{ fill: '#9333ea', r: 4 }} />
-              </LineChart>
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#9333ea', strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="total" stroke="#9333ea" strokeWidth={2.5} fill="url(#trackerGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#9333ea', stroke: '#fff', strokeWidth: 2 }} />
+              </AreaChart>
             </ResponsiveContainer>
           ) : <div className="chart-empty">Sin planillas registradas</div>}
         </div>

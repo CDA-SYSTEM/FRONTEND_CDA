@@ -20,7 +20,8 @@ export function useAdminStats() {
     queries: QUERIES.map((q) => ({
       queryKey: ['admin', q.key],
       queryFn: q.fn,
-      staleTime: 1000 * 60 * 2,
+      staleTime: 1000 * 30,
+      refetchInterval: 1000 * 30,
       retry: 1,
     })),
   })

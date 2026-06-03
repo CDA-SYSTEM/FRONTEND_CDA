@@ -15,6 +15,7 @@ import { precioService } from '../services/precioService'
 import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 export function PreciosPage() {
   const [prices, setPrices] = useState<Precio[]>([])
@@ -192,57 +193,61 @@ export function PreciosPage() {
         </div>
       )}
 
-      {/* Filtros */}
-      <section className="bg-gray-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center">
-        <div className="flex gap-2 items-center">
-          <label className="text-sm font-semibold text-gray-600">Tipo de Vehículo:</label>
-          <select 
-            className="form-control"
-            value={vehicleTypeFilter}
-            onChange={(e) => {
-              setVehicleTypeFilter(e.target.value)
-            }}
-          >
-            <option value="todos">Todos</option>
-            <option value="LIVIANO">Liviano</option>
-            <option value="PESADO">Pesado</option>
-            <option value="MOTOCICLETA_2_TIEMPOS">Moto 2 Tiempos</option>
-            <option value="MOTOCICLETA_4_TIEMPOS">Moto 4 Tiempos</option>
-          </select>
+      {/* Filtros responsivos */}
+      <section className="filters-bar">
+        <div className="filters-bar-right" style={{ width: '100%', justifyContent: 'flex-start', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <div className="filter-group" style={{ flex: 1, minWidth: '180px' }}>
+            <label>Vehículo:</label>
+            <CustomSelect
+              options={[
+                { value: 'todos', label: 'Todos los vehículos' },
+                { value: 'LIVIANO', label: 'Liviano' },
+                { value: 'PESADO', label: 'Pesado' },
+                { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
+                { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
+              ]}
+              value={vehicleTypeFilter}
+              onChange={setVehicleTypeFilter}
+            />
+          </div>
+
+          <div className="filter-group" style={{ flex: 1, minWidth: '180px' }}>
+            <label>Revisión:</label>
+            <CustomSelect
+              options={[
+                { value: 'todos', label: 'Todas las revisiones' },
+                { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
+                { value: 'PREVENTIVA', label: 'Preventiva' }
+              ]}
+              value={revisionTypeFilter}
+              onChange={setRevisionTypeFilter}
+            />
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button 
+              type="button"
+              onClick={() => {
+                setVehicleTypeFilter('todos')
+                setRevisionTypeFilter('todos')
+              }}
+              className="btn btn-secondary"
+              style={{ height: '44px', minHeight: '44px', padding: '0 16px', marginTop: '0.35rem' }}
+            >
+              Restablecer
+            </button>
+
+            <button 
+              type="button"
+              onClick={fetchPrices}
+              className="btn btn-secondary flex items-center gap-1"
+              title="Refrescar tarifas"
+              style={{ height: '44px', minHeight: '44px', padding: '0 16px', marginTop: '0.35rem' }}
+            >
+              <RefreshCw size={14} /> Recargar
+            </button>
+          </div>
         </div>
-
-        <div className="flex gap-2 items-center">
-          <label className="text-sm font-semibold text-gray-600">Tipo de Revisión:</label>
-          <select 
-            className="form-control"
-            value={revisionTypeFilter}
-            onChange={(e) => {
-              setRevisionTypeFilter(e.target.value)
-            }}
-          >
-            <option value="todos">Todos</option>
-            <option value="TECNICO_MECANICA">Técnico Mecánica</option>
-            <option value="PREVENTIVA">Preventiva</option>
-          </select>
-        </div>
-
-        <button 
-          onClick={() => {
-            setVehicleTypeFilter('todos')
-            setRevisionTypeFilter('todos')
-          }}
-          className="btn btn-secondary flex items-center gap-1"
-        >
-          Reestablecer
-        </button>
-
-        <button 
-          onClick={fetchPrices}
-          className="btn btn-secondary flex items-center gap-1 ml-auto"
-          title="Refrescar tarifas"
-        >
-          <RefreshCw size={14} /> Recargar
-        </button>
       </section>
 
       {/* Grid de precios */}
@@ -329,28 +334,28 @@ export function PreciosPage() {
             <div className="floating-modal-body">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
-                <select
-                  className="form-control"
+                <CustomSelect
+                  options={[
+                    { value: 'LIVIANO', label: 'Liviano' },
+                    { value: 'PESADO', label: 'Pesado' },
+                    { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
+                    { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
+                  ]}
                   value={formData.vehicleType}
-                  onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                >
-                  <option value="LIVIANO">Liviano</option>
-                  <option value="PESADO">Pesado</option>
-                  <option value="MOTOCICLETA_2_TIEMPOS">Moto 2 Tiempos</option>
-                  <option value="MOTOCICLETA_4_TIEMPOS">Moto 4 Tiempos</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, vehicleType: val })}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Revisión *</label>
-                <select
-                  className="form-control"
+                <CustomSelect
+                  options={[
+                    { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
+                    { value: 'PREVENTIVA', label: 'Preventiva' }
+                  ]}
                   value={formData.revisionType}
-                  onChange={(e) => setFormData({ ...formData, revisionType: e.target.value })}
-                >
-                  <option value="TECNICO_MECANICA">Técnico Mecánica</option>
-                  <option value="PREVENTIVA">Preventiva</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, revisionType: val })}
+                />
               </div>
 
               <div>

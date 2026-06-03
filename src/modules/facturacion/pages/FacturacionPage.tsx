@@ -20,6 +20,7 @@ import { facturaService } from '../services/facturaService'
 import type { Factura, CreateInvoiceDTO } from '../domain/factura.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 export function FacturacionPage() {
   const [invoices, setInvoices] = useState<Factura[]>([])
@@ -309,19 +310,19 @@ export function FacturacionPage() {
         <div className="filters-bar-right">
           <div className="filter-group">
             <label>Estado:</label>
-            <select 
-              className="form-control"
+            <CustomSelect
+              options={[
+                { value: 'todos', label: 'Todos los estados' },
+                { value: 'Pendiente', label: 'Pendiente' },
+                { value: 'Pagado', label: 'Pagado' },
+                { value: 'Cancelado', label: 'Cancelado' }
+              ]}
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value)
+              onChange={(val) => {
+                setStatusFilter(val)
                 setCurrentPage(1)
               }}
-            >
-              <option value="todos">Todos los estados</option>
-              <option value="Pendiente">Pendiente</option>
-              <option value="Pagado">Pagado</option>
-              <option value="Cancelado">Cancelado</option>
-            </select>
+            />
           </div>
 
           <button 
@@ -803,15 +804,14 @@ export function FacturacionPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Estado de Pago</label>
-                    <select
-                      className="form-control"
+                    <CustomSelect
+                      options={[
+                        { value: '6a1ad9bf4d644ab738782e4b', label: 'Pendiente' },
+                        { value: '6a1ad9c04d644ab738782e4c', label: 'Pagado' }
+                      ]}
                       value={newInvoice.statusId}
-                      onChange={(e) => setNewInvoice({ ...newInvoice, statusId: e.target.value })}
-                    >
-                      {/* Los estados reales configurados en la DB */}
-                      <option value="6a1ad9bf4d644ab738782e4b">Pendiente</option>
-                      <option value="6a1ad9c04d644ab738782e4c">Pagado</option>
-                    </select>
+                      onChange={(val) => setNewInvoice({ ...newInvoice, statusId: val })}
+                    />
                   </div>
                 </div>
               </div>

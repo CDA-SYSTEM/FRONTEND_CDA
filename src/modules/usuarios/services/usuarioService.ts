@@ -230,13 +230,19 @@ export const usuarioService = {
     try {
       const response = await apiClient.get('/auth/identification-types')
       const data = extractApiArray(response.data)
-      return data.map((item) => {
+      const unique = new Map<string, string>()
+      data.forEach((item) => {
         const r = item as Record<string, unknown>
-        return {
-          code: String(r['code'] ?? r['id'] ?? ''),
-          name: String(r['name'] ?? r['nombre'] ?? r['code'] ?? ''),
+        const code = String(r['code'] ?? r['id'] ?? '').toLowerCase()
+        const name = String(r['name'] ?? r['nombre'] ?? r['code'] ?? '')
+        if (code && !unique.has(code)) {
+          unique.set(code, name)
         }
       })
+      return Array.from(unique.entries()).map(([code, name]) => ({
+        code,
+        name: name.toUpperCase(),
+      }))
     } catch {
       return []
     }

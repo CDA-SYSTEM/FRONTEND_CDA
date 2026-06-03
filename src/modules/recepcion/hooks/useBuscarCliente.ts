@@ -24,14 +24,24 @@ export function useBuscarCliente() {
         // Al buscar inactivos o todos usando el listado completo
         // Filtramos manualmente o usamos el servicio
         const allClients = await clienteService.obtenerTodosLosClientes()
-        const qClean = q.trim().toLowerCase()
+                const qClean = q.trim().toLowerCase()
         const filtered = allClients.filter(c => {
+          const nom = (c.nombre || '').toLowerCase()
+          const ape = (c.apellido || '').toLowerCase()
+          const ident = (c.identity || '').toLowerCase()
           if (!qClean) return true
           return (
-            c.nombre.toLowerCase().includes(qClean) ||
-            c.apellido.toLowerCase().includes(qClean) ||
-            c.identity.toLowerCase().includes(qClean)
+            nom.includes(qClean) ||
+            ape.includes(qClean) ||
+            ident.includes(qClean)
           )
+        })
+        // Sort so that inactive clients (active === false) come first
+        filtered.sort((a, b) => {
+          const aActive = a.active !== false
+          const bActive = b.active !== false
+          if (aActive === bActive) return 0
+          return aActive ? 1 : -1
         })
         const total = filtered.length
         const content = filtered.slice(p * s, (p + 1) * s)

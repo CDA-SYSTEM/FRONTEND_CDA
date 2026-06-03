@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { animate, stagger } from 'animejs'
 import { facturaService } from '../services/facturaService'
-import type { Factura, CreateInvoiceDTO } from '../domain/factura.types'
+import type { Factura, CreateInvoiceDTO, Status } from '../domain/factura.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
@@ -27,6 +27,10 @@ export function FacturacionPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
+  // Estados disponibles (desde el backend)
+  const [statuses, setStatuses] = useState<Status[]>([])
+  const [statusesLoading, setStatusesLoading] = useState(true)
+
   // Paginación y Filtros
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('todos')
@@ -78,6 +82,20 @@ export function FacturacionPage() {
   useEffect(() => {
     fetchInvoices()
   }, [fetchInvoices])
+
+  // Cargar estados disponibles
+  useEffect(() => {
+    facturaService.listarStatuses()
+      .then(setStatuses)
+      .catch(() => {
+        // fallback por si el endpoint no existe
+        setStatuses([
+          { id: '6a1ad9bf4d644ab738782e4b', name: 'Pendiente' },
+          { id: '6a1ad9c04d644ab738782e4c', name: 'Pagado' },
+        ])
+      })
+      .finally(() => setStatusesLoading(false))
+  }, [])
 
   // Animación staggered de las filas de la tabla al cargar
   useEffect(() => {
@@ -313,9 +331,7 @@ export function FacturacionPage() {
             <CustomSelect
               options={[
                 { value: 'todos', label: 'Todos los estados' },
-                { value: 'Pendiente', label: 'Pendiente' },
-                { value: 'Pagado', label: 'Pagado' },
-                { value: 'Cancelado', label: 'Cancelado' }
+                ...statuses.map((s) => ({ value: s.id, label: s.name }))
               ]}
               value={statusFilter}
               onChange={(val) => {
@@ -805,10 +821,7 @@ export function FacturacionPage() {
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Estado de Pago</label>
                     <CustomSelect
-                      options={[
-                        { value: '6a1ad9bf4d644ab738782e4b', label: 'Pendiente' },
-                        { value: '6a1ad9c04d644ab738782e4c', label: 'Pagado' }
-                      ]}
+                      options={statuses.map((s) => ({ value: s.id, label: s.name }))}
                       value={newInvoice.statusId}
                       onChange={(val) => setNewInvoice({ ...newInvoice, statusId: val })}
                     />

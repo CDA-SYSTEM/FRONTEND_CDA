@@ -45,3 +45,9 @@ export interface UpdateInvoiceDTO {
   inspection_id?: string
   observations?: string
 }
+
+export interface Status {
+  id: string
+  name: string
+  description?: string
+}

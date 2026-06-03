@@ -12,7 +12,8 @@ import {
   X,
   Loader2,
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Pencil
 } from 'lucide-react'
 import { animate, stagger } from 'animejs'
 import { facturaService } from '../services/facturaService'
@@ -38,8 +39,9 @@ export function FacturacionPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null)
 
-  // Datos para nueva factura manual
+  // Datos para nueva/editar factura
   const [newInvoice, setNewInvoice] = useState<CreateInvoiceDTO>({
     client: { document: '', name: '', address: '', phone: '', email: '' },
     items: [{ concept: '', quantity: 1, unitPrice: 0 }],
@@ -135,25 +137,63 @@ export function FacturacionPage() {
     }
   }
 
-  const handleCreateManualInvoice = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingInvoiceId(null)
+    setNewInvoice({
+      client: { document: '', name: '', address: '', phone: '', email: '' },
+      items: [{ concept: '', quantity: 1, unitPrice: 0 }],
+      statusId: '6a1ad9bf4d644ab738782e4b', // ID de estado Pendiente
+      inspection_id: '',
+      observations: ''
+    })
+    setShowCreateModal(true)
+  }
+
+  const handleOpenEdit = (inv: Factura) => {
+    setEditingInvoiceId(inv.id)
+    setNewInvoice({
+      client: { 
+        document: inv.client.document, 
+        name: inv.client.name, 
+        address: inv.client.address || '', 
+        phone: inv.client.phone || '', 
+        email: inv.client.email || '' 
+      },
+      items: inv.items.map(it => ({
+        concept: it.concept,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice
+      })),
+      statusId: inv.statusId,
+      inspection_id: inv.inspection_id,
+      observations: inv.observations || ''
+    })
+    setShowCreateModal(true)
+  }
+
+  const handleSaveInvoice = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
     try {
-      await facturaService.crearFactura(newInvoice)
+      if (editingInvoiceId) {
+        await facturaService.actualizarFactura(editingInvoiceId, newInvoice)
+      } else {
+        await facturaService.crearFactura(newInvoice)
+      }
       setShowCreateModal(false)
+      setEditingInvoiceId(null)
       setNewInvoice({
         client: { document: '', name: '', address: '', phone: '', email: '' },
         items: [{ concept: '', quantity: 1, unitPrice: 0 }],
-        statusId: 'PENDIENTE',
+        statusId: '6a1ad9bf4d644ab738782e4b',
         inspection_id: '',
         observations: ''
       })
-      setCurrentPage(1)
       fetchInvoices()
     } catch (err: any) {
-      console.error('Error al crear factura manual:', err)
-      setError(err?.response?.data?.message || 'Error al crear la factura manual. Verifique los campos.')
+      console.error('Error al guardar factura:', err)
+      setError(err?.response?.data?.message || 'Error al guardar la factura. Verifique los campos.')
     } finally {
       setSubmitting(false)
     }
@@ -228,7 +268,7 @@ export function FacturacionPage() {
           </button>
           <button 
             className="btn btn-primary flex items-center gap-2"
-            onClick={() => setShowCreateModal(true)}
+            onClick={handleOpenCreate}
           >
             <Plus size={16} /> Crear Factura Manual
           </button>
@@ -347,6 +387,13 @@ export function FacturacionPage() {
                       onClick={() => setSelectedInvoice(inv)}
                     >
                       <Eye size={16} />
+                    </button>
+                    <button 
+                      className="btn btn-secondary p-1"
+                      title="Editar Factura"
+                      onClick={() => handleOpenEdit(inv)}
+                    >
+                      <Pencil size={16} />
                     </button>
                     {isAdmin && (
                       <button 
@@ -563,20 +610,23 @@ export function FacturacionPage() {
         </div>
       )}
 
-      {/* Modal Crear Factura Manual */}
+      {/* Modal Crear/Editar Factura Manual */}
       {showCreateModal && (
         <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
-            onSubmit={handleCreateManualInvoice}
+            onSubmit={handleSaveInvoice}
             className="floating-modal-box"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">
-              <h3>Crear Factura Manual</h3>
+              <h3>{editingInvoiceId ? 'Editar Factura' : 'Crear Factura Manual'}</h3>
               <button 
                 type="button" 
                 className="text-gray-400 hover:text-gray-600"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setEditingInvoiceId(null)
+                }}
                 style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
               >
                 <X size={24} />
@@ -662,6 +712,7 @@ export function FacturacionPage() {
                       value={newInvoice.statusId}
                       onChange={(e) => setNewInvoice({ ...newInvoice, statusId: e.target.value })}
                     >
+                      {/* Los estados reales configurados en la DB */}
                       <option value="6a1ad9bf4d644ab738782e4b">Pendiente</option>
                       <option value="6a1ad9c04d644ab738782e4c">Pagado</option>
                     </select>
@@ -750,7 +801,10 @@ export function FacturacionPage() {
                 type="button" 
                 className="btn btn-secondary"
                 disabled={submitting}
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setEditingInvoiceId(null)
+                }}
               >
                 Cancelar
               </button>
@@ -759,7 +813,7 @@ export function FacturacionPage() {
                 className="btn btn-primary"
                 disabled={submitting}
               >
-                {submitting ? 'Guardando...' : 'Emitir Factura'}
+                {submitting ? 'Guardando...' : (editingInvoiceId ? 'Actualizar Factura' : 'Emitir Factura')}
               </button>
             </footer>
           </form>

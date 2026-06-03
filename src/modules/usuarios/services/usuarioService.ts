@@ -8,6 +8,7 @@ import type {
   RolUsuario,
   RolUsuarioForm,
   Usuario,
+  AuthAccount,
 } from '@/modules/usuarios/domain/usuario.types'
 
 function normalizeRole(role: string): RolUsuario {
@@ -159,9 +160,18 @@ export const usuarioService = {
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
-    await apiClient.patch(`/auth/users/${id}`, {
+    await apiClient.patch(`/auth/users/${id}/role`, {
       role: toFormRole(payload.role),
     })
+  },
+
+  async obtenerCuentasAutenticacion(): Promise<AuthAccount[]> {
+    try {
+      const response = await apiClient.get('/auth/admin/personnel/auth-accounts')
+      return extractApiArray(response.data) as AuthAccount[]
+    } catch {
+      return []
+    }
   },
 
   async cambiarEstado(id: string, isActive: boolean): Promise<void> {

@@ -34,6 +34,9 @@ export function UsuariosPage() {
     identificacionesList,
     resetUserId,
     resetPasswordVal,
+    cuentas,
+    tab,
+    loadingCuentas,
     setMostrarModal,
     setFiltroRol,
     setBusqueda,
@@ -47,9 +50,10 @@ export function UsuariosPage() {
     setResetUserId,
     setResetPasswordVal,
     handleResetPassword,
+    setTab,
   } = useUsuarios()
 
-  if (loading && usuarios.length === 0) return <p>Cargando usuarios...</p>
+  const isLoading = tab === 'usuarios' ? (loading && usuarios.length === 0) : (loadingCuentas && cuentas.length === 0)
 
   return (
     <div style={{ padding: '20px' }}>
@@ -104,23 +108,25 @@ export function UsuariosPage() {
           >
             Limpiar
           </button>
-          <select
-            value={filtroRol}
-            onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
-            style={{
-              padding: '8px',
-              borderRadius: '6px',
-              marginTop: 0,
-              minHeight: 'auto',
-              width: 'auto',
-            }}
-          >
-            {ROLE_FILTERS.map((item) => (
-              <option key={item.label} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          {tab === 'usuarios' && (
+            <select
+              value={filtroRol}
+              onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
+              style={{
+                padding: '8px',
+                borderRadius: '6px',
+                marginTop: 0,
+                minHeight: 'auto',
+                width: 'auto',
+              }}
+            >
+              {ROLE_FILTERS.map((item) => (
+                <option key={item.label} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             onClick={() => setMostrarModal(true)}
             style={{
@@ -166,29 +172,179 @@ export function UsuariosPage() {
           {errorMensaje}
         </p>
       )}
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #cbd5e1', paddingBottom: '10px', marginBottom: '20px' }}>
+        <button
+          onClick={() => setTab('usuarios')}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            background: tab === 'usuarios' ? '#2563eb' : 'transparent',
+            color: tab === 'usuarios' ? '#fff' : '#64748b',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: tab === 'usuarios' ? 'bold' : 'normal',
+            boxShadow: 'none',
+            minHeight: 'auto',
+          }}
+        >
+          Personal (Usuarios)
+        </button>
+        <button
+          onClick={() => setTab('cuentas')}
+          style={{
+            padding: '8px 16px',
+            border: 'none',
+            background: tab === 'cuentas' ? '#2563eb' : 'transparent',
+            color: tab === 'cuentas' ? '#fff' : '#64748b',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: tab === 'cuentas' ? 'bold' : 'normal',
+            boxShadow: 'none',
+            minHeight: 'auto',
+          }}
+        >
+          Cuentas de Acceso (Auth)
+        </button>
+      </div>
 
-      {/* Tabla envuelta para escritorio */}
-      <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
-        <table style={{ width: '100%' }}>
-          <thead>
-            <tr>
-              <th>Nombre Completo</th>
-              <th>Email</th>
-              <th>Rol Actual</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
+      {isLoading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Cargando datos...</div>
+      ) : tab === 'usuarios' ? (
+        <>
+          {/* Tabla de Usuarios */}
+          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
+            <table style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Nombre Completo</th>
+                  <th>Email</th>
+                  <th>Rol Actual</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuarios.map((user) => (
+                  <tr key={user.id}>
+                    <td>
+                      {user.firstName
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.name}
+                    </td>
+                    <td>{user.email}</td>
+                    <td>
+                      <select
+                        value={user.role.toLowerCase()}
+                        onChange={(e) =>
+                          handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
+                        }
+                        style={{
+                          marginTop: 0,
+                          minHeight: 'auto',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        {ROLES.map((rol) => (
+                          <option key={rol.value} value={rol.value}>
+                            {rol.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {user.isActive ? (
+                          <>
+                            <CheckCircle2 size={16} color="#16a34a" />
+                            <span style={{ color: '#166534' }}>Activo</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle size={16} color="#dc2626" />
+                            <span style={{ color: '#991b1b' }}>Inactivo</span>
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button
+                          onClick={() => handleToggleEstado(user)}
+                          style={{
+                            padding: '4px 10px',
+                            minHeight: 'auto',
+                            borderRadius: '4px',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          {user.isActive ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button
+                          onClick={() => setResetUserId(user.id)}
+                          style={{
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            minHeight: 'auto',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          <Key size={14} />
+                          Restablecer Clave
+                        </button>
+                        <button
+                          onClick={() => handleEliminarUsuario(user.id)}
+                          style={{
+                            background: '#ef4444',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            cursor: 'pointer',
+                            minHeight: 'auto',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tarjetas para móviles */}
+          <div className="users-cards-mobile">
             {usuarios.map((user) => (
-              <tr key={user.id}>
-                <td>
-                  {user.firstName
-                    ? `${user.firstName} ${user.lastName}`
-                    : user.name}
-                </td>
-                <td>{user.email}</td>
-                <td>
+              <div key={user.id} className="user-card">
+                <div className="user-card-header">
+                  <div className="user-card-name">
+                    {user.firstName
+                      ? `${user.firstName} ${user.lastName}`
+                      : user.name}
+                  </div>
+                  <div className="user-card-email">{user.email}</div>
+                </div>
+
+                <div className="user-card-row">
+                  <span className="user-card-label">Rol:</span>
                   <select
                     value={user.role.toLowerCase()}
                     onChange={(e) =>
@@ -198,7 +354,8 @@ export function UsuariosPage() {
                       marginTop: 0,
                       minHeight: 'auto',
                       padding: '4px 8px',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
+                      width: 'auto',
                     }}
                   >
                     {ROLES.map((rol) => (
@@ -207,8 +364,10 @@ export function UsuariosPage() {
                       </option>
                     ))}
                   </select>
-                </td>
-                <td>
+                </div>
+
+                <div className="user-card-row">
+                  <span className="user-card-label">Estado:</span>
                   <span
                     style={{
                       display: 'inline-flex',
@@ -229,176 +388,303 @@ export function UsuariosPage() {
                       </>
                     )}
                   </span>
-                </td>
-                <td>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <button
-                      onClick={() => handleToggleEstado(user)}
+                </div>
+
+                <div className="user-card-actions">
+                  <button
+                    onClick={() => handleToggleEstado(user)}
+                    style={{
+                      padding: '6px 12px',
+                      minHeight: 'auto',
+                      borderRadius: '6px',
+                      boxShadow: 'none',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {user.isActive ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button
+                    onClick={() => setResetUserId(user.id)}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      minHeight: 'auto',
+                      boxShadow: 'none',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    <Key size={14} />
+                    Clave
+                  </button>
+                  <button
+                    onClick={() => handleEliminarUsuario(user.id)}
+                    style={{
+                      background: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      cursor: 'pointer',
+                      minHeight: 'auto',
+                      boxShadow: 'none',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Tabla de Cuentas */}
+          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
+            <table style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>ID Cuenta</th>
+                  <th>Email / Cuenta</th>
+                  <th>Rol Actual</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cuentas.map((cuenta) => (
+                  <tr key={cuenta.id}>
+                    <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{cuenta.id.substring(0, 8)}...</td>
+                    <td>{cuenta.email}</td>
+                    <td>
+                      {cuenta.role === 'superadmin' ? (
+                        <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
+                          Super Admin
+                        </span>
+                      ) : (
+                        <select
+                          value={cuenta.role.toLowerCase()}
+                          onChange={(e) =>
+                            handleCambiarRol(cuenta.id, e.target.value as RolUsuarioForm)
+                          }
+                          style={{
+                            marginTop: 0,
+                            minHeight: 'auto',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          {ROLES.map((rol) => (
+                            <option key={rol.value} value={rol.value}>
+                              {rol.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {cuenta.isActive ? (
+                          <>
+                            <CheckCircle2 size={16} color="#16a34a" />
+                            <span style={{ color: '#166534' }}>Activa</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle size={16} color="#dc2626" />
+                            <span style={{ color: '#991b1b' }}>Inactiva</span>
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button
+                          onClick={() => handleToggleEstado(cuenta)}
+                          style={{
+                            padding: '4px 10px',
+                            minHeight: 'auto',
+                            borderRadius: '4px',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          {cuenta.isActive ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button
+                          onClick={() => setResetUserId(cuenta.id)}
+                          style={{
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            minHeight: 'auto',
+                            boxShadow: 'none',
+                          }}
+                        >
+                          <Key size={14} />
+                          Restablecer Clave
+                        </button>
+                        {cuenta.role !== 'superadmin' && (
+                          <button
+                            onClick={() => handleEliminarUsuario(cuenta.id)}
+                            style={{
+                              background: '#ef4444',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '4px 10px',
+                              cursor: 'pointer',
+                              minHeight: 'auto',
+                              boxShadow: 'none',
+                            }}
+                          >
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tarjetas móviles para Cuentas */}
+          <div className="users-cards-mobile">
+            {cuentas.map((cuenta) => (
+              <div key={cuenta.id} className="user-card">
+                <div className="user-card-header">
+                  <div className="user-card-name">{cuenta.email}</div>
+                  <div className="user-card-email" style={{ fontFamily: 'monospace' }}>ID: {cuenta.id}</div>
+                </div>
+
+                <div className="user-card-row">
+                  <span className="user-card-label">Rol:</span>
+                  {cuenta.role === 'superadmin' ? (
+                    <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem' }}>Super Admin</span>
+                  ) : (
+                    <select
+                      value={cuenta.role.toLowerCase()}
+                      onChange={(e) =>
+                        handleCambiarRol(cuenta.id, e.target.value as RolUsuarioForm)
+                      }
                       style={{
-                        padding: '4px 10px',
+                        marginTop: 0,
                         minHeight: 'auto',
-                        borderRadius: '4px',
-                        boxShadow: 'none',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        width: 'auto',
                       }}
                     >
-                      {user.isActive ? 'Desactivar' : 'Activar'}
-                    </button>
+                      {ROLES.map((rol) => (
+                        <option key={rol.value} value={rol.value}>
+                          {rol.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div className="user-card-row">
+                  <span className="user-card-label">Estado:</span>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {cuenta.isActive ? (
+                      <>
+                        <CheckCircle2 size={16} color="#16a34a" />
+                        <span style={{ color: '#166534' }}>Activa</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle size={16} color="#dc2626" />
+                        <span style={{ color: '#991b1b' }}>Inactiva</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <div className="user-card-actions">
+                  <button
+                    onClick={() => handleToggleEstado(cuenta)}
+                    style={{
+                      padding: '6px 12px',
+                      minHeight: 'auto',
+                      borderRadius: '6px',
+                      boxShadow: 'none',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    {cuenta.isActive ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button
+                    onClick={() => setResetUserId(cuenta.id)}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      minHeight: 'auto',
+                      boxShadow: 'none',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    <Key size={14} />
+                    Clave
+                  </button>
+                  {cuenta.role !== 'superadmin' && (
                     <button
-                      onClick={() => setResetUserId(user.id)}
-                      style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        minHeight: 'auto',
-                        boxShadow: 'none',
-                      }}
-                    >
-                      <Key size={14} />
-                      Restablecer Clave
-                    </button>
-                    <button
-                      onClick={() => handleEliminarUsuario(user.id)}
+                      onClick={() => handleEliminarUsuario(cuenta.id)}
                       style={{
                         background: '#ef4444',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
                         cursor: 'pointer',
                         minHeight: 'auto',
                         boxShadow: 'none',
+                        fontSize: '0.85rem',
                       }}
                     >
                       Eliminar
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Tarjetas para móviles */}
-      <div className="users-cards-mobile">
-        {usuarios.map((user) => (
-          <div key={user.id} className="user-card">
-            <div className="user-card-header">
-              <div className="user-card-name">
-                {user.firstName
-                  ? `${user.firstName} ${user.lastName}`
-                  : user.name}
+                  )}
+                </div>
               </div>
-              <div className="user-card-email">{user.email}</div>
-            </div>
-
-            <div className="user-card-row">
-              <span className="user-card-label">Rol:</span>
-              <select
-                value={user.role.toLowerCase()}
-                onChange={(e) =>
-                  handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
-                }
-                style={{
-                  marginTop: 0,
-                  minHeight: 'auto',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  width: 'auto',
-                }}
-              >
-                {ROLES.map((rol) => (
-                  <option key={rol.value} value={rol.value}>
-                    {rol.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="user-card-row">
-              <span className="user-card-label">Estado:</span>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  fontWeight: 500,
-                }}
-              >
-                {user.isActive ? (
-                  <>
-                    <CheckCircle2 size={16} color="#16a34a" />
-                    <span style={{ color: '#166534' }}>Activo</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle size={16} color="#dc2626" />
-                    <span style={{ color: '#991b1b' }}>Inactivo</span>
-                  </>
-                )}
-              </span>
-            </div>
-
-            <div className="user-card-actions">
-              <button
-                onClick={() => handleToggleEstado(user)}
-                style={{
-                  padding: '6px 12px',
-                  minHeight: 'auto',
-                  borderRadius: '6px',
-                  boxShadow: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
-                {user.isActive ? 'Desactivar' : 'Activar'}
-              </button>
-              <button
-                onClick={() => setResetUserId(user.id)}
-                style={{
-                  background: '#f1f5f9',
-                  color: '#334155',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  minHeight: 'auto',
-                  boxShadow: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
-                <Key size={14} />
-                Clave
-              </button>
-              <button
-                onClick={() => handleEliminarUsuario(user.id)}
-                style={{
-                  background: '#ef4444',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  cursor: 'pointer',
-                  minHeight: 'auto',
-                  boxShadow: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
-                Eliminar
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-
+        </>
+      )}
       {/* Modal crear usuario */}
       {mostrarModal && (
         <div

@@ -13,6 +13,7 @@ const PAGADO_STATUS_ID = '6a1ad9c04d644ab738782e4c'
 
 export function useInvoiceSocket() {
   const [latestInvoice, setLatestInvoice] = useState<Factura | null>(null)
+  const [invoiceUpdate, setInvoiceUpdate] = useState<Factura | null>(null)
   const [inspectionUpdate, setInspectionUpdate] = useState<InspectionStatusUpdate | null>(null)
   const socketRef = useRef<Socket | null>(null)
 
@@ -34,6 +35,10 @@ export function useInvoiceSocket() {
       setLatestInvoice({ ...data })
     })
 
+    socketRef.current.on('invoice.updated', (data: Factura) => {
+      setInvoiceUpdate({ ...data })
+    })
+
     socketRef.current.on('inspection.status.updated', (data: InspectionStatusUpdate) => {
       setInspectionUpdate({ ...data })
     })
@@ -48,5 +53,5 @@ export function useInvoiceSocket() {
     }
   }, [])
 
-  return { latestInvoice, inspectionUpdate }
+  return { latestInvoice, invoiceUpdate, inspectionUpdate }
 }

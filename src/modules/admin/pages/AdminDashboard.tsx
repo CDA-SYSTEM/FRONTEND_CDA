@@ -433,7 +433,7 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
   const [invoices, setInvoices] = useState<Factura[]>([])
   const [feedLoading, setFeedLoading] = useState(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
-  const { latestInvoice, inspectionUpdate } = useInvoiceSocket()
+  const { latestInvoice, invoiceUpdate, inspectionUpdate } = useInvoiceSocket()
   const feedRef = useRef<HTMLDivElement>(null)
   const prevLen = useRef(0)
 
@@ -454,6 +454,13 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
       return [sanitized, ...prev]
     })
   }, [latestInvoice])
+
+  useEffect(() => {
+    if (!invoiceUpdate) return
+    setInvoices((prev) =>
+      prev.map((inv) => inv.id === invoiceUpdate.id ? { ...inv, ...invoiceUpdate } : inv)
+    )
+  }, [invoiceUpdate])
 
   useEffect(() => {
     if (!inspectionUpdate) return

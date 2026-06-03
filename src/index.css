@@ -293,9 +293,13 @@ label span {
 }
 
 .table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  min-width: 0;
   border-radius: 14px;
   border: 1px solid rgba(226, 232, 240, 0.9);
+  -webkit-overflow-scrolling: touch;
 }
 
 table {

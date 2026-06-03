@@ -339,77 +339,160 @@ export function FacturacionPage() {
           <p>No se encontraron facturas registradas.</p>
         </div>
       ) : (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nº Factura</th>
-                <th>Cliente</th>
-                <th>Concepto Principal</th>
-                <th>Total</th>
-                <th>Fecha de Emisión</th>
-                <th>Estado</th>
-                <th className="text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id} className="invoice-row" style={{ opacity: 0 }}>
-                  <td className="font-semibold text-primary">{inv.invoice_number}</td>
-                  <td>
-                    <div className="text-sm font-bold text-gray-800">{inv.client.name}</div>
-                    <div className="text-xs text-gray-500">{inv.client.document}</div>
-                  </td>
-                  <td>
-                    {inv.items.map((it, idx) => (
-                      <span key={idx} className="block text-sm text-gray-700">
-                        {it.concept} (x{it.quantity})
+        <>
+          <div className="table-wrap invoices-table-desktop">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nº Factura</th>
+                  <th>Cliente</th>
+                  <th>Concepto Principal</th>
+                  <th>Total</th>
+                  <th>Fecha de Emisión</th>
+                  <th>Estado</th>
+                  <th className="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map((inv) => (
+                  <tr key={inv.id} className="invoice-row" style={{ opacity: 0 }}>
+                    <td className="font-semibold text-primary">{inv.invoice_number}</td>
+                    <td>
+                      <div className="text-sm font-bold text-gray-800">{inv.client.name}</div>
+                      <div className="text-xs text-gray-500">{inv.client.document}</div>
+                    </td>
+                    <td>
+                      {inv.items.map((it, idx) => (
+                        <span key={idx} className="block text-sm text-gray-700">
+                          {it.concept} (x{it.quantity})
+                        </span>
+                      ))}
+                    </td>
+                    <td className="font-bold text-gray-900">{formatCOP(inv.total)}</td>
+                    <td>{new Date(inv.createdAt).toLocaleDateString('es-CO')}</td>
+                    <td>
+                      <span 
+                        className={`badge text-xs px-2 py-1 rounded font-bold`}
+                        style={{
+                          backgroundColor: inv.statusName === 'Pagado' ? '#dcfce7' : '#fee2e2',
+                          color: inv.statusName === 'Pagado' ? '#166534' : '#991b1b'
+                        }}
+                      >
+                        {inv.statusName || 'Pendiente'}
                       </span>
-                    ))}
-                  </td>
-                  <td className="font-bold text-gray-900">{formatCOP(inv.total)}</td>
-                  <td>{new Date(inv.createdAt).toLocaleDateString('es-CO')}</td>
-                  <td>
+                    </td>
+                    <td className="text-right flex gap-1 justify-end">
+                      <button 
+                        className="btn btn-secondary p-1"
+                        title="Ver Detalles"
+                        onClick={() => setSelectedInvoice(inv)}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button 
+                        className="btn btn-secondary p-1"
+                        title="Editar Factura"
+                        onClick={() => handleOpenEdit(inv)}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      {isAdmin && (
+                        <button 
+                          className="btn btn-secondary p-1 text-red-600 hover:bg-red-50"
+                          title="Eliminar Factura"
+                          onClick={() => handleDeleteInvoice(inv.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="invoices-cards-mobile">
+            {invoices.map((inv) => (
+              <div key={inv.id} className="invoice-card">
+                <div className="invoice-card-header">
+                  <span className="invoice-card-number">{inv.invoice_number}</span>
+                  <span className="invoice-card-date">{new Date(inv.createdAt).toLocaleDateString('es-CO')}</span>
+                </div>
+                <div className="invoice-card-body">
+                  <div className="invoice-card-row">
+                    <span className="invoice-card-label">Cliente</span>
+                    <span className="invoice-card-value">
+                      <strong>{inv.client.name}</strong>
+                      <br />
+                      <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Doc: {inv.client.document}</span>
+                    </span>
+                  </div>
+                  <div className="invoice-card-row">
+                    <span className="invoice-card-label">Concepto</span>
+                    <span className="invoice-card-value">
+                      {inv.items.map((it, idx) => (
+                        <div key={idx} style={{ fontSize: '0.85rem' }}>
+                          {it.concept} (x{it.quantity})
+                        </div>
+                      ))}
+                    </span>
+                  </div>
+                  <div className="invoice-card-row">
+                    <span className="invoice-card-label">Total</span>
+                    <span className="invoice-card-value" style={{ fontWeight: 'bold', color: '#0f172a' }}>
+                      {formatCOP(inv.total)}
+                    </span>
+                  </div>
+                  <div className="invoice-card-row">
+                    <span className="invoice-card-label">Estado</span>
                     <span 
                       className={`badge text-xs px-2 py-1 rounded font-bold`}
                       style={{
                         backgroundColor: inv.statusName === 'Pagado' ? '#dcfce7' : '#fee2e2',
-                        color: inv.statusName === 'Pagado' ? '#166534' : '#991b1b'
+                        color: inv.statusName === 'Pagado' ? '#166534' : '#991b1b',
+                        marginTop: 0
                       }}
                     >
                       {inv.statusName || 'Pendiente'}
                     </span>
-                  </td>
-                  <td className="text-right flex gap-1 justify-end">
+                  </div>
+                </div>
+                <div className="invoice-card-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button 
+                    type="button"
+                    className="btn btn-secondary p-1"
+                    title="Ver Detalles"
+                    onClick={() => setSelectedInvoice(inv)}
+                    style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Eye size={14} /> Detalles
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn btn-secondary p-1"
+                    title="Editar Factura"
+                    onClick={() => handleOpenEdit(inv)}
+                    style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Pencil size={14} /> Editar
+                  </button>
+                  {isAdmin && (
                     <button 
-                      className="btn btn-secondary p-1"
-                      title="Ver Detalles"
-                      onClick={() => setSelectedInvoice(inv)}
+                      type="button"
+                      className="btn btn-secondary p-1 text-red-600 hover:bg-red-50"
+                      title="Eliminar Factura"
+                      onClick={() => handleDeleteInvoice(inv.id)}
+                      style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      <Eye size={16} />
+                      <Trash2 size={14} /> Eliminar
                     </button>
-                    <button 
-                      className="btn btn-secondary p-1"
-                      title="Editar Factura"
-                      onClick={() => handleOpenEdit(inv)}
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    {isAdmin && (
-                      <button 
-                        className="btn btn-secondary p-1 text-red-600 hover:bg-red-50"
-                        title="Eliminar Factura"
-                        onClick={() => handleDeleteInvoice(inv.id)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Paginación */}

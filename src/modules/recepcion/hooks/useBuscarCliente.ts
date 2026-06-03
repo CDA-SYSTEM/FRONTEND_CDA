@@ -19,43 +19,44 @@ export function useBuscarCliente() {
     setCargando(true)
     setError(null)
     try {
-      let res
+      const allClients = await clienteService.obtenerTodosLosClientes()
+      const qClean = q.trim().toLowerCase()
+      
+      // First, filter by active status if not including inactives
+      let filtered = allClients
+      if (!incInactivos) {
+        filtered = filtered.filter(c => c.active !== false)
+      }
+
+      // Then, filter by query
+      filtered = filtered.filter(c => {
+        const nom = (c.nombre || '').toLowerCase()
+        const ape = (c.apellido || '').toLowerCase()
+        const ident = (c.identity || '').toLowerCase()
+        if (!qClean) return true
+        return (
+          nom.includes(qClean) ||
+          ape.includes(qClean) ||
+          ident.includes(qClean)
+        )
+      })
+
+      // If including inactives, sort so that inactive clients (active === false) come first
       if (incInactivos) {
-        // Al buscar inactivos o todos usando el listado completo
-        // Filtramos manualmente o usamos el servicio
-        const allClients = await clienteService.obtenerTodosLosClientes()
-                const qClean = q.trim().toLowerCase()
-        const filtered = allClients.filter(c => {
-          const nom = (c.nombre || '').toLowerCase()
-          const ape = (c.apellido || '').toLowerCase()
-          const ident = (c.identity || '').toLowerCase()
-          if (!qClean) return true
-          return (
-            nom.includes(qClean) ||
-            ape.includes(qClean) ||
-            ident.includes(qClean)
-          )
-        })
-        // Sort so that inactive clients (active === false) come first
         filtered.sort((a, b) => {
           const aActive = a.active !== false
           const bActive = b.active !== false
           if (aActive === bActive) return 0
           return aActive ? 1 : -1
         })
-        const total = filtered.length
-        const content = filtered.slice(p * s, (p + 1) * s)
-        res = {
-          content,
-          totalElements: total,
-          totalPages: Math.ceil(total / s) || 1
-        }
-      } else {
-        res = await clienteService.listarClientes({
-          search: q,
-          page: p,
-          size: s,
-        })
+      }
+
+      const total = filtered.length
+      const content = filtered.slice(p * s, (p + 1) * s)
+      const res = {
+        content,
+        totalElements: total,
+        totalPages: Math.ceil(total / s) || 1
       }
       setResultados(res.content)
       setTotalElementos(res.totalElements)

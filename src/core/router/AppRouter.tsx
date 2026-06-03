@@ -13,6 +13,7 @@ import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
 import { EstadosPage } from '@/modules/estados/pages/EstadosPage'
 import { PlantillasPage } from '@/modules/inspeccion/pages/PlantillasPage'
+import { AdminDashboard } from '@/modules/admin/pages/AdminDashboard'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
@@ -51,6 +52,7 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<RoleBasedRedirect />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/clientes" element={<ClientesPage />} />

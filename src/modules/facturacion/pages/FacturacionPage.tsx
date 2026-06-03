@@ -249,7 +249,8 @@ export function FacturacionPage() {
   }
 
   return (
-    <article className="panel">
+    <>
+      <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
           <AnimatedText 
@@ -529,10 +530,11 @@ export function FacturacionPage() {
           </div>
         </footer>
       )}
+    </article>
 
-      {/* Modal de Detalle */}
-      {selectedInvoice && (
-        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+    {/* Modal de Detalle */}
+    {selectedInvoice && (
+      <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <div className="floating-modal-box" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
             <header className="floating-modal-header">
               <h3 className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -913,6 +915,6 @@ export function FacturacionPage() {
           </form>
         </div>
       )}
-    </article>
+    </>
   )
 }

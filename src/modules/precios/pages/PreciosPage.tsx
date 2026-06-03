@@ -164,7 +164,8 @@ export function PreciosPage() {
   }
 
   return (
-    <article className="panel">
+    <>
+      <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
           <AnimatedText 
@@ -302,9 +303,10 @@ export function PreciosPage() {
           ))}
         </div>
       )}
+    </article>
 
-      {showFormModal && (
-        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+    {showFormModal && (
+      <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleSubmit}
             className="floating-modal-box max-w-md"
@@ -407,6 +409,6 @@ export function PreciosPage() {
           </form>
         </div>
       )}
-    </article>
+    </>
   )
 }

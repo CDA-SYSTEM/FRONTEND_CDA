@@ -233,15 +233,15 @@ export const usuarioService = {
       const unique = new Map<string, string>()
       data.forEach((item) => {
         const r = item as Record<string, unknown>
-        const code = String(r['code'] ?? r['id'] ?? '').toLowerCase()
-        const name = String(r['name'] ?? r['nombre'] ?? r['code'] ?? '')
+        const rawName = String(r['name'] ?? r['code'] ?? '').trim()
+        const code = rawName.toLowerCase()
         if (code && !unique.has(code)) {
-          unique.set(code, name)
+          unique.set(code, rawName.toUpperCase())
         }
       })
       return Array.from(unique.entries()).map(([code, name]) => ({
         code,
-        name: name.toUpperCase(),
+        name,
       }))
     } catch {
       return []

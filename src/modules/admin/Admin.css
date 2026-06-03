@@ -387,6 +387,72 @@
   font-size: 0.82rem;
 }
 
+.admin-link-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-link-btn:disabled:hover {
+  background: #eff6ff;
+  border-color: rgba(21, 93, 252, 0.15);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-kpi-card {
+  animation: countUp 0.4s ease both;
+}
+
+.admin-kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.admin-kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.admin-kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.admin-kpi-card:nth-child(4) { animation-delay: 0.2s; }
+.admin-kpi-card:nth-child(5) { animation-delay: 0.25s; }
+.admin-kpi-card:nth-child(6) { animation-delay: 0.3s; }
+
+.admin-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 36px;
+}
+
+.admin-refresh-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.admin-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-page .recharts-responsive-container svg {
+  overflow: visible;
+}
+
 @media (max-width: 600px) {
   .admin-tabs {
     flex-wrap: nowrap;

@@ -10,9 +10,11 @@ import {
   AlertCircle,
   Tag
 } from 'lucide-react'
+import { animate, stagger } from 'animejs'
 import { precioService } from '../services/precioService'
 import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
+import { AnimatedText } from '@/shared/components/AnimatedText'
 
 export function PreciosPage() {
   const [prices, setPrices] = useState<Precio[]>([])
@@ -57,6 +59,40 @@ export function PreciosPage() {
   useEffect(() => {
     fetchPrices()
   }, [fetchPrices])
+
+  // Animación staggered de las tarjetas de tarifas
+  useEffect(() => {
+    if (!loading && prices.length > 0) {
+      animate('.price-card', {
+        translateY: [24, 0],
+        opacity: [0, 1],
+        delay: stagger(80),
+        duration: 700,
+        easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+      })
+    }
+  }, [loading, prices])
+
+  // Callback de Ref para animar la entrada del modal
+  const modalBackdropRef = useCallback((node: HTMLDivElement | null) => {
+    if (node !== null) {
+      animate(node, {
+        opacity: [0, 1],
+        duration: 250,
+        easing: 'easeOutQuad'
+      })
+      const box = node.querySelector('.floating-modal-box')
+      if (box) {
+        animate(box, {
+          scale: [0.95, 1],
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 450,
+          easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+        })
+      }
+    }
+  }, [])
 
   const handleOpenCreate = () => {
     setSelectedPrice(null)
@@ -131,8 +167,12 @@ export function PreciosPage() {
     <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
-          <h2>Tarifas y Precios</h2>
-          <p className="text-gray-500 text-sm">Administre los costos de las revisiones tecnico-mecanicas y preventivas según el tipo de vehículo.</p>
+          <AnimatedText 
+            text="Tarifas y Precios" 
+            variant="soft-blur-in" 
+            style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}
+          />
+          <p className="text-gray-500 text-sm" style={{ marginTop: '4px' }}>Administre los costos de las revisiones tecnico-mecanicas y preventivas según el tipo de vehículo.</p>
         </div>
         {isAdmin && (
           <button 
@@ -219,7 +259,8 @@ export function PreciosPage() {
           {prices.map((p) => (
             <div 
               key={p.id}
-              className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+              className="price-card bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+              style={{ opacity: 0 }} /* Anime.js lo animará a 1 */
             >
               <div>
                 <header className="flex justify-between items-start mb-4">
@@ -263,10 +304,11 @@ export function PreciosPage() {
       )}
 
       {showFormModal && (
-        <div className="floating-modal-backdrop">
+        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleSubmit}
             className="floating-modal-box max-w-md"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">
               <h3>

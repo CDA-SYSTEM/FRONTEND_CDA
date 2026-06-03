@@ -14,9 +14,11 @@ import {
   AlertCircle,
   FileSpreadsheet
 } from 'lucide-react'
+import { animate, stagger } from 'animejs'
 import { facturaService } from '../services/facturaService'
 import type { Factura, CreateInvoiceDTO } from '../domain/factura.types'
 import { useAuthStore } from '@/core/store/authStore'
+import { AnimatedText } from '@/shared/components/AnimatedText'
 
 export function FacturacionPage() {
   const [invoices, setInvoices] = useState<Factura[]>([])
@@ -55,8 +57,6 @@ export function FacturacionPage() {
     try {
       const response = await facturaService.listarFacturas({
         invoice_number: searchTerm.trim() || undefined,
-        // En base de datos, el statusId puede ser un ID real o string.
-        // Si no es 'todos', lo pasamos
         statusId: statusFilter !== 'todos' ? statusFilter : undefined,
         page: currentPage,
         size: pageSize,
@@ -75,6 +75,40 @@ export function FacturacionPage() {
   useEffect(() => {
     fetchInvoices()
   }, [fetchInvoices])
+
+  // Animación staggered de las filas de la tabla al cargar
+  useEffect(() => {
+    if (!loading && invoices.length > 0) {
+      animate('.invoice-row', {
+        translateX: [-12, 0],
+        opacity: [0, 1],
+        delay: stagger(40),
+        duration: 600,
+        easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+      })
+    }
+  }, [loading, invoices])
+
+  // Callback de Ref para animar la entrada del modal
+  const modalBackdropRef = useCallback((node: HTMLDivElement | null) => {
+    if (node !== null) {
+      animate(node, {
+        opacity: [0, 1],
+        duration: 250,
+        easing: 'easeOutQuad'
+      })
+      const box = node.querySelector('.floating-modal-box')
+      if (box) {
+        animate(box, {
+          scale: [0.95, 1],
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 450,
+          easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+        })
+      }
+    }
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -178,8 +212,12 @@ export function FacturacionPage() {
     <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
-          <h2>Cola de Facturación</h2>
-          <p className="text-gray-500 text-sm">Gestione las facturas del sistema y asócielas con inspecciones de recepción.</p>
+          <AnimatedText 
+            text="Cola de Facturación" 
+            variant="soft-blur-in"
+            style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}
+          />
+          <p className="text-gray-500 text-sm" style={{ marginTop: '4px' }}>Gestione las facturas del sistema y asócielas con inspecciones de recepción.</p>
         </div>
         <div className="flex gap-2">
           <button 
@@ -276,7 +314,7 @@ export function FacturacionPage() {
             </thead>
             <tbody>
               {invoices.map((inv) => (
-                <tr key={inv.id}>
+                <tr key={inv.id} className="invoice-row" style={{ opacity: 0 }}>
                   <td className="font-semibold text-primary">{inv.invoice_number}</td>
                   <td>
                     <div className="text-sm font-bold text-gray-800">{inv.client.name}</div>
@@ -353,8 +391,8 @@ export function FacturacionPage() {
 
       {/* Modal de Detalle */}
       {selectedInvoice && (
-        <div className="floating-modal-backdrop">
-          <div className="floating-modal-box">
+        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+          <div className="floating-modal-box" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
             <header className="floating-modal-header">
               <h3 className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FileSpreadsheet className="text-primary" /> Factura {selectedInvoice.invoice_number}
@@ -462,11 +500,13 @@ export function FacturacionPage() {
         </div>
       )}
 
+      {/* Modal Autogenerar factura */}
       {showGenerateModal && (
-        <div className="floating-modal-backdrop">
+        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleGenerateInvoice}
             className="floating-modal-box max-w-md"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">
               <h3>Autogenerar Factura</h3>
@@ -525,10 +565,11 @@ export function FacturacionPage() {
 
       {/* Modal Crear Factura Manual */}
       {showCreateModal && (
-        <div className="floating-modal-backdrop">
+        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleCreateManualInvoice}
             className="floating-modal-box"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">
               <h3>Crear Factura Manual</h3>

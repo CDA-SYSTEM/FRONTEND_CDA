@@ -357,7 +357,26 @@ export function EstadosPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{ resize: 'none', padding: '10px' }}
+                  style={{
+                    width: '100%',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '0.7rem 0.85rem',
+                    marginTop: '0.35rem',
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    resize: 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#155dfc'
+                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#cbd5e1'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
                 />
               </div>
 

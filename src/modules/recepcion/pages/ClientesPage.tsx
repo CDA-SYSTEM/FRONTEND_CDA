@@ -7,6 +7,7 @@ import { Modal } from '@/core/components/Modal'
 import { useRegistrarCliente } from '@/modules/recepcion/hooks/useRegistrarCliente'
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 
 export function ClientesPage() {
@@ -29,9 +30,11 @@ export function ClientesPage() {
     register,
     formState: { errors },
     watch,
+    setValue,
   } = form
 
   const documentTypeId = watch('documentTypeId')
+  const personTypeId = watch('personTypeId')
   const enviando = estado === 'enviando'
 
   // Inferir código del tipo seleccionado para mostrar placeholder dinámico
@@ -258,25 +261,11 @@ export function ClientesPage() {
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
               Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
             </span>
-            <select
-              {...register('documentTypeId', { valueAsNumber: true })}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                background: '#fff',
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {tiposDocumento.map((tipo) => (
-                <option key={tipo.id} value={tipo.id}>
-                  {tipo.nombre}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
+              value={String(documentTypeId || '')}
+              onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+            />
             {errors.documentTypeId && (
               <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
                 {errors.documentTypeId.message}
@@ -313,25 +302,11 @@ export function ClientesPage() {
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
               Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
             </span>
-            <select
-              {...register('personTypeId', { valueAsNumber: true })}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                background: '#fff',
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {tiposPersona.map((tp) => (
-                <option key={tp.id} value={tp.id}>
-                  {tp.nombre}
-                </option>
-              ))}
-            </select>
+            <CustomSelect
+              options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
+              value={String(personTypeId || '')}
+              onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+            />
             {errors.personTypeId && (
               <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
             )}

@@ -10,6 +10,7 @@ import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
 import { ClientesPage } from '@/modules/recepcion/pages/ClientesPage'
 import { RegistroVehiculoPage } from '@/modules/vehiculo/pages/RegistroVehiculoPage'
 import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
+import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
@@ -56,6 +57,7 @@ export function AppRouter() {
             <Route path="/inspeccion/checklist/:vehicleType/:inspectionId" element={<ChecklistPage />} />
             <Route path="/inspeccion/checklist/:inspectionId" element={<ChecklistPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
+            <Route path="/precios" element={<PreciosPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>

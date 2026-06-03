@@ -1,6 +1,7 @@
 import { CheckCircle2, XCircle, Key } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
 import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -719,115 +720,147 @@ export function UsuariosPage() {
               style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
               <div style={{ display: 'flex', gap: '10px' }}>
-                <label style={{ flex: 1 }}>
-                  Tipo Doc.
-                  <select
-                    name="identificationType"
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Tipo Doc.
+                  </label>
+                  <CustomSelect
+                    options={identificacionesList.length > 0 ? identificacionesList.map(id => ({ value: id.code.toLowerCase(), label: id.name })) : [
+                      { value: 'cc', label: 'Cédula (CC)' },
+                      { value: 'ce', label: 'Cédula Ext. (CE)' },
+                      { value: 'nit', label: 'NIT' }
+                    ]}
                     value={formData.identificationType}
-                    onChange={handleFormChange}
-                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                  >
-                    {identificacionesList.length > 0 ? (
-                      identificacionesList.map((idType) => (
-                        <option key={idType.code} value={idType.code.toLowerCase()}>
-                          {idType.name}
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="cc">Cédula (CC)</option>
-                        <option value="ce">Cédula Ext. (CE)</option>
-                        <option value="nit">NIT</option>
-                      </>
-                    )}
-                  </select>
-                </label>
-                <label style={{ flex: 2 }}>
-                  Número
+                    onChange={(val) => handleFormChange({ target: { name: 'identificationType', value: val } })}
+                  />
+                </div>
+                <div style={{ flex: 2 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Número
+                  </label>
                   <input
                     type="text"
                     name="identificationNumber"
                     required
                     value={formData.identificationNumber}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      outline: 'none',
+                      fontSize: '0.95rem',
+                      boxSizing: 'border-box',
+                    }}
                   />
-                </label>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
-                <label style={{ flex: 1 }}>
-                  Nombres
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Nombres
+                  </label>
                   <input
                     type="text"
                     name="firstName"
                     required
                     value={formData.firstName}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      outline: 'none',
+                      fontSize: '0.95rem',
+                      boxSizing: 'border-box',
+                    }}
                   />
-                </label>
-                <label style={{ flex: 1 }}>
-                  Apellidos
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                    Apellidos
+                  </label>
                   <input
                     type="text"
                     name="lastName"
                     required
                     value={formData.lastName}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      outline: 'none',
+                      fontSize: '0.95rem',
+                      boxSizing: 'border-box',
+                    }}
                   />
-                </label>
+                </div>
               </div>
 
-              <label>
-                Teléfono
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  Teléfono
+                </label>
                 <input
                   type="tel"
                   name="phoneNumber"
                   required
                   value={formData.phoneNumber}
                   onChange={handleFormChange}
-                  style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    outline: 'none',
+                    fontSize: '0.95rem',
+                    boxSizing: 'border-box',
+                  }}
                 />
-              </label>
+              </div>
 
-              <label>
-                Correo Electrónico
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  Correo Electrónico
+                </label>
                 <input
                   type="email"
                   name="email"
                   required
                   value={formData.email}
                   onChange={handleFormChange}
-                  style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    outline: 'none',
+                    fontSize: '0.95rem',
+                    boxSizing: 'border-box',
+                  }}
                 />
-              </label>
+              </div>
 
-              <label>
-                Rol
-                <select
-                  name="role"
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                  Rol
+                </label>
+                <CustomSelect
+                  options={rolesList.length > 0 ? rolesList.map(role => ({ value: role.code.toLowerCase(), label: role.name })) : [
+                    { value: 'admin', label: 'Administrador' },
+                    { value: 'manager', label: 'Manager' },
+                    { value: 'inspector', label: 'Inspector' },
+                    { value: 'operario', label: 'Operario' }
+                  ]}
                   value={formData.role}
-                  onChange={handleFormChange}
-                  style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-                >
-                  {rolesList.length > 0 ? (
-                    rolesList.map((role) => (
-                      <option key={role.code} value={role.code.toLowerCase()}>
-                        {role.name}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="admin">Administrador</option>
-                      <option value="manager">Manager</option>
-                      <option value="inspector">Inspector</option>
-                      <option value="operario">Operario</option>
-                    </>
-                  )}
-                </select>
-              </label>
+                  onChange={(val) => handleFormChange({ target: { name: 'role', value: val } })}
+                />
+              </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button

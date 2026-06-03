@@ -634,7 +634,7 @@ function AccordionSection({
                     .sort((a, b) => a.order - b.order)
                     .map((item) => (
                       <ItemRow
-                        key={item.code}
+                        key={`${section.code || ''}:${sub.code || ''}:${item.code}`}
                         item={item}
                         sectionCode={section.code || ''}
                         subsectionCode={sub.code || ''}

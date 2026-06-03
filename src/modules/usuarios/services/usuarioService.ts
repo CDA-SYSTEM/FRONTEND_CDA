@@ -62,9 +62,12 @@ export const usuarioService = {
             ),
         ),
       )
-      return onlyActive(
-        results.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])),
-      )
+      const flatList = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+      const uniqueMap = new Map<string, Usuario>()
+      for (const u of flatList) {
+        uniqueMap.set(u.id, u)
+      }
+      return onlyActive(Array.from(uniqueMap.values()))
     }
 
     try {

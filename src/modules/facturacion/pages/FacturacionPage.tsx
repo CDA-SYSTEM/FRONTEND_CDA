@@ -282,50 +282,61 @@ export function FacturacionPage() {
         </div>
       )}
 
-      {/* Filtros de búsqueda */}
-      <section className="bg-gray-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2 min-w-[280px]">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+      {/* Filtros de búsqueda responsivos */}
+      <section className="filters-bar">
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', minHeight: 'auto' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search 
+              className="text-gray-400" 
+              size={18} 
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', marginTop: 0 }}
+            />
             <input
               type="text"
               placeholder="Buscar por número de factura..."
-              className="form-control pl-10"
+              className="form-control"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ paddingLeft: '38px', height: '40px', minHeight: '40px', marginTop: 0 }}
             />
           </div>
-          <button type="submit" className="btn btn-secondary">Buscar</button>
+          <button type="submit" className="btn btn-secondary" style={{ height: '40px', minHeight: '40px', padding: '0 16px' }}>
+            Buscar
+          </button>
         </form>
 
-        <div className="flex gap-2 items-center">
-          <label className="text-sm font-semibold text-gray-600">Estado:</label>
-          <select 
-            className="form-control"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value)
+        <div className="filters-bar-right">
+          <div className="filter-group">
+            <label>Estado:</label>
+            <select 
+              className="form-control"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value)
+                setCurrentPage(1)
+              }}
+            >
+              <option value="todos">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Pagado">Pagado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => {
+              setSearchTerm('')
+              setStatusFilter('todos')
               setCurrentPage(1)
             }}
+            className="btn btn-secondary"
+            title="Limpiar filtros"
+            style={{ height: '40px', minHeight: '40px', padding: '0 16px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            <option value="todos">Todos los estados</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="Pagado">Pagado</option>
-            <option value="Cancelado">Cancelado</option>
-          </select>
+            Limpiar
+          </button>
         </div>
-
-        <button 
-          onClick={() => {
-            setSearchTerm('')
-            setStatusFilter('todos')
-            setCurrentPage(1)
-          }}
-          className="btn btn-secondary flex items-center gap-1"
-          title="Limpiar filtros"
-        >
-          Limpiar
-        </button>
       </section>
 
       {/* Tabla de Facturas */}

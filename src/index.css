@@ -933,9 +933,172 @@ a {
   }
 }
 
+/* ═══════════════════════════════════════════════
+   Tarjetas de Facturación en Móviles
+   ═══════════════════════════════════════════════ */
+.invoices-table-desktop {
+  display: block;
+}
 
+.invoices-cards-mobile {
+  display: none;
+}
 
+@media (max-width: 767px) {
+  .invoices-table-desktop {
+    display: none;
+  }
 
+  .invoices-cards-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 15px;
+  }
 
+  .invoice-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.2s ease;
+  }
 
+  .invoice-card:hover {
+    transform: translateY(-2px);
+  }
 
+  .invoice-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+  }
+
+  .invoice-card-number {
+    font-weight: 700;
+    color: #155dfc;
+    font-size: 0.95rem;
+  }
+
+  .invoice-card-date {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  .invoice-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #334155;
+  }
+
+  .invoice-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .invoice-card-label {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .invoice-card-value {
+    text-align: right;
+    font-weight: 500;
+  }
+
+  .invoice-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Filtros y Buscadores Responsivos
+   ═══════════════════════════════════════════════ */
+.filters-bar {
+  background: rgba(248, 250, 252, 0.95);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.filters-bar form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.filters-bar form div {
+  flex: 1;
+}
+
+.filters-bar-right {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.filter-group select {
+  margin-top: 0 !important;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+  .filters-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .filters-bar form {
+    width: auto;
+    min-width: 320px;
+  }
+  
+  .filters-bar-right {
+    width: auto;
+    justify-content: flex-end;
+  }
+}

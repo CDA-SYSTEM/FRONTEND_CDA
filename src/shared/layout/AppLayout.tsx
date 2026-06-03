@@ -17,6 +17,7 @@ const links = [
   { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
   { to: '/precios', label: 'Tarifas', roles: ['ADMIN', 'MANAGER'] },
   { to: '/estados', label: 'Estados', roles: ['ADMIN', 'MANAGER'] },
+  { to: '/plantillas', label: 'Plantillas', roles: ['ADMIN', 'MANAGER'] },
 ]
 
 export function AppLayout() {

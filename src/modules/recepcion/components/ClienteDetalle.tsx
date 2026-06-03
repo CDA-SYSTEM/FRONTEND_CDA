@@ -6,7 +6,8 @@ import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'
 import { clienteSchema, type ClienteSchema } from '@/modules/recepcion/domain/recepcion.schema'
-import type { ClientePersonaNatural, Vehiculo } from '@/modules/recepcion/domain/recepcion.types'
+import type { ClientePersonaNatural, Vehiculo, DocumentType, PersonType } from '@/modules/recepcion/domain/recepcion.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 interface Props {
   clienteInicial: ClientePersonaNatural
@@ -20,12 +21,17 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   const [cargandoVehiculos, setCargandoVehiculos] = useState(true)
   const [actualizando, setActualizando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const [tiposDocumento, setTiposDocumento] = useState<DocumentType[]>([])
+  const [tiposPersona, setTiposPersona] = useState<PersonType[]>([])
 
   const puedeEditar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isDirty },
   } = useForm<ClienteSchema>({
     resolver: zodResolver(clienteSchema),
@@ -42,14 +48,25 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     },
   })
 
+  const docTypeIdWatch = watch('documentTypeId')
+  const persTypeIdWatch = watch('personTypeId')
+
   useEffect(() => {
     let mounted = true
     async function load() {
       try {
-        const v = await vehiculoService.obtenerVehiculosCliente(clienteInicial.id)
-        if (mounted) setVehiculos(v)
+        const [v, docs, personas] = await Promise.all([
+          vehiculoService.obtenerVehiculosCliente(clienteInicial.id),
+          clienteService.obtenerTiposDocumento(),
+          clienteService.obtenerTiposPersona(),
+        ])
+        if (mounted) {
+          setVehiculos(v)
+          setTiposDocumento(docs)
+          setTiposPersona(personas)
+        }
       } catch (err) {
-        console.error('Error cargando vehículos:', err)
+        console.error('Error cargando datos de cliente:', err)
       } finally {
         if (mounted) setCargandoVehiculos(false)
       }
@@ -95,6 +112,47 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
           </div>
         )}
 
+        {/* Estado y Reactivación */}
+        {clienteInicial && !(clienteInicial as any).active && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: '#fee2e2',
+            border: '1px solid #fecaca',
+            color: '#991b1b',
+            padding: '12px 16px',
+            borderRadius: 8,
+            marginBottom: 16,
+            fontSize: '0.9rem'
+          }}>
+            <span>Este cliente se encuentra <strong>Inactivo / Eliminado</strong>.</span>
+            {puedeEditar && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm('¿Desea reactivar este cliente?')) return
+                  setActualizando(true)
+                  try {
+                    await clienteService.activarCliente(clienteInicial.id)
+                    alert('Cliente reactivado correctamente.')
+                    onActualizado()
+                  } catch (err) {
+                    alert('No se pudo reactivar el cliente.')
+                  } finally {
+                    setActualizando(false)
+                  }
+                }}
+                disabled={actualizando}
+                className="btn btn-primary"
+                style={{ minHeight: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                Reactivar Cliente
+              </button>
+            )}
+          </div>
+        )}
+
         {error && (
           <div style={{ color: '#ef4444', marginBottom: 16 }}>{error}</div>
         )}
@@ -122,6 +180,39 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
               Celular <span style={{ color: '#ef4444' }}>*</span>
               <input type="tel" maxLength={10} {...register('celular')} disabled={!puedeEditar || actualizando} />
               {errors.celular && <span className="field-error">{errors.celular.message}</span>}
+            </label>
+          </fieldset>
+
+          <fieldset className="form-row-2">
+            <label>
+              Tipo de documento <span style={{ color: '#ef4444' }}>*</span>
+              {puedeEditar ? (
+                <CustomSelect
+                  options={tiposDocumento.map((d) => ({ value: String(d.id), label: d.nombre }))}
+                  value={String(docTypeIdWatch)}
+                  onChange={(val) => setValue('documentTypeId', Number(val), { shouldDirty: true })}
+                />
+              ) : (
+                <input
+                  disabled
+                  value={tiposDocumento.find((d) => d.id === docTypeIdWatch)?.nombre || ''}
+                />
+              )}
+            </label>
+            <label>
+              Tipo de persona <span style={{ color: '#ef4444' }}>*</span>
+              {puedeEditar ? (
+                <CustomSelect
+                  options={tiposPersona.map((p) => ({ value: String(p.id), label: p.nombre }))}
+                  value={String(persTypeIdWatch)}
+                  onChange={(val) => setValue('personTypeId', Number(val), { shouldDirty: true })}
+                />
+              ) : (
+                <input
+                  disabled
+                  value={tiposPersona.find((p) => p.id === persTypeIdWatch)?.nombre || ''}
+                />
+              )}
             </label>
           </fieldset>
 

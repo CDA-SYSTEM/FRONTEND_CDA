@@ -63,7 +63,7 @@ export function FacturacionPage() {
     setError(null)
     try {
       const response = await facturaService.listarFacturas({
-        invoice_number: searchTerm.trim() || undefined,
+        search: searchTerm.trim() || undefined,
         statusId: statusFilter !== 'todos' ? statusFilter : undefined,
         page: currentPage,
         size: pageSize,

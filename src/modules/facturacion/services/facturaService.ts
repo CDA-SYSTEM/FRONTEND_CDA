@@ -8,6 +8,7 @@ import type {
 
 export interface GetInvoicesParams {
   invoice_number?: string
+  search?: string
   statusId?: string
   inspection_id?: string
   includeDeleted?: string

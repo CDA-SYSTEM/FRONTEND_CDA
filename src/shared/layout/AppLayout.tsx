@@ -16,6 +16,7 @@ const links = [
   { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
   { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
   { to: '/precios', label: 'Tarifas', roles: ['ADMIN', 'MANAGER'] },
+  { to: '/estados', label: 'Estados', roles: ['ADMIN', 'MANAGER'] },
 ]
 
 export function AppLayout() {

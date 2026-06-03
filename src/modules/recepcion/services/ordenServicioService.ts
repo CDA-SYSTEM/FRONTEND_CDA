@@ -168,4 +168,27 @@ export const ordenServicioService = {
       return []
     }
   },
+
+  async actualizarOrdenServicio(id: string, data: FormData | Record<string, unknown>): Promise<void> {
+    if (data instanceof FormData) {
+      await apiClient.patch(`/api/v1/inspections/${id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    } else {
+      await apiClient.patch(`/api/v1/inspections/${id}`, data)
+    }
+  },
+
+  async eliminarOrdenServicio(id: string): Promise<void> {
+    await apiClient.delete(`/api/v1/inspections/${id}`)
+  },
+
+  async actualizarChecklistId(id: string, checklistId: string): Promise<void> {
+    await apiClient.patch(`/api/v1/inspections/${id}/checklist-id`, { checklistId })
+  },
+
+  async actualizarEstadoInspeccion(id: string, statusId: string): Promise<void> {
+    await apiClient.patch(`/api/v1/inspections/${id}/status`, { statusId })
+  },
 }
+

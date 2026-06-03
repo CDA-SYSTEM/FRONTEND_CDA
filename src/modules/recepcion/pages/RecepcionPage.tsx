@@ -21,7 +21,10 @@ import { inspeccionService } from '@/modules/inspeccion/services/inspeccionServi
 import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
 import { SignaturePad } from '@/shared/components/SignaturePad'
 import { useAuthStore } from '@/core/store/authStore'
+import { estadoService } from '@/modules/estados/services/estadoService'
+import type { Estado } from '@/modules/estados/domain/estado.types'
 import type { InspectionSummary, InspectionDetail } from '@/modules/inspeccion/domain/inspeccion.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 /* ── Helpers para datos enriquecidos ──────────────────────────────────────── */
 
@@ -64,15 +67,24 @@ function formatDate(iso?: string): string {
   }
 }
 
-/* ── Badge de estado ──────────────────────────────────────────────────────── */
-
 interface BadgeInfo {
   label: string
   bg: string
   color: string
 }
 
-function estadoBadge(insp: InspectionSummary | InspectionDetail): BadgeInfo {
+function estadoBadge(insp: InspectionSummary | InspectionDetail, backendStatuses?: Estado[]): BadgeInfo {
+  // Intentar buscar el estado en los cargados del backend
+  const statusId = insp.status_id || (insp as any).status?.id
+  const matched = backendStatuses?.find((s) => s.id === statusId)
+  if (matched) {
+    return {
+      label: matched.name,
+      bg: `${matched.color}15`,
+      color: matched.color
+    }
+  }
+
   if (insp.result === 'APROBADO') return { label: 'Aprobado', bg: '#dcfce7', color: '#166534' }
   if (insp.result === 'REPROBADO') return { label: 'Rechazado', bg: '#fee2e2', color: '#991b1b' }
   if ((insp.operator_id || insp.responsible_id) && !insp.result) return { label: 'En inspección', bg: '#dbeafe', color: '#1e40af' }
@@ -84,6 +96,7 @@ function estadoBadge(insp: InspectionSummary | InspectionDetail): BadgeInfo {
 export function RecepcionPage() {
   const [modo, setModo] = useState<'tabla' | 'wizard'>('tabla')
   const [inspecciones, setInspecciones] = useState<InspectionSummary[]>([])
+  const [statuses, setStatuses] = useState<Estado[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
@@ -106,6 +119,7 @@ export function RecepcionPage() {
   const [editPhoto, setEditPhoto] = useState<File | null>(null)
   const [editSignatureBlob, setEditSignatureBlob] = useState<Blob | null>(null)
   const [guardandoEdicion, setGuardandoEdicion] = useState(false)
+  const [editStatusId, setEditStatusId] = useState('')
 
   // Modal de Eliminación
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -122,8 +136,12 @@ export function RecepcionPage() {
     setCargando(true)
     setError(null)
     try {
-      const data = await inspeccionService.listarTodas(1, 100)
-      setInspecciones(data)
+      const [inspsData, statusesRes] = await Promise.all([
+        inspeccionService.listarTodas(1, 100),
+        estadoService.listarEstados({ size: 100 }),
+      ])
+      setInspecciones(inspsData)
+      setStatuses(statusesRes.data || [])
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al cargar las recepciones'
       setError(msg)
@@ -167,12 +185,18 @@ export function RecepcionPage() {
     setEditObservations('')
     setEditPhoto(null)
     setEditSignatureBlob(null)
+    setEditStatusId('')
     
     try {
       const detail = await inspeccionService.obtenerDetalle(insp.id)
       if (detail) {
         setEditMileage(detail.mileage || '')
         setEditObservations(detail.observations || '')
+        if (detail.status_id) {
+          setEditStatusId(String(detail.status_id))
+        } else if ((detail as any).status?.id) {
+          setEditStatusId(String((detail as any).status.id))
+        }
       }
     } catch (err) {
       console.error('Error al precargar observaciones para edición', err)
@@ -200,7 +224,20 @@ export function RecepcionPage() {
         formData.append('signature', editSignatureBlob, 'signature.png')
       }
       
+      // Actualizar datos de inspección
       await inspeccionService.actualizar(editInspectionId, formData)
+
+      // Actualizar estado si fue seleccionado uno válido
+      if (editStatusId) {
+        const detail = await inspeccionService.obtenerDetalle(editInspectionId)
+        const oldStatusId = detail?.status_id || (detail as any)?.status?.id
+        if (String(oldStatusId) !== String(editStatusId)) {
+          // LLamada a endpoint PATCH /api/v1/inspections/{id}/status
+          const { ordenServicioService } = await import('../services/ordenServicioService')
+          await ordenServicioService.actualizarEstadoInspeccion(editInspectionId, editStatusId)
+        }
+      }
+
       await cargarDatos()
       setEditInspectionId(null)
     } catch (err) {
@@ -217,11 +254,22 @@ export function RecepcionPage() {
     const matchesSearch = plate.includes(searchTerm.toLowerCase()) || client.includes(searchTerm.toLowerCase())
 
     if (statusFilter === 'todos') return matchesSearch
-    const badge = estadoBadge(insp)
-    if (statusFilter === 'aprobado' && badge.label === 'Aprobado') return matchesSearch
-    if (statusFilter === 'rechazado' && badge.label === 'Rechazado') return matchesSearch
-    if (statusFilter === 'inspeccion' && badge.label === 'En inspección') return matchesSearch
-    if (statusFilter === 'recepcion' && badge.label === 'En recepción') return matchesSearch
+    const badge = estadoBadge(insp, statuses)
+    
+    // Comparación case-insensitive de la etiqueta del badge
+    const labelLower = badge.label.toLowerCase()
+    if (statusFilter === 'aprobado' && labelLower === 'aprobado') return matchesSearch
+    if (statusFilter === 'rechazado' && (labelLower === 'rechazado' || labelLower === 'reprobado')) return matchesSearch
+    if (statusFilter === 'inspeccion' && labelLower === 'en inspección') return matchesSearch
+    if (statusFilter === 'recepcion' && labelLower === 'en recepción') return matchesSearch
+    
+    // O si el filtro coincide exactamente con el ID del estado o el código
+    const statusId = insp.status_id || (insp as any).status?.id
+    const matchedStatus = statuses.find((s) => s.id === statusId)
+    if (matchedStatus && (statusFilter === matchedStatus.id || statusFilter === matchedStatus.code.toLowerCase())) {
+      return matchesSearch
+    }
+
     return false
   })
 
@@ -552,7 +600,7 @@ export function RecepcionPage() {
               </thead>
               <tbody>
                 {paginatedInspecciones.map((insp, idx) => {
-                  const badge = estadoBadge(insp)
+                  const badge = estadoBadge(insp, statuses)
                   const isHovered = hoveredRow === insp.id
                   return (
                     <tr
@@ -680,7 +728,7 @@ export function RecepcionPage() {
 
           <div className="receptions-cards-mobile">
             {paginatedInspecciones.map((insp) => {
-              const badge = estadoBadge(insp)
+              const badge = estadoBadge(insp, statuses)
               return (
                 <div key={insp.id} className="reception-card">
                   <div className="reception-card-header">
@@ -934,10 +982,10 @@ export function RecepcionPage() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '0.75rem 1rem',
-                    background: estadoBadge(inspectionDetail).bg,
+                    background: estadoBadge(inspectionDetail, statuses).bg,
                     borderRadius: 8,
                   }}>
-                    <span style={{ fontWeight: 600, color: estadoBadge(inspectionDetail).color, fontSize: '0.875rem' }}>
+                    <span style={{ fontWeight: 600, color: estadoBadge(inspectionDetail, statuses).color, fontSize: '0.875rem' }}>
                       Estado del Vehículo
                     </span>
                     <span style={{
@@ -945,10 +993,10 @@ export function RecepcionPage() {
                       borderRadius: 999,
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      background: estadoBadge(inspectionDetail).color,
+                      background: estadoBadge(inspectionDetail, statuses).color,
                       color: '#fff',
                     }}>
-                      {estadoBadge(inspectionDetail).label.toUpperCase()}
+                      {estadoBadge(inspectionDetail, statuses).label.toUpperCase()}
                     </span>
                   </div>
 
@@ -1252,6 +1300,20 @@ export function RecepcionPage() {
                   }}
                 />
               </div>
+
+              {/* Estado de la inspección */}
+              {statuses.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                    Estado de la Recepción *
+                  </label>
+                  <CustomSelect
+                    options={statuses.map((s) => ({ value: s.id, label: `${s.name} (${s.code})` }))}
+                    value={editStatusId}
+                    onChange={(val) => setEditStatusId(val)}
+                  />
+                </div>
+              )}
 
               {/* Observaciones */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

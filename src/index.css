@@ -127,10 +127,17 @@ select {
   margin-top: 0.35rem;
   min-height: 44px;
   background: rgba(255, 255, 255, 0.92);
+  font-size: 0.9rem;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
+}
+
+select option {
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 input:focus,

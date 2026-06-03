@@ -76,8 +76,9 @@ export const facturaService = {
    * Obtiene todos los estados disponibles.
    */
   async listarStatuses(): Promise<Status[]> {
-    const response = await apiClient.get<{ data: Status[] }>('/api/v1/statuses')
-    return response.data?.data || response.data || []
+    const response = await apiClient.get<{ data: { data: Status[] } }>('/api/v1/statuses')
+    const raw = response.data as any
+    return raw?.data?.data || raw?.data || raw || []
   },
 
   /**

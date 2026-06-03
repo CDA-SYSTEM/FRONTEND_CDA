@@ -433,7 +433,7 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
   const [invoices, setInvoices] = useState<Factura[]>([])
   const [feedLoading, setFeedLoading] = useState(true)
   const [newIds, setNewIds] = useState<Set<string>>(new Set())
-  const latestSocketInvoice = useInvoiceSocket()
+  const { latestInvoice, inspectionUpdate } = useInvoiceSocket()
   const feedRef = useRef<HTMLDivElement>(null)
   const prevLen = useRef(0)
 
@@ -445,14 +445,28 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
   }, [])
 
   useEffect(() => {
-    if (!latestSocketInvoice) return
+    if (!latestInvoice) return
     setInvoices((prev) => {
-      if (prev.some((inv) => inv.id === latestSocketInvoice.id)) return prev
-      setNewIds((ids) => new Set(ids).add(latestSocketInvoice.id))
-      setTimeout(() => setNewIds((ids) => { const next = new Set(ids); next.delete(latestSocketInvoice.id); return next }), 3000)
-      return [latestSocketInvoice, ...prev]
+      if (prev.some((inv) => inv.id === latestInvoice.id)) return prev
+      const sanitized = { ...latestInvoice, items: latestInvoice.items ?? [], client: latestInvoice.client ?? { document: '', name: '—' } }
+      setNewIds((ids) => new Set(ids).add(latestInvoice.id))
+      setTimeout(() => setNewIds((ids) => { const next = new Set(ids); next.delete(latestInvoice.id); return next }), 3000)
+      return [sanitized, ...prev]
     })
-  }, [latestSocketInvoice])
+  }, [latestInvoice])
+
+  useEffect(() => {
+    if (!inspectionUpdate) return
+    const isPaid = inspectionUpdate.statusName?.toUpperCase() === 'PAGADO' || inspectionUpdate.statusId === '6a1ad9c04d644ab738782e4c'
+    if (!isPaid) return
+    setInvoices((prev) =>
+      prev.map((inv) =>
+        inv.inspection_id === inspectionUpdate.id
+          ? { ...inv, statusId: '6a1ad9c04d644ab738782e4c' }
+          : inv
+      )
+    )
+  }, [inspectionUpdate])
 
   useEffect(() => {
     if (invoices.length > prevLen.current && prevLen.current > 0) {

@@ -2,8 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import type { Factura } from '@/modules/facturacion/domain/factura.types'
 
+export interface InspectionStatusUpdate {
+  id: string
+  inspection_number: string
+  statusId: string
+  statusName?: string
+}
+
+const PAGADO_STATUS_ID = '6a1ad9c04d644ab738782e4c'
+
 export function useInvoiceSocket() {
   const [latestInvoice, setLatestInvoice] = useState<Factura | null>(null)
+  const [inspectionUpdate, setInspectionUpdate] = useState<InspectionStatusUpdate | null>(null)
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
@@ -17,16 +27,19 @@ export function useInvoiceSocket() {
     })
 
     socketRef.current.on('connect', () => {
-      console.log('[InvoiceSocket] Conectado al gateway')
+      console.log('[Socket] Conectado al gateway')
     })
 
     socketRef.current.on('invoice.created', (data: Factura) => {
-      console.log('[InvoiceSocket] invoice.created recibido:', data.invoice_number)
-      setLatestInvoice(data)
+      setLatestInvoice({ ...data })
+    })
+
+    socketRef.current.on('inspection.status.updated', (data: InspectionStatusUpdate) => {
+      setInspectionUpdate({ ...data })
     })
 
     socketRef.current.on('connect_error', (err) => {
-      console.warn('[InvoiceSocket] Error de conexión:', err.message)
+      console.warn('[Socket] Error de conexión:', err.message)
     })
 
     return () => {
@@ -35,5 +48,5 @@ export function useInvoiceSocket() {
     }
   }, [])
 
-  return latestInvoice
+  return { latestInvoice, inspectionUpdate }
 }

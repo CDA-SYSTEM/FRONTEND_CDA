@@ -12,6 +12,7 @@ interface CustomSelectProps {
   onChange: (val: string) => void
   placeholder?: string
   style?: React.CSSProperties
+  disabled?: boolean
 }
 
 export function CustomSelect({
@@ -19,7 +20,8 @@ export function CustomSelect({
   value,
   onChange,
   placeholder = 'Seleccione una opción...',
-  style
+  style,
+  disabled = false,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -45,28 +47,32 @@ export function CustomSelect({
       {/* Botón Disparador */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         style={{
           width: '100%',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: disabled ? '#f1f5f9' : 'rgba(255, 255, 255, 0.95)',
           border: '1px solid #cbd5e1',
           borderRadius: '12px',
           padding: '0.7rem 0.85rem',
           minHeight: '44px',
-          color: selectedOption ? '#0f172a' : '#64748b',
+          color: disabled ? '#94a3b8' : (selectedOption ? '#0f172a' : '#64748b'),
           fontSize: '0.9rem',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
           textAlign: 'left',
           boxShadow: 'none',
           marginTop: '0.35rem',
-          transition: 'border-color 0.2s, box-shadow 0.2s'
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          opacity: disabled ? 0.7 : 1,
         }}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = '#155dfc'
-          e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
+          if (!disabled) {
+            e.currentTarget.style.borderColor = '#155dfc'
+            e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
+          }
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = '#cbd5e1'
@@ -77,7 +83,7 @@ export function CustomSelect({
         <ChevronDown 
           size={16} 
           style={{ 
-            color: '#64748b',
+            color: disabled ? '#cbd5e1' : '#64748b',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s ease',
             marginLeft: '8px',

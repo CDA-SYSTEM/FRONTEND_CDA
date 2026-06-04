@@ -18,13 +18,9 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
     }
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
     }
     return () => {
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
     }
   }, [isOpen, onClose])
 
@@ -101,6 +97,8 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
           style={{
             padding: '24px',
             overflowY: 'auto',
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {children}

@@ -21,6 +21,7 @@ import { useAuthStore } from '@/core/store/authStore'
 import { Modal } from '@/core/components/Modal'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { Toast } from '@/shared/components/Toast'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { AxleMeasurement, ChecklistInspection, LabradoRecord, VehicleType } from '@/modules/inspeccion/domain/checklist.types'
 import { LabradoWizard, ChassisGrid, buildAxlesForType, getLayout, inferirConfig, mergeIntoLayout } from '@/modules/inspeccion/components/LabradoWizard'
 import type { UserRole } from '@/modules/auth/domain/auth.types'
@@ -346,7 +347,7 @@ export function AsignacionPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" style={{ position: 'relative', zIndex: 10 }}>
         <div className="filters-grid">
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>ID de inspección</span>
@@ -358,13 +359,18 @@ export function AsignacionPage() {
           </label>
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Estado</span>
-            <select autoComplete="off" name="statusFiltro" value={statusFiltro} onChange={(e) => setStatusFiltro(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="EN PROGRESO">En progreso</option>
-              <option value="BORRADOR">Borrador</option>
-              <option value="CERRADA">Cerrada</option>
-            </select>
+            <CustomSelect
+              options={[
+                { value: '', label: 'Todos' },
+                { value: 'PENDIENTE', label: 'Pendiente' },
+                { value: 'EN PROGRESO', label: 'En progreso' },
+                { value: 'BORRADOR', label: 'Borrador' },
+                { value: 'CERRADA', label: 'Cerrada' },
+              ]}
+              value={statusFiltro}
+              onChange={(val) => setStatusFiltro(val)}
+              placeholder="Todos"
+            />
           </label>
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Vehículo ID</span>
@@ -574,14 +580,18 @@ export function AsignacionPage() {
             <div className="labrado-filter-grid">
               <label style={{ display: 'grid', gap: 6 }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Inspección seleccionada</span>
-                <select value={selectedInspectionId} onChange={(e) => setSelectedInspectionId(e.target.value)}>
-                  <option value="">Seleccione una inspección</option>
-                  {inspecciones.map((insp) => (
-                    <option key={insp.id} value={insp.id}>
-                      {insp.plate || insp.inspection_number || insp.id}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect
+                  options={[
+                    { value: '', label: 'Seleccione una inspección' },
+                    ...inspecciones.map((insp) => ({
+                      value: insp.id,
+                      label: insp.plate || insp.inspection_number || insp.id,
+                    }))
+                  ]}
+                  value={selectedInspectionId}
+                  onChange={(val) => setSelectedInspectionId(val)}
+                  placeholder="Seleccione una inspección"
+                />
               </label>
               <button
                 onClick={() => selectedInspectionId && cargarLabrado(selectedInspectionId)}

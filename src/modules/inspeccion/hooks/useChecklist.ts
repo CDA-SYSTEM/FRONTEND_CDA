@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
 import { offlineStorage } from '@/core/services/offlineStorage'
+import { usuarioService } from '@/modules/usuarios/services/usuarioService'
+import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 import type {
   ChecklistInspection,
   ChecklistTemplate,
@@ -32,6 +34,9 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
   const [plate, setPlate] = useState('')
   const [vehicleId, setVehicleId] = useState<number>(0)
   const [errorMensaje, setErrorMensaje] = useState<string | null>(null)
+  const [inspectores, setInspectores] = useState<Usuario[]>([])
+  const [inspectorId, setInspectorId] = useState<string>('')
+  const [cargandoInspectores, setCargandoInspectores] = useState(false)
   const itemPhotosRef = useRef(itemPhotos)
   const inspectionKey = checklistInspection?.id || inspectionId
 
@@ -69,6 +74,20 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
         setVehicleId(vId)
         setVehicleType(tipo)
         setResponses(responsesFromChecklist(detalle))
+        setInspectorId(detalle.inspector_id || '')
+
+        // Cargar inspectores
+        setCargandoInspectores(true)
+        try {
+          const list = await usuarioService.obtenerPersonalAsignable('INSPECTOR')
+          if (mounted) {
+            setInspectores(list)
+          }
+        } catch (e) {
+          console.error('Error cargando inspectores en useChecklist:', e)
+        } finally {
+          if (mounted) setCargandoInspectores(false)
+        }
 
         if (detalle.template_snapshot) {
           setTemplate(detalle.template_snapshot)
@@ -335,11 +354,11 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
       vehicle_type: checklistInspection.vehicle_type || (vehicleType || 'LIVIANO'),
       template_id: checklistInspection.template_id || checklistInspection.template_ref?.template_id || template?.id,
       inspection_datetime: checklistInspection.inspection_datetime,
-      inspector_id: checklistInspection.inspector_id,
+      inspector_id: inspectorId || checklistInspection.inspector_id,
       responses: normalizedResponses,
       observations: observaciones,
     }
-  }, [checklistInspection, template, responses, obtenerRespuestasArray, observaciones, plate, vehicleId, vehicleType])
+  }, [checklistInspection, template, responses, obtenerRespuestasArray, observaciones, plate, vehicleId, vehicleType, inspectorId])
 
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
@@ -422,5 +441,9 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     itemsSinResponder: itemsSinResponder(),
     guardar,
     cerrar,
+    inspectorId,
+    setInspectorId,
+    inspectores,
+    cargandoInspectores,
   }
 }

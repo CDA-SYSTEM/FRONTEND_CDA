@@ -13,6 +13,7 @@ import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
 import { EstadosPage } from '@/modules/estados/pages/EstadosPage'
 import { PlantillasPage } from '@/modules/inspeccion/pages/PlantillasPage'
+import { ArchivosPage } from '@/modules/storage/pages/ArchivosPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
@@ -62,6 +63,7 @@ export function AppRouter() {
             <Route path="/precios" element={<PreciosPage />} />
             <Route path="/estados" element={<EstadosPage />} />
             <Route path="/plantillas" element={<PlantillasPage />} />
+            <Route path="/archivos" element={<ArchivosPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
           </Route>

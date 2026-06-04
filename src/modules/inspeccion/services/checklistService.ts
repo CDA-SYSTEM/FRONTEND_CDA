@@ -195,7 +195,11 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
     vehicle_type: String(body.vehicle_type ?? body.vehicleType ?? vehicle.vehicle_type ?? vehicle.tipoVehiculo ?? 'LIVIANO') as ChecklistInspection['vehicle_type'],
     template_id: toStringId(body.template_id ?? body.templateId),
     inspection_datetime: toStringId(body.inspection_datetime ?? body.inspectionDatetime ?? body.created_at ?? body.createdAt),
-    inspector_id: toStringId(body.inspector_id ?? body.inspectorId ?? body.operator_id ?? body.operatorId),
+    inspector_id: toStringId(
+      body.inspector_id ??
+      body.inspectorId ??
+      (body.inspector && typeof body.inspector === 'object' ? (body.inspector as any).id : undefined)
+    ),
     status: toStringId(body.status),
     general_result: toStringId(body.general_result ?? body.generalResult),
     responses: Array.isArray(body.responses) ? (body.responses as ChecklistInspection['responses']) : undefined,
@@ -529,6 +533,28 @@ export const checklistService = {
         responses: payload.responses,
         observations: payload.observations,
       })
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  async listarArchivos(limit = 100): Promise<any[]> {
+    try {
+      const response = await apiClient.get('/api/v1/storage/files', {
+        params: { limit }
+      })
+      const body = response.data as Record<string, any>
+      const files = body?.data?.data || body?.data || []
+      return Array.isArray(files) ? files : []
+    } catch {
+      return []
+    }
+  },
+
+  async eliminarArchivo(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/storage/files/${id}`)
       return true
     } catch {
       return false

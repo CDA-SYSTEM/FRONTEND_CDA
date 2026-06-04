@@ -12,6 +12,7 @@ import {
   Truck,
   Trash2,
   Pencil,
+  Eye,
 } from 'lucide-react'
 import { useRegistrarVehiculo } from '@/modules/vehiculo/hooks/useRegistrarVehiculo'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
@@ -30,6 +31,10 @@ export function RegistroVehiculoPage() {
   const [editGuardando, setEditGuardando] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Record<string, string>>({})
+
+  // ── Estado del modal de detalles de vehículo ─────────────────────────────────
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [detailVehiculo, setDetailVehiculo] = useState<any>(null)
 
   const {
     form,
@@ -442,6 +447,31 @@ export function RegistroVehiculoPage() {
                               onClick={() => {
                                 const v2 = vehiculosFiltrados.find(x => x.id === v.id)
                                 if (!v2) return
+                                setDetailVehiculo(v2)
+                                setDetailModalOpen(true)
+                              }}
+                              style={{
+                                background: '#f1f5f9',
+                                color: '#475569',
+                                border: 'none',
+                                padding: '6px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background-color 0.2s',
+                              }}
+                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                              title="Ver Detalles"
+                            >
+                              <Eye size={15} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const v2 = vehiculosFiltrados.find(x => x.id === v.id)
+                                if (!v2) return
                                 const marcaId = typeof v2.marca === 'object' ? String(v2.marca?.id ?? '') : ''
                                 const lineaId = typeof v2.linea === 'object' ? String(v2.linea?.id ?? '') : ''
                                 const claseId = typeof v2.clase === 'object' ? String((v2.clase as any)?.id ?? '') : ''
@@ -550,6 +580,28 @@ export function RegistroVehiculoPage() {
                     </div>
 
                     <div className="vehicle-card-actions">
+                      <button
+                        onClick={() => {
+                          setDetailVehiculo(v)
+                          setDetailModalOpen(true)
+                        }}
+                        style={{
+                          background: '#f1f5f9',
+                          color: '#475569',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <Eye size={14} />
+                        Ver Detalles
+                      </button>
                       <button
                         onClick={() => {
                           const v2 = v
@@ -2058,6 +2110,190 @@ export function RegistroVehiculoPage() {
               >
                 {editGuardando && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />}
                 {editGuardando ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ── Modal Detalle de Vehículo ────────────────────────────────────────── */}
+      <Modal
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        title={`Detalles del Vehículo — Placa: ${detailVehiculo?.placa || ''}`}
+        maxWidth="750px"
+      >
+        {detailVehiculo && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Cabecera / Placa estilo placa real */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{
+                background: '#fef08a',
+                border: '3px solid #1e293b',
+                borderRadius: 8,
+                padding: '6px 20px',
+                display: 'inline-flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '1px', textTransform: 'uppercase' }}>Colombia</span>
+                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#1e293b', lineHeight: 1.1, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                  {detailVehiculo.placa}
+                </span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{
+                  background: '#eff6ff',
+                  color: '#2563eb',
+                  padding: '6px 12px',
+                  borderRadius: 20,
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  display: 'inline-block'
+                }}>
+                  {typeof detailVehiculo.tipoVehiculo === 'object' ? detailVehiculo.tipoVehiculo?.nombre : detailVehiculo.tipoVehiculo || 'Vehículo'}
+                </span>
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                  ID Vehículo: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{detailVehiculo.id}</code>
+                </p>
+              </div>
+            </div>
+
+            {/* Dos Columnas */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+              
+              {/* Columna Especificaciones */}
+              <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
+                  Especificaciones Técnicas
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Marca:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.marca === 'object' ? detailVehiculo.marca?.nombre : detailVehiculo.marca || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Línea:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.linea === 'object' ? detailVehiculo.linea?.nombre : detailVehiculo.linea || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Modelo (Año):</span>
+                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.modelo || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Clase:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.clase === 'object' ? detailVehiculo.clase?.nombre : detailVehiculo.clase || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Cilindraje:</span>
+                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.cilindraje || '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Color:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.color === 'object' ? detailVehiculo.color?.nombre : detailVehiculo.color || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Combustible:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.tipoCombustible === 'object' ? detailVehiculo.tipoCombustible?.nombre : detailVehiculo.tipoCombustible || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>Tipo Servicio:</span>
+                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {typeof detailVehiculo.tipoServicio === 'object' ? detailVehiculo.tipoServicio?.nombre : detailVehiculo.tipoServicio || '—'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 500 }}>No. Certificado:</span>
+                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.certificadoNo || '—'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Columna Propietario */}
+              <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
+                  Información del Propietario
+                </h3>
+                {detailVehiculo.client ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Nombre Completo</span>
+                      <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.95rem' }}>
+                        {detailVehiculo.client.nombre} {detailVehiculo.client.apellido}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Identificación / Cédula</span>
+                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                        {detailVehiculo.client.identity}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Teléfono / Celular</span>
+                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                        {detailVehiculo.client.celular || '—'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Correo Electrónico</span>
+                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                        {detailVehiculo.client.email || '—'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Dirección</span>
+                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                        {detailVehiculo.client.direccion || '—'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', color: '#64748b', gap: 8 }}>
+                    <User size={32} style={{ color: '#cbd5e1' }} />
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ margin: 0, fontWeight: 500 }}>Asociado a Cliente ID</p>
+                      <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, display: 'inline-block', marginTop: 4 }}>
+                        {detailVehiculo.clienteId}
+                      </code>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Botón cerrar */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => setDetailModalOpen(false)}
+                style={{
+                  padding: '10px 24px',
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#2563eb')}
+              >
+                Cerrar
               </button>
             </div>
           </div>

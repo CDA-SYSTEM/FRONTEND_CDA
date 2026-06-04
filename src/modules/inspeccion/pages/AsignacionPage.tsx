@@ -347,7 +347,7 @@ export function AsignacionPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className="panel" style={{ position: 'relative', zIndex: 10 }}>
         <div className="filters-grid">
           <label style={{ display: 'grid', gap: 6 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>ID de inspección</span>

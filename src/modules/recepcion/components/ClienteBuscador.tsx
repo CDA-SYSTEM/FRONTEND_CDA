@@ -14,6 +14,8 @@ interface Props {
   onLimitChange: (l: number) => void
   totalElementos: number
   totalPages: number
+  incluirInactivos: boolean
+  onIncluirInactivosChange: (inc: boolean) => void
 }
 
 export function ClienteBuscador({
@@ -29,39 +31,56 @@ export function ClienteBuscador({
   onLimitChange,
   totalElementos,
   totalPages,
+  incluirInactivos,
+  onIncluirInactivosChange,
 }: Props) {
   return (
     <div>
-      <div style={{ position: 'relative', marginBottom: 24 }}>
-        <div
-          style={{
-            position: 'absolute',
-            left: 16,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#9ca3af',
-          }}
-        >
-          {cargando ? (
-            <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-          ) : (
-            <Search size={20} />
-          )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+        <div style={{ position: 'relative', width: '100%' }}>
+          <div
+            style={{
+              position: 'absolute',
+              left: 16,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#9ca3af',
+            }}
+          >
+            {cargando ? (
+              <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Search size={20} />
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, documento o placa..."
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            style={{ 
+              paddingLeft: 46, 
+              height: 48, 
+              fontSize: '1rem', 
+              borderRadius: 8, 
+              border: '1px solid #e2e8f0', 
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)' 
+            }}
+          />
         </div>
-        <input
-          type="text"
-          placeholder="Buscar por nombre, documento o placa..."
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          style={{ 
-            paddingLeft: 46, 
-            height: 48, 
-            fontSize: '1rem', 
-            borderRadius: 8, 
-            border: '1px solid #e2e8f0', 
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)' 
-          }}
-        />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            id="inc-inactivos"
+            checked={incluirInactivos}
+            onChange={(e) => onIncluirInactivosChange(e.target.checked)}
+            style={{ width: 'auto', minHeight: 'initial', marginTop: 0, cursor: 'pointer' }}
+          />
+          <label htmlFor="inc-inactivos" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>
+            Incluir clientes eliminados o inactivos
+          </label>
+        </div>
       </div>
 
       {error && (
@@ -97,6 +116,7 @@ export function ClienteBuscador({
                   <th style={{ padding: '16px 24px' }}>Documento</th>
                   <th style={{ padding: '16px 24px' }}>Nombre completo</th>
                   <th style={{ padding: '16px 24px' }}>Celular</th>
+                  <th style={{ padding: '16px 24px' }}>Estado</th>
                   <th style={{ padding: '16px 24px', width: 120 }}>Acciones</th>
                 </tr>
               </thead>
@@ -108,6 +128,18 @@ export function ClienteBuscador({
                       {c.nombre} {c.apellido}
                     </td>
                     <td style={{ padding: '16px 24px' }}>{c.celular}</td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: 999,
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        background: (c as any).active !== false ? '#dcfce7' : '#fee2e2',
+                        color: (c as any).active !== false ? '#166534' : '#991b1b'
+                      }}>
+                        {(c as any).active !== false ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
                     <td style={{ padding: '16px 24px' }}>
                       <button
                         onClick={() => onSeleccionarCliente(c)}
@@ -134,9 +166,19 @@ export function ClienteBuscador({
           <div className="clients-cards-mobile">
             {resultados.map((c) => (
               <div key={c.id} className="client-card">
-                <div className="client-card-header">
+                <div className="client-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="client-card-identity" style={{ fontSize: '1.05rem', color: '#1e293b' }}>
                     {c.nombre} {c.apellido}
+                  </span>
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    background: (c as any).active !== false ? '#dcfce7' : '#fee2e2',
+                    color: (c as any).active !== false ? '#166534' : '#991b1b'
+                  }}>
+                    {(c as any).active !== false ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
 
@@ -193,15 +235,23 @@ export function ClienteBuscador({
                   onLimitChange(Number(e.target.value))
                 }}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: 6,
+                  padding: '6px 10px',
+                  borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   background: '#fff',
                   outline: 'none',
                   cursor: 'pointer',
-                  marginTop: 0,
+                  fontSize: '0.875rem',
+                  color: '#334155',
                   minHeight: 'auto',
+                  marginTop: 0,
                   width: 'auto',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  paddingRight: '24px',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 6px center',
                 }}
               >
                 <option value={5}>5</option>

@@ -263,9 +263,10 @@ export const authService = {
     const raw = extractApiArray(response.data)
     return raw.map((r) => {
       const obj = r as Record<string, unknown>
+      const codeStr = String(obj.code ?? obj.id ?? '')
       return {
-        code: String(obj.code ?? obj.id ?? ''),
-        name: String(obj.scope ?? obj.code ?? ''),
+        code: codeStr,
+        name: codeStr.toUpperCase(),
       }
     })
   },

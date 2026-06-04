@@ -8,6 +8,7 @@ import type {
   RolUsuario,
   RolUsuarioForm,
   Usuario,
+  AuthAccount,
 } from '@/modules/usuarios/domain/usuario.types'
 
 function normalizeRole(role: string): RolUsuario {
@@ -61,9 +62,12 @@ export const usuarioService = {
             ),
         ),
       )
-      return onlyActive(
-        results.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])),
-      )
+      const flatList = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+      const uniqueMap = new Map<string, Usuario>()
+      for (const u of flatList) {
+        uniqueMap.set(u.id, u)
+      }
+      return onlyActive(Array.from(uniqueMap.values()))
     }
 
     try {
@@ -159,9 +163,18 @@ export const usuarioService = {
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
-    await apiClient.patch(`/auth/users/${id}`, {
+    await apiClient.patch(`/auth/users/${id}/role`, {
       role: toFormRole(payload.role),
     })
+  },
+
+  async obtenerCuentasAutenticacion(): Promise<AuthAccount[]> {
+    try {
+      const response = await apiClient.get('/auth/admin/personnel/auth-accounts')
+      return extractApiArray(response.data) as AuthAccount[]
+    } catch {
+      return []
+    }
   },
 
   async cambiarEstado(id: string, isActive: boolean): Promise<void> {
@@ -217,13 +230,19 @@ export const usuarioService = {
     try {
       const response = await apiClient.get('/auth/identification-types')
       const data = extractApiArray(response.data)
-      return data.map((item) => {
+      const unique = new Map<string, string>()
+      data.forEach((item) => {
         const r = item as Record<string, unknown>
-        return {
-          code: String(r['code'] ?? r['id'] ?? ''),
-          name: String(r['name'] ?? r['nombre'] ?? r['code'] ?? ''),
+        const rawName = String(r['name'] ?? r['code'] ?? '').trim()
+        const code = rawName.toLowerCase()
+        if (code && !unique.has(code)) {
+          unique.set(code, rawName.toUpperCase())
         }
       })
+      return Array.from(unique.entries()).map(([code, name]) => ({
+        code,
+        name,
+      }))
     } catch {
       return []
     }

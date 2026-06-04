@@ -35,6 +35,7 @@ export interface InspectionSummary {
   inspection_date?: string
   observations?: string
   observations_text?: string
+  status_id?: string
   operator?: {
     id?: string
     firstName?: string

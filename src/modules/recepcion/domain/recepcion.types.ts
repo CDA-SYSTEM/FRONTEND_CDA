@@ -28,6 +28,7 @@ export interface ClientePersonaNatural {
   birthDate?: string
   documentTypeId: number
   personTypeId: number
+  active?: boolean
 }
 
 // ── DTO que envía el frontend al POST /api/v1/clients ────────────────────────

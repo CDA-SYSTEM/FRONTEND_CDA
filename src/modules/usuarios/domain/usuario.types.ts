@@ -31,3 +31,13 @@ export interface ActualizarUsuarioDTO {
   role?: RolUsuarioForm
   isActive?: boolean
 }
+
+export interface AuthAccount {
+  id: string
+  email: string
+  role: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+

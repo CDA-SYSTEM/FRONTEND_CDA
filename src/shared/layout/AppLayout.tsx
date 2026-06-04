@@ -18,6 +18,7 @@ const links = [
   { to: '/precios', label: 'Tarifas', roles: ['ADMIN', 'MANAGER'] },
   { to: '/estados', label: 'Estados', roles: ['ADMIN', 'MANAGER'] },
   { to: '/plantillas', label: 'Plantillas', roles: ['ADMIN', 'MANAGER'] },
+  { to: '/archivos', label: 'Archivos', roles: ['ADMIN'] },
 ]
 
 export function AppLayout() {

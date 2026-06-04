@@ -534,4 +534,26 @@ export const checklistService = {
       return false
     }
   },
+
+  async listarArchivos(limit = 100): Promise<any[]> {
+    try {
+      const response = await apiClient.get('/api/v1/storage/files', {
+        params: { limit }
+      })
+      const body = response.data as Record<string, any>
+      const files = body?.data?.data || body?.data || []
+      return Array.isArray(files) ? files : []
+    } catch {
+      return []
+    }
+  },
+
+  async eliminarArchivo(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/storage/files/${id}`)
+      return true
+    } catch {
+      return false
+    }
+  },
 }

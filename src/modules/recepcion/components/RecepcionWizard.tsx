@@ -415,9 +415,16 @@ function PasoCliente({
         title="Registro de Cliente"
         maxWidth="800px"
       >
-        <p style={{ color: '#6b7280', marginBottom: 20 }}>
-          Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
-        </p>
+        {estado === 'cargando' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
+            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando tipos de documentos...</span>
+          </div>
+        ) : (
+          <>
+            <p style={{ color: '#6b7280', marginBottom: 20 }}>
+              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+            </p>
 
         {errorServidor && (
           <div
@@ -654,6 +661,8 @@ function PasoCliente({
             {enviando ? 'Guardando...' : 'Guardar cliente'}
           </button>
         </form>
+        </>
+        )}
       </Modal>
     </article>
   )

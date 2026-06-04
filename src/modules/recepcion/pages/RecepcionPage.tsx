@@ -20,6 +20,7 @@ import {
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
 import { SignaturePad } from '@/shared/components/SignaturePad'
+import { API_BASE_URL } from '@/core/api/apiConfig'
 import { useAuthStore } from '@/core/store/authStore'
 import type { InspectionSummary, InspectionDetail } from '@/modules/inspeccion/domain/inspeccion.types'
 
@@ -114,9 +115,6 @@ export function RecepcionPage() {
   // Obtener rol de usuario
   const user = useAuthStore((state) => state.user)
   const isAdmin = user?.role === 'ADMIN'
-
-  // Dirección base de la API para imágenes
-  const apiBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
   const cargarDatos = useCallback(async () => {
     setCargando(true)
@@ -254,7 +252,7 @@ export function RecepcionPage() {
   const getMediaUrl = (path?: string) => {
     if (!path) return ''
     if (path.startsWith('http')) return path
-    return `${apiBaseURL}/api/v1/storage/files/${path}`
+    return `${API_BASE_URL}/api/v1/storage/files/${path}`
   }
 
   /* ── Wizard de nueva orden ──────────────────────────────────────────────── */

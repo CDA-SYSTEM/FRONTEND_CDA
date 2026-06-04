@@ -44,12 +44,13 @@ npm install
 Crea el archivo `.env` con base en `.env.example`:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:3000
 VITE_API_KEY_FRONT=tu_api_key_aqui
 VITE_APP_NAME=CDA Putumayo
 ```
 
-> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000/api`
+> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000`
+> Para un dispositivo físico usa la IP LAN o el dominio real del backend.
 
 ---
 

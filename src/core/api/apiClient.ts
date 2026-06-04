@@ -1,11 +1,12 @@
 import axios from 'axios'
+import { API_BASE_URL, API_KEY_FRONT } from '@/core/api/apiConfig'
 import { useAuthStore } from '@/core/store/authStore'
 import { offlineStorage } from '@/core/services/offlineStorage'
 
 const METODOS_MUTACION = ['post', 'patch', 'put', 'delete'] as const
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api',
+  baseURL: API_BASE_URL,
   timeout: 15000,
 })
 
@@ -76,7 +77,7 @@ export async function sincronizar(): Promise<void> {
 
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
-  const apiKey = (import.meta.env.VITE_API_KEY_FRONT as string | undefined)?.trim()
+  const apiKey = API_KEY_FRONT
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -180,13 +181,11 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
-        const apiKey = import.meta.env.VITE_API_KEY_FRONT
         const response = await axios.post(
-          `${baseURL}/auth/refresh`,
+          `${API_BASE_URL}/auth/refresh`,
           { refreshToken },
           {
-            headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
+            headers: API_KEY_FRONT ? { 'X-API-Key': API_KEY_FRONT } : undefined,
           },
         )
 

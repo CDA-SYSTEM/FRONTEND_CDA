@@ -308,47 +308,7 @@ export function RecepcionPage() {
   /* ── Wizard de nueva orden ──────────────────────────────────────────────── */
   if (modo === 'wizard') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* Cabecera con botón de volver */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Nueva Recepción
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-              Registro de ingreso de vehículo para revisión técnico-mecánica
-            </p>
-          </div>
-          <button
-            onClick={() => { setModo('tabla'); cargarDatos() }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              background: '#f1f5f9',
-              color: '#475569',
-              padding: '8px 14px',
-              borderRadius: 8,
-              border: '1px solid #e2e8f0',
-              fontWeight: 500,
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
-          >
-            <X size={16} />
-            Volver
-          </button>
-        </div>
-        <RecepcionWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
-      </div>
+      <RecepcionWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
     )
   }
 

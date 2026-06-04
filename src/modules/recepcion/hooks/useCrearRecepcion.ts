@@ -152,6 +152,19 @@ export function useCrearRecepcion() {
     }
   }, [])
 
+  const recargarVehiculos = useCallback(async () => {
+    if (!cliente) return
+    setCargandoVehiculos(true)
+    try {
+      const v = await ordenServicioService.obtenerVehiculosCliente(cliente.id)
+      setVehiculos(v as Vehiculo[])
+    } catch {
+      setVehiculos([])
+    } finally {
+      setCargandoVehiculos(false)
+    }
+  }, [cliente])
+
   const seleccionarVehiculo = useCallback((v: { id: number | string; placa: string }) => {
     setVehiculo(v)
     setPaso('detalle')
@@ -327,6 +340,7 @@ export function useCrearRecepcion() {
     setTires,
     seleccionarCliente,
     seleccionarVehiculo,
+    recargarVehiculos,
     irADetalleSinVehiculo,
     irACondiciones,
     enviar,

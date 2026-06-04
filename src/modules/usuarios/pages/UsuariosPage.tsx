@@ -110,23 +110,13 @@ export function UsuariosPage() {
             Limpiar
           </button>
           {tab === 'usuarios' && (
-            <select
+            <CustomSelect
+              options={ROLE_FILTERS.map((item) => ({ value: item.value, label: item.label }))}
               value={filtroRol}
-              onChange={(e) => setFiltroRol(e.target.value as '' | RolUsuarioForm)}
-              style={{
-                padding: '8px',
-                borderRadius: '6px',
-                marginTop: 0,
-                minHeight: 'auto',
-                width: 'auto',
-              }}
-            >
-              {ROLE_FILTERS.map((item) => (
-                <option key={item.label} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFiltroRol(val as '' | RolUsuarioForm)}
+              placeholder="Todos los roles"
+              style={{ minWidth: '160px' }}
+            />
           )}
           <button
             onClick={() => setMostrarModal(true)}
@@ -234,25 +224,12 @@ export function UsuariosPage() {
                         : user.name}
                     </td>
                     <td>{user.email}</td>
-                    <td>
-                      <select
+                    <td style={{ minWidth: '160px' }}>
+                      <CustomSelect
+                        options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
                         value={user.role.toLowerCase()}
-                        onChange={(e) =>
-                          handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
-                        }
-                        style={{
-                          marginTop: 0,
-                          minHeight: 'auto',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {ROLES.map((rol) => (
-                          <option key={rol.value} value={rol.value}>
-                            {rol.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
+                      />
                     </td>
                     <td>
                       <span
@@ -346,25 +323,11 @@ export function UsuariosPage() {
 
                 <div className="user-card-row">
                   <span className="user-card-label">Rol:</span>
-                  <select
+                  <CustomSelect
+                    options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
                     value={user.role.toLowerCase()}
-                    onChange={(e) =>
-                      handleCambiarRol(user.id, e.target.value as RolUsuarioForm)
-                    }
-                    style={{
-                      marginTop: 0,
-                      minHeight: 'auto',
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      width: 'auto',
-                    }}
-                  >
-                    {ROLES.map((rol) => (
-                      <option key={rol.value} value={rol.value}>
-                        {rol.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
+                  />
                 </div>
 
                 <div className="user-card-row">
@@ -470,24 +433,11 @@ export function UsuariosPage() {
                           Super Admin
                         </span>
                       ) : (
-                        <select
+                        <CustomSelect
+                          options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
                           value={cuenta.role.toLowerCase()}
-                          onChange={(e) =>
-                            handleCambiarRol(cuenta.id, e.target.value as RolUsuarioForm)
-                          }
-                          style={{
-                            marginTop: 0,
-                            minHeight: 'auto',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                          }}
-                        >
-                          {ROLES.map((rol) => (
-                            <option key={rol.value} value={rol.value}>
-                              {rol.label}
-                            </option>
-                          ))}
-                        </select>
+                          onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
+                        />
                       )}
                     </td>
                     <td>
@@ -583,25 +533,11 @@ export function UsuariosPage() {
                   {cuenta.role === 'superadmin' ? (
                     <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem' }}>Super Admin</span>
                   ) : (
-                    <select
+                    <CustomSelect
+                      options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
                       value={cuenta.role.toLowerCase()}
-                      onChange={(e) =>
-                        handleCambiarRol(cuenta.id, e.target.value as RolUsuarioForm)
-                      }
-                      style={{
-                        marginTop: 0,
-                        minHeight: 'auto',
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        width: 'auto',
-                      }}
-                    >
-                      {ROLES.map((rol) => (
-                        <option key={rol.value} value={rol.value}>
-                          {rol.label}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
+                    />
                   )}
                 </div>
 

@@ -15,6 +15,11 @@ import {
   User,
   UserPlus,
   X,
+  Plus,
+  Bike,
+  Truck,
+  Gauge,
+  Pencil,
 } from 'lucide-react'
 import { useCrearRecepcion, type PasoWizard } from '@/modules/recepcion/hooks/useCrearRecepcion'
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
@@ -26,6 +31,9 @@ import { Modal } from '@/core/components/Modal'
 import { useRegistrarCliente } from '@/modules/recepcion/hooks/useRegistrarCliente'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { useRegistrarVehiculo } from '@/modules/vehiculo/hooks/useRegistrarVehiculo'
+import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
+import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
 
 interface Props {
   onCancelar: () => void
@@ -187,8 +195,9 @@ export function RecepcionWizard({ onCancelar }: Props) {
           cargando={wizard.cargandoVehiculos}
           onSeleccionar={wizard.seleccionarVehiculo}
           onSaltar={wizard.irADetalleSinVehiculo}
-          clienteNombre={`${wizard.cliente?.nombre || ''} ${wizard.cliente?.apellido || ''}`}
+          cliente={wizard.cliente}
           onVolver={wizard.volver}
+          onVehiculoCreado={wizard.recargarVehiculos}
         />
       ) : wizard.paso === 'detalle' ? (
         <PasoDetalle
@@ -668,30 +677,238 @@ function PasoCliente({
   )
 }
 
-/* ── Paso 2: Seleccionar Vehículo ─────────────────────────────────────────── */
-
-interface PasoVehiculoProps {
+  interface PasoVehiculoProps {
   vehiculos: Vehiculo[]
   cargando: boolean
   onSeleccionar: (v: { id: number | string; placa: string }) => void
   onSaltar: () => void
-  clienteNombre: string
+  cliente: any
   onVolver: () => void
+  onVehiculoCreado: () => Promise<void>
 }
 
-function PasoVehiculo({ vehiculos, cargando, onSeleccionar, onSaltar, clienteNombre, onVolver }: PasoVehiculoProps) {
+function PasoVehiculo({
+  vehiculos,
+  cargando,
+  onSeleccionar,
+  onSaltar,
+  cliente,
+  onVolver,
+  onVehiculoCreado,
+}: PasoVehiculoProps) {
+  const [vehiculoNuevoModal, setVehiculoNuevoModal] = useState(false)
+
+  const {
+    form,
+    estado,
+    errorCatalogo,
+    errorServidor,
+    vehiculoGuardado,
+    seleccionarCliente,
+    resetFormulario,
+    onSubmit,
+    marcas,
+    clases,
+    lineas,
+    colores,
+    tiposVehiculo,
+    tiposCombustible,
+    tiposServicio,
+    esMotocicleta,
+  } = useRegistrarVehiculo()
+
+  const {
+    register,
+    formState: { errors },
+    watch,
+    setValue,
+  } = form
+
+  const enviando = estado === 'enviando'
+  const tipoVehiculoId = watch('tipoVehiculoId')
+  const tipoVehiculoActual = tiposVehiculo.find((t) => t.id === tipoVehiculoId)
+
+  // Pre-seleccionar el cliente actual al abrir el modal
+  useEffect(() => {
+    if (vehiculoNuevoModal && cliente) {
+      seleccionarCliente(cliente)
+    }
+  }, [vehiculoNuevoModal, cliente, seleccionarCliente])
+
+  // Recargar la lista de vehículos cuando se crea exitosamente
+  useEffect(() => {
+    if (estado === 'exito' && vehiculoGuardado) {
+      onVehiculoCreado()
+      setVehiculoNuevoModal(false)
+      resetFormulario()
+    }
+  }, [estado, vehiculoGuardado, onVehiculoCreado, resetFormulario])
+
+  const [localMarcas, setLocalMarcas] = useState<CatalogoItem[]>([])
+  const [localClases, setLocalClases] = useState<CatalogoItem[]>([])
+  const [localLineas, setLocalLineas] = useState<CatalogoItem[]>([])
+  const [localColores, setLocalColores] = useState<CatalogoItem[]>([])
+  const [localCombustibles, setLocalCombustibles] = useState<CatalogoItem[]>([])
+  const [localTiposVehiculo, setLocalTiposVehiculo] = useState<CatalogoItem[]>([])
+  const [localTiposServicio, setLocalTiposServicio] = useState<CatalogoItem[]>([])
+
+  useEffect(() => {
+    if (marcas.length > 0) setLocalMarcas(marcas)
+  }, [marcas])
+  useEffect(() => {
+    if (clases.length > 0) setLocalClases(clases)
+  }, [clases])
+  useEffect(() => {
+    if (lineas.length > 0) setLocalLineas(lineas)
+  }, [lineas])
+  useEffect(() => {
+    if (colores.length > 0) setLocalColores(colores)
+  }, [colores])
+  useEffect(() => {
+    if (tiposCombustible.length > 0) setLocalCombustibles(tiposCombustible)
+  }, [tiposCombustible])
+  useEffect(() => {
+    if (tiposVehiculo.length > 0) setLocalTiposVehiculo(tiposVehiculo)
+  }, [tiposVehiculo])
+  useEffect(() => {
+    if (tiposServicio.length > 0) setLocalTiposServicio(tiposServicio)
+  }, [tiposServicio])
+
+  const [creandoMarcaInline, setCreandoMarcaInline] = useState(false)
+  const [creandoLineaInline, setCreandoLineaInline] = useState(false)
+  const [creandoClaseInline, setCreandoClaseInline] = useState(false)
+  const [creandoColorInline, setCreandoColorInline] = useState(false)
+  const [creandoCombustibleInline, setCreandoCombustibleInline] = useState(false)
+  const [creandoTipoVehiculoInline, setCreandoTipoVehiculoInline] = useState(false)
+  const [creandoTipoServicioInline, setCreandoTipoServicioInline] = useState(false)
+
+  const [editandoMarcaInline, setEditandoMarcaInline] = useState(false)
+  const [editandoLineaInline, setEditandoLineaInline] = useState(false)
+  const [editandoClaseInline, setEditandoClaseInline] = useState(false)
+  const [editandoColorInline, setEditandoColorInline] = useState(false)
+  const [editandoCombustibleInline, setEditandoCombustibleInline] = useState(false)
+  const [editandoTipoVehiculoInline, setEditandoTipoVehiculoInline] = useState(false)
+  const [editandoTipoServicioInline, setEditandoTipoServicioInline] = useState(false)
+  
+  const [nuevaMarcaNombre, setNuevaMarcaNombre] = useState('')
+  const [nuevaLineaNombre, setNuevaLineaNombre] = useState('')
+  const [nuevaClaseNombre, setNuevaClaseNombre] = useState('')
+  const [nuevaColorNombre, setNuevaColorNombre] = useState('')
+  const [nuevaCombustibleNombre, setNuevaCombustibleNombre] = useState('')
+  const [nuevaTipoVehiculoNombre, setNuevaTipoVehiculoNombre] = useState('')
+  const [nuevaTipoServicioNombre, setNuevaTipoServicioNombre] = useState('')
+
+  const [guardandoCatalogo, setGuardandoCatalogo] = useState(false)
+
+  const handleCloseModal = () => {
+    resetFormulario()
+    setVehiculoNuevoModal(false)
+    setCreandoMarcaInline(false)
+    setCreandoLineaInline(false)
+    setCreandoClaseInline(false)
+    setCreandoColorInline(false)
+    setCreandoCombustibleInline(false)
+    setCreandoTipoVehiculoInline(false)
+    setCreandoTipoServicioInline(false)
+    setEditandoMarcaInline(false)
+    setEditandoLineaInline(false)
+    setEditandoClaseInline(false)
+    setEditandoColorInline(false)
+    setEditandoCombustibleInline(false)
+    setEditandoTipoVehiculoInline(false)
+    setEditandoTipoServicioInline(false)
+  }
+
+  const labelStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: '#334155',
+  } as const
+
+  const inputStyle = {
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    padding: '10px 14px',
+    fontSize: '0.95rem',
+    outline: 'none',
+    width: '100%',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    background: '#fff',
+  } as const
+
+  const btnActionStyle = {
+    background: 'none',
+    border: 'none',
+    color: '#2563eb',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 6px',
+  } as const
+
+  const btnSaveStyle = {
+    padding: '8px 12px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    fontWeight: 600,
+  } as const
+
+  const btnCancelStyle = {
+    padding: '8px 12px',
+    background: '#e2e8f0',
+    color: '#475569',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    fontWeight: 600,
+  } as const
+
+
+
+  const clienteNombre = cliente ? `${cliente.nombre || ''} ${cliente.apellido || ''}`.trim() : ''
+
   return (
     <article className="panel">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
-          <ArrowLeft size={18} />
-        </button>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Vehículo</h2>
-          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
-            Cliente: <strong>{clienteNombre}</strong>
-          </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Vehículo</h2>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+              Cliente: <strong>{clienteNombre}</strong>
+            </p>
+          </div>
         </div>
+        <button
+          onClick={() => setVehiculoNuevoModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.85rem',
+          }}
+        >
+          <Plus size={16} />
+          Nuevo Vehículo
+        </button>
       </div>
 
       {cargando ? (
@@ -764,9 +981,971 @@ function PasoVehiculo({ vehiculos, cargando, onSeleccionar, onSaltar, clienteNom
             fontSize: '0.85rem',
           }}
         >
-          Registrar vehículo después
+          Registrar vehiculo después
         </button>
       </div>
+
+      {/* Modal de Registro de Vehículo */}
+      <Modal
+        isOpen={vehiculoNuevoModal}
+        onClose={handleCloseModal}
+        title="Registro de Vehículo"
+        maxWidth="800px"
+      >
+        {estado === 'cargando' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
+            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando datos de catálogos de vehículos...</span>
+          </div>
+        ) : (
+          <div>
+            <p style={{ color: '#6b7280', marginBottom: 16 }}>
+              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+            </p>
+
+            {/* Error de catálogos */}
+            {errorCatalogo && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  marginBottom: 16,
+                  color: '#991b1b',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <AlertCircle size={16} />
+                <span>{errorCatalogo}</span>
+              </div>
+            )}
+
+            {/* Error global del servidor */}
+            {errorServidor && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: 8,
+                  padding: '10px 14px',
+                  marginBottom: 16,
+                  color: '#991b1b',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <AlertCircle size={16} />
+                <span>{errorServidor}</span>
+              </div>
+            )}
+
+            <form onSubmit={onSubmit} className="form-grid">
+              {/* Cliente Info (Solo lectura) */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 12,
+                  padding: '14px 18px',
+                  marginBottom: 16,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                }}
+              >
+                <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'block', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Cliente Propietario
+                </span>
+                <strong style={{ fontSize: '1.05rem', color: '#1e293b' }}>{clienteNombre}</strong>
+                <span style={{ color: '#64748b', marginLeft: 12, fontSize: '0.9rem', fontWeight: 500 }}>
+                  ({cliente?.identity})
+                </span>
+              </div>
+
+              {/* Identificación del Vehículo */}
+              <fieldset className="form-row-2">
+                <label style={labelStyle}>
+                  <div>Placa <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                  <input
+                    placeholder="Ej: ABC123 o ABC12A"
+                    style={{ ...inputStyle, textTransform: 'uppercase' }}
+                    {...register('placa')}
+                    disabled={enviando}
+                    maxLength={7}
+                  />
+                  {errors.placa && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.placa.message}</span>
+                  )}
+                </label>
+
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de vehículo <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoTipoVehiculoInline && !editandoTipoVehiculoInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaTipoVehiculoNombre('')
+                              setCreandoTipoVehiculoInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoVehiculoId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoVehiculoId'))
+                                const item = localTiposVehiculo.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaTipoVehiculoNombre(item.nombre)
+                                  setEditandoTipoVehiculoInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoTipoVehiculoInline || editandoTipoVehiculoInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoTipoVehiculoInline ? "Editar tipo..." : "Nuevo tipo..."}
+                        value={nuevaTipoVehiculoNombre}
+                        onChange={(e) => setNuevaTipoVehiculoNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaTipoVehiculoNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoTipoVehiculoInline) {
+                              const selectedId = Number(watch('tipoVehiculoId'))
+                              const updated = await vehiculoService.actualizarTipoVehiculo(selectedId, nuevaTipoVehiculoNombre.trim())
+                              setLocalTiposVehiculo(localTiposVehiculo.map(t => t.id === selectedId ? updated : t))
+                              setEditandoTipoVehiculoInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoVehiculo(nuevaTipoVehiculoNombre.trim())
+                              setLocalTiposVehiculo([...localTiposVehiculo, nueva])
+                              setValue('tipoVehiculoId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoTipoVehiculoInline(false)
+                            }
+                            setNuevaTipoVehiculoNombre('')
+                          } catch (e) {
+                            alert(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaTipoVehiculoNombre('')
+                          setCreandoTipoVehiculoInline(false)
+                          setEditandoTipoVehiculoInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localTiposVehiculo.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoVehiculoId') || '')}
+                      onChange={(val) => setValue('tipoVehiculoId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.tipoVehiculoId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+                      {errors.tipoVehiculoId.message}
+                    </span>
+                  )}
+                </label>
+              </fieldset>
+
+              {/* Indicador de formato de inspección */}
+              {tipoVehiculoActual && tipoVehiculoId > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '12px 16px',
+                    background: esMotocicleta ? '#fefce8' : '#f0f9ff',
+                    border: `1px solid ${esMotocicleta ? '#fde68a' : '#bae6fd'}`,
+                    borderRadius: 10,
+                    color: esMotocicleta ? '#854d0e' : '#075985',
+                    fontSize: '0.9rem',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.01)',
+                  }}
+                >
+                  {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
+                  <span>
+                    Formato de inspección:{' '}
+                    <strong>
+                      {esMotocicleta ? 'Motocicleta (NTC 5385)' : 'Vehículo liviano/pesado (NTC 5375)'}
+                    </strong>
+                  </span>
+                </div>
+              )}
+
+              {/* Cilindraje (solo para motos) */}
+              {esMotocicleta && (
+                <label style={labelStyle}>
+                  <div>Cilindraje (cc) <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: 12,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9ca3af',
+                      }}
+                    >
+                      <Gauge size={18} />
+                    </div>
+                    <input
+                      placeholder="Ej: 150"
+                      style={{ ...inputStyle, paddingLeft: 40 }}
+                      {...register('cilindraje')}
+                      disabled={enviando}
+                    />
+                  </div>
+                  {errors.cilindraje && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.cilindraje.message}</span>
+                  )}
+                </label>
+              )}
+
+              {/* Marca, Línea y Clase */}
+              <fieldset className="form-row-2">
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Marca <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoMarcaInline && !editandoMarcaInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaMarcaNombre('')
+                              setCreandoMarcaInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('marcaId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('marcaId'))
+                                const item = localMarcas.find(m => m.id === selectedId)
+                                if (item) {
+                                  setNuevaMarcaNombre(item.nombre)
+                                  setEditandoMarcaInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoMarcaInline || editandoMarcaInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoMarcaInline ? "Editar marca..." : "Nueva marca..."}
+                        value={nuevaMarcaNombre}
+                        onChange={(e) => setNuevaMarcaNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaMarcaNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoMarcaInline) {
+                              const selectedId = Number(watch('marcaId'))
+                              const updated = await vehiculoService.actualizarMarca(selectedId, nuevaMarcaNombre.trim())
+                              setLocalMarcas(localMarcas.map(m => m.id === selectedId ? updated : m))
+                              setEditandoMarcaInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearMarca(nuevaMarcaNombre.trim())
+                              setLocalMarcas([...localMarcas, nueva])
+                              setValue('marcaId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoMarcaInline(false)
+                            }
+                            setNuevaMarcaNombre('')
+                          } catch (e) {
+                            alert(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaMarcaNombre('')
+                          setCreandoMarcaInline(false)
+                          setEditandoMarcaInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localMarcas.map((m) => ({ value: String(m.id), label: m.nombre }))}
+                      value={String(watch('marcaId') || '')}
+                      onChange={(val) => setValue('marcaId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.marcaId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.marcaId.message}</span>
+                  )}
+                </label>
+
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Línea <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoLineaInline && !editandoLineaInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaLineaNombre('')
+                              setCreandoLineaInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('lineaId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('lineaId'))
+                                const item = localLineas.find(l => l.id === selectedId)
+                                if (item) {
+                                  setNuevaLineaNombre(item.nombre)
+                                  setEditandoLineaInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoLineaInline || editandoLineaInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoLineaInline ? "Editar línea..." : "Nueva línea..."}
+                        value={nuevaLineaNombre}
+                        onChange={(e) => setNuevaLineaNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaLineaNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoLineaInline) {
+                              const selectedId = Number(watch('lineaId'))
+                              const marcaIdActual = watch('marcaId')
+                              const updated = await vehiculoService.actualizarLinea(
+                                selectedId,
+                                nuevaLineaNombre.trim(),
+                                marcaIdActual ? Number(marcaIdActual) : undefined
+                              )
+                              setLocalLineas(localLineas.map(l => l.id === selectedId ? updated : l))
+                              setEditandoLineaInline(false)
+                            } else {
+                              const marcaIdActual = watch('marcaId')
+                              const nueva = await vehiculoService.crearLinea(
+                                nuevaLineaNombre.trim(),
+                                marcaIdActual ? Number(marcaIdActual) : undefined
+                              )
+                              setLocalLineas([...localLineas, nueva])
+                              setValue('lineaId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoLineaInline(false)
+                            }
+                            setNuevaLineaNombre('')
+                          } catch (e) {
+                            alert(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaLineaNombre('')
+                          setCreandoLineaInline(false)
+                          setEditandoLineaInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localLineas.map((l) => ({ value: String(l.id), label: l.nombre }))}
+                      value={String(watch('lineaId') || '')}
+                      onChange={(val) => setValue('lineaId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.lineaId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.lineaId.message}</span>
+                  )}
+                </label>
+              </fieldset>
+
+              <fieldset className="form-row-2">
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Clase <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoClaseInline && !editandoClaseInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaClaseNombre('')
+                              setCreandoClaseInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('claseId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('claseId'))
+                                const item = localClases.find(c => c.id === selectedId)
+                                if (item) {
+                                  setNuevaClaseNombre(item.nombre)
+                                  setEditandoClaseInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoClaseInline || editandoClaseInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoClaseInline ? "Editar clase..." : "Nueva clase..."}
+                        value={nuevaClaseNombre}
+                        onChange={(e) => setNuevaClaseNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaClaseNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoClaseInline) {
+                              const selectedId = Number(watch('claseId'))
+                              const updated = await vehiculoService.actualizarClase(selectedId, nuevaClaseNombre.trim())
+                              setLocalClases(localClases.map(c => c.id === selectedId ? updated : c))
+                              setEditandoClaseInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearClase(nuevaClaseNombre.trim())
+                              setLocalClases([...localClases, nueva])
+                              setValue('claseId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoClaseInline(false)
+                            }
+                            setNuevaClaseNombre('')
+                          } catch (e) {
+                            alert(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaClaseNombre('')
+                          setCreandoClaseInline(false)
+                          setEditandoClaseInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localClases.map((c) => ({ value: String(c.id), label: c.nombre }))}
+                      value={String(watch('claseId') || '')}
+                      onChange={(val) => setValue('claseId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.claseId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.claseId.message}</span>
+                  )}
+                </label>
+
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Color <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoColorInline && !editandoColorInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaColorNombre('')
+                              setCreandoColorInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('colorId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('colorId'))
+                                const item = localColores.find(c => c.id === selectedId)
+                                if (item) {
+                                  setNuevaColorNombre(item.nombre)
+                                  setEditandoColorInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoColorInline || editandoColorInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoColorInline ? "Editar color..." : "Nuevo color..."}
+                        value={nuevaColorNombre}
+                        onChange={(e) => setNuevaColorNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaColorNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoColorInline) {
+                              const selectedId = Number(watch('colorId'))
+                              const updated = await vehiculoService.actualizarColor(selectedId, nuevaColorNombre.trim())
+                              setLocalColores(localColores.map(c => c.id === selectedId ? updated : c))
+                              setEditandoColorInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearColor(nuevaColorNombre.trim())
+                              setLocalColores([...localColores, nueva])
+                              setValue('colorId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoColorInline(false)
+                            }
+                            setNuevaColorNombre('')
+                          } catch (e) {
+                            alert(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaColorNombre('')
+                          setCreandoColorInline(false)
+                          setEditandoColorInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localColores.map((c) => ({ value: String(c.id), label: c.nombre }))}
+                      value={String(watch('colorId') || '')}
+                      onChange={(val) => setValue('colorId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.colorId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.colorId.message}</span>
+                  )}
+                </label>
+              </fieldset>
+
+              {/* Modelo, Combustible, Servicio */}
+              <fieldset className="form-row-2">
+                <label style={labelStyle}>
+                  <div>Modelo (año) <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                  <input
+                    placeholder="Ej: 2024"
+                    maxLength={4}
+                    style={inputStyle}
+                    {...register('modelo')}
+                    disabled={enviando}
+                  />
+                  {errors.modelo && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.modelo.message}</span>
+                  )}
+                </label>
+
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de combustible <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoCombustibleInline && !editandoCombustibleInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaCombustibleNombre('')
+                              setCreandoCombustibleInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoCombustibleId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoCombustibleId'))
+                                const item = localCombustibles.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaCombustibleNombre(item.nombre)
+                                  setEditandoCombustibleInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoCombustibleInline || editandoCombustibleInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoCombustibleInline ? "Editar combustible..." : "Nuevo combustible..."}
+                        value={nuevaCombustibleNombre}
+                        onChange={(e) => setNuevaCombustibleNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaCombustibleNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoCombustibleInline) {
+                              const selectedId = Number(watch('tipoCombustibleId'))
+                              const updated = await vehiculoService.actualizarTipoCombustible(selectedId, nuevaCombustibleNombre.trim())
+                              setLocalCombustibles(localCombustibles.map(t => t.id === selectedId ? updated : t))
+                              setEditandoCombustibleInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoCombustible(nuevaCombustibleNombre.trim())
+                              setLocalCombustibles([...localCombustibles, nueva])
+                              setValue('tipoCombustibleId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoCombustibleInline(false)
+                            }
+                            setNuevaCombustibleNombre('')
+                          } catch (e) {
+                            alert(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaCombustibleNombre('')
+                          setCreandoCombustibleInline(false)
+                          setEditandoCombustibleInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localCombustibles.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoCombustibleId') || '')}
+                      onChange={(val) => setValue('tipoCombustibleId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.tipoCombustibleId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+                      {errors.tipoCombustibleId.message}
+                    </span>
+                  )}
+                </label>
+              </fieldset>
+
+              <fieldset className="form-row-2">
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de servicio <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoTipoServicioInline && !editandoTipoServicioInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaTipoServicioNombre('')
+                              setCreandoTipoServicioInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoServicioId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoServicioId'))
+                                const item = localTiposServicio.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaTipoServicioNombre(item.nombre)
+                                  setEditandoTipoServicioInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoTipoServicioInline || editandoTipoServicioInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoTipoServicioInline ? "Editar servicio..." : "Nuevo servicio..."}
+                        value={nuevaTipoServicioNombre}
+                        onChange={(e) => setNuevaTipoServicioNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaTipoServicioNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoTipoServicioInline) {
+                              const selectedId = Number(watch('tipoServicioId'))
+                              const updated = await vehiculoService.actualizarTipoServicio(selectedId, nuevaTipoServicioNombre.trim())
+                              setLocalTiposServicio(localTiposServicio.map(t => t.id === selectedId ? updated : t))
+                              setEditandoTipoServicioInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoServicio(nuevaTipoServicioNombre.trim())
+                              setLocalTiposServicio([...localTiposServicio, nueva])
+                              setValue('tipoServicioId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoTipoServicioInline(false)
+                            }
+                            setNuevaTipoServicioNombre('')
+                          } catch (e) {
+                            alert(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaTipoServicioNombre('')
+                          setCreandoTipoServicioInline(false)
+                          setEditandoTipoServicioInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localTiposServicio.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoServicioId') || '')}
+                      onChange={(val) => setValue('tipoServicioId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
+                  {errors.tipoServicioId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+                      {errors.tipoServicioId.message}
+                    </span>
+                  )}
+                </label>
+
+                <label style={labelStyle}>
+                  <div>Número de certificado <small style={{ color: '#9ca3af', fontSize: '0.8rem', fontWeight: 400 }}>(opcional)</small></div>
+                  <input
+                    placeholder="Ej: CERT-001"
+                    style={inputStyle}
+                    {...register('certificadoNo')}
+                    disabled={enviando}
+                  />
+                </label>
+              </fieldset>
+
+              {/* Botones de envío / cancelación */}
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20, width: '100%' }}>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '11px 20px',
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    transition: 'background-color 0.2s',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={enviando}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '11px 22px',
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
+                    transition: 'opacity 0.2s',
+                    opacity: enviando ? 0.7 : 1,
+                  }}
+                >
+                  {enviando && (
+                    <Loader2
+                      size={16}
+                      style={{ animation: 'spin 1s linear infinite' }}
+                    />
+                  )}
+                  {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
+                  {enviando ? 'Guardando...' : 'Registrar vehículo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </Modal>
     </article>
   )
 }
@@ -830,28 +2009,22 @@ function PasoDetalle({
 
         <label>
           Tipo de revisión <span style={{ color: '#ef4444' }}>*</span>
-          <select
-            value={revisionType}
-            onChange={(e) => setRevisionType(e.target.value)}
-          >
-            <option value="">Seleccione...</option>
-            {tiposRevision.map((t) => (
-              <option key={t.id} value={t.id}>{t.nombre}</option>
-            ))}
-          </select>
+          <CustomSelect
+            options={tiposRevision.map((t) => ({ value: String(t.id), label: t.nombre }))}
+            value={String(revisionType)}
+            onChange={(val) => setRevisionType(val)}
+            placeholder="Seleccione..."
+          />
         </label>
 
         <label>
           Tipo de cliente <span style={{ color: '#ef4444' }}>*</span>
-          <select
-            value={customerType}
-            onChange={(e) => setCustomerType(e.target.value)}
-          >
-            <option value="">Seleccione...</option>
-            {tiposCliente.map((t) => (
-              <option key={t.id} value={t.id}>{t.nombre}</option>
-            ))}
-          </select>
+          <CustomSelect
+            options={tiposCliente.map((t) => ({ value: String(t.id), label: t.nombre }))}
+            value={String(customerType)}
+            onChange={(val) => setCustomerType(val)}
+            placeholder="Seleccione..."
+          />
         </label>
 
         <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 12 }}>
@@ -861,18 +2034,13 @@ function PasoDetalle({
 
           <label>
             <span style={{ fontWeight: 500 }}>Operario a asignar <span style={{ color: '#ef4444' }}>*</span></span>
-            <select
-              value={usuarioAsignadoId}
-              onChange={(e) => setUsuarioAsignadoId(e.target.value)}
+            <CustomSelect
+              options={usuariosAsignables.map((u) => ({ value: String(u.id), label: labelPersonal(u) }))}
+              value={String(usuarioAsignadoId)}
+              onChange={(val) => setUsuarioAsignadoId(val)}
+              placeholder="Seleccione operario..."
               disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
-            >
-              <option value="">Seleccione operario...</option>
-              {usuariosAsignables.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {labelPersonal(u)}
-                </option>
-              ))}
-            </select>
+            />
             {cargandoUsuariosAsignables && (
               <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
                 Cargando operarios disponibles...
@@ -1007,27 +2175,42 @@ function PasoCondiciones({
         <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
           <label>
             <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
-            <select value={tintedWindows} onChange={(e) => setTintedWindows(e.target.value)} disabled={estadoEnvio === 'enviando'}>
-              <option value="NO">NO</option>
-              <option value="SI">SI</option>
-              <option value="NO_APLICA">NO APLICA</option>
-            </select>
+            <CustomSelect
+              options={[
+                { value: 'NO', label: 'NO' },
+                { value: 'SI', label: 'SÍ' },
+                { value: 'NO_APLICA', label: 'NO APLICA' },
+              ]}
+              value={tintedWindows}
+              onChange={(val) => setTintedWindows(val)}
+              disabled={estadoEnvio === 'enviando'}
+            />
           </label>
           <label>
             <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
-            <select value={armoredVehicle} onChange={(e) => setArmoredVehicle(e.target.value)} disabled={estadoEnvio === 'enviando'}>
-              <option value="NO">NO</option>
-              <option value="SI">SI</option>
-              <option value="NO_APLICA">NO APLICA</option>
-            </select>
+            <CustomSelect
+              options={[
+                { value: 'NO', label: 'NO' },
+                { value: 'SI', label: 'SÍ' },
+                { value: 'NO_APLICA', label: 'NO APLICA' },
+              ]}
+              value={armoredVehicle}
+              onChange={(val) => setArmoredVehicle(val)}
+              disabled={estadoEnvio === 'enviando'}
+            />
           </label>
           <label>
             <span style={{ fontWeight: 500 }}>Depósito líquido frenos</span>
-            <select value={brakeFluidSightGlass} onChange={(e) => setBrakeFluidSightGlass(e.target.value)} disabled={estadoEnvio === 'enviando'}>
-              <option value="BUEN_ESTADO">BUEN ESTADO</option>
-              <option value="MAL_ESTADO">MAL ESTADO</option>
-              <option value="NO_APLICA">NO APLICA</option>
-            </select>
+            <CustomSelect
+              options={[
+                { value: 'BUEN_ESTADO', label: 'BUEN ESTADO' },
+                { value: 'MAL_ESTADO', label: 'MAL ESTADO' },
+                { value: 'NO_APLICA', label: 'NO APLICA' },
+              ]}
+              value={brakeFluidSightGlass}
+              onChange={(val) => setBrakeFluidSightGlass(val)}
+              disabled={estadoEnvio === 'enviando'}
+            />
           </label>
         </div>
 

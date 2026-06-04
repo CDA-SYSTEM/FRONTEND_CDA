@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   AlertCircle,
   Bike,
@@ -11,14 +11,25 @@ import {
   X,
   Truck,
   Trash2,
+  Pencil,
 } from 'lucide-react'
 import { useRegistrarVehiculo } from '@/modules/vehiculo/hooks/useRegistrarVehiculo'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import { Modal } from '@/core/components/Modal'
+import { CustomSelect } from '@/shared/components/CustomSelect'
+import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
+import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
 
 export function RegistroVehiculoPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [queryVehiculo, setQueryVehiculo] = useState('')
+
+  // ── Estado del modal de edición de vehículo ───────────────────────────────────
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editVehiculo, setEditVehiculo] = useState<any>(null)
+  const [editGuardando, setEditGuardando] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<Record<string, string>>({})
 
   const {
     form,
@@ -59,11 +70,70 @@ export function RegistroVehiculoPage() {
     register,
     formState: { errors },
     watch,
+    setValue,
   } = form
 
   const enviando = estado === 'enviando'
   const tipoVehiculoId = watch('tipoVehiculoId')
   const tipoVehiculoActual = tiposVehiculo.find((t) => t.id === tipoVehiculoId)
+
+  // ── Estados locales de catálogos (deben estar ANTES de cualquier early return) ──
+  const [localMarcas, setLocalMarcas] = useState<CatalogoItem[]>([])
+  const [localClases, setLocalClases] = useState<CatalogoItem[]>([])
+  const [localLineas, setLocalLineas] = useState<CatalogoItem[]>([])
+  const [localColores, setLocalColores] = useState<CatalogoItem[]>([])
+  const [localCombustibles, setLocalCombustibles] = useState<CatalogoItem[]>([])
+  const [localTiposVehiculo, setLocalTiposVehiculo] = useState<CatalogoItem[]>([])
+  const [localTiposServicio, setLocalTiposServicio] = useState<CatalogoItem[]>([])
+
+  const [creandoMarcaInline, setCreandoMarcaInline] = useState(false)
+  const [creandoLineaInline, setCreandoLineaInline] = useState(false)
+  const [creandoClaseInline, setCreandoClaseInline] = useState(false)
+  const [creandoColorInline, setCreandoColorInline] = useState(false)
+  const [creandoCombustibleInline, setCreandoCombustibleInline] = useState(false)
+  const [creandoTipoVehiculoInline, setCreandoTipoVehiculoInline] = useState(false)
+  const [creandoTipoServicioInline, setCreandoTipoServicioInline] = useState(false)
+
+  const [editandoMarcaInline, setEditandoMarcaInline] = useState(false)
+  const [editandoLineaInline, setEditandoLineaInline] = useState(false)
+  const [editandoClaseInline, setEditandoClaseInline] = useState(false)
+  const [editandoColorInline, setEditandoColorInline] = useState(false)
+  const [editandoCombustibleInline, setEditandoCombustibleInline] = useState(false)
+  const [editandoTipoVehiculoInline, setEditandoTipoVehiculoInline] = useState(false)
+  const [editandoTipoServicioInline, setEditandoTipoServicioInline] = useState(false)
+
+  const [nuevaMarcaNombre, setNuevaMarcaNombre] = useState('')
+  const [nuevaLineaNombre, setNuevaLineaNombre] = useState('')
+  const [nuevaClaseNombre, setNuevaClaseNombre] = useState('')
+  const [nuevaColorNombre, setNuevaColorNombre] = useState('')
+  const [nuevaCombustibleNombre, setNuevaCombustibleNombre] = useState('')
+  const [nuevaTipoVehiculoNombre, setNuevaTipoVehiculoNombre] = useState('')
+  const [nuevaTipoServicioNombre, setNuevaTipoServicioNombre] = useState('')
+
+  const [guardandoCatalogo, setGuardandoCatalogo] = useState(false)
+
+  // ── Sincronización de catálogos con datos del hook ──────────────────────────
+  useEffect(() => {
+    if (marcas.length > 0) setLocalMarcas(marcas)
+  }, [marcas])
+  useEffect(() => {
+    if (clases.length > 0) setLocalClases(clases)
+  }, [clases])
+  useEffect(() => {
+    if (lineas.length > 0) setLocalLineas(lineas)
+  }, [lineas])
+  useEffect(() => {
+    if (colores.length > 0) setLocalColores(colores)
+  }, [colores])
+  useEffect(() => {
+    if (tiposCombustible.length > 0) setLocalCombustibles(tiposCombustible)
+  }, [tiposCombustible])
+  useEffect(() => {
+    if (tiposVehiculo.length > 0) setLocalTiposVehiculo(tiposVehiculo)
+  }, [tiposVehiculo])
+  useEffect(() => {
+    if (tiposServicio.length > 0) setLocalTiposServicio(tiposServicio)
+  }, [tiposServicio])
 
   // ── Filtrado de Vehículos en Cliente ─────────────────────────────────────────
   const vehiculosFiltrados = useMemo(() => {
@@ -76,7 +146,7 @@ export function RegistroVehiculoPage() {
       const marcaMatch = marcaNombre?.toLowerCase().includes(q)
       const lineaNombre = typeof v.linea === 'object' ? v.linea?.nombre : v.linea
       const lineaMatch = lineaNombre?.toLowerCase().includes(q)
-      
+
       const clientName = v.client ? `${v.client.nombre} ${v.client.apellido}`.toLowerCase() : ''
       const clientIdDoc = v.client ? v.client.identity.toLowerCase() : ''
       const clientMatch = clientName.includes(q) || clientIdDoc.includes(q) || String(v.clienteId).includes(q)
@@ -84,6 +154,78 @@ export function RegistroVehiculoPage() {
       return placaMatch || modeloMatch || marcaMatch || lineaMatch || clientMatch
     })
   }, [vehiculos, queryVehiculo])
+
+  const handleCloseModal = () => {
+    resetFormulario()
+    setIsModalOpen(false)
+    setCreandoMarcaInline(false)
+    setCreandoLineaInline(false)
+    setCreandoClaseInline(false)
+    setCreandoColorInline(false)
+    setCreandoCombustibleInline(false)
+    setCreandoTipoVehiculoInline(false)
+    setCreandoTipoServicioInline(false)
+    setEditandoMarcaInline(false)
+    setEditandoLineaInline(false)
+    setEditandoClaseInline(false)
+    setEditandoColorInline(false)
+    setEditandoCombustibleInline(false)
+    setEditandoTipoVehiculoInline(false)
+    setEditandoTipoServicioInline(false)
+  }
+
+  const labelStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: '#334155',
+  } as const
+
+  const inputStyle = {
+    borderRadius: '8px',
+    border: '1px solid #cbd5e1',
+    padding: '10px 14px',
+    fontSize: '0.95rem',
+    outline: 'none',
+    width: '100%',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+    background: '#fff',
+  } as const
+
+  const btnActionStyle = {
+    background: 'none',
+    border: 'none',
+    color: '#2563eb',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '2px 6px',
+  } as const
+
+  const btnSaveStyle = {
+    padding: '8px 12px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    fontWeight: 600,
+  } as const
+
+  const btnCancelStyle = {
+    padding: '8px 12px',
+    background: '#e2e8f0',
+    color: '#475569',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    fontWeight: 600,
+  } as const
 
   // ── Cargando catálogos iniciales ────────────────────────────────────────────
   if (estado === 'cargando' && vehiculos.length === 0) {
@@ -122,11 +264,6 @@ export function RegistroVehiculoPage() {
         </div>
       </article>
     )
-  }
-
-  const handleCloseModal = () => {
-    resetFormulario()
-    setIsModalOpen(false)
   }
 
   // ── Renderizado Principal ──────────────────────────────────────────────────
@@ -300,26 +437,71 @@ export function RegistroVehiculoPage() {
                           {v.certificadoNo || '—'}
                         </td>
                         <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <button
-                            onClick={() => eliminarVehiculo(v.id)}
-                            style={{
-                              background: '#fef2f2',
-                              color: '#ef4444',
-                              border: 'none',
-                              padding: '6px',
-                              borderRadius: 6,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
-                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
-                            title="Eliminar Vehículo"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                            <button
+                              onClick={() => {
+                                const v2 = vehiculosFiltrados.find(x => x.id === v.id)
+                                if (!v2) return
+                                const marcaId = typeof v2.marca === 'object' ? String(v2.marca?.id ?? '') : ''
+                                const lineaId = typeof v2.linea === 'object' ? String(v2.linea?.id ?? '') : ''
+                                const claseId = typeof v2.clase === 'object' ? String((v2.clase as any)?.id ?? '') : ''
+                                const colorId = typeof v2.color === 'object' ? String((v2.color as any)?.id ?? '') : ''
+                                const tipoVehiculoId = typeof v2.tipoVehiculo === 'object' ? String(v2.tipoVehiculo?.id ?? '') : ''
+                                const tipoCombustibleId = typeof v2.tipoCombustible === 'object' ? String((v2.tipoCombustible as any)?.id ?? '') : ''
+                                const tipoServicioId = typeof v2.tipoServicio === 'object' ? String((v2.tipoServicio as any)?.id ?? '') : ''
+                                setEditVehiculo(v2)
+                                setEditForm({
+                                  placa: v2.placa || '',
+                                  modelo: v2.modelo || '',
+                                  certificadoNo: v2.certificadoNo || '',
+                                  cilindraje: v2.cilindraje || '',
+                                  marcaId,
+                                  lineaId,
+                                  claseId,
+                                  colorId,
+                                  tipoVehiculoId,
+                                  tipoCombustibleId,
+                                  tipoServicioId,
+                                })
+                                setEditError(null)
+                                setEditModalOpen(true)
+                              }}
+                              style={{
+                                background: '#eff6ff',
+                                color: '#2563eb',
+                                border: 'none',
+                                padding: '6px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                              title="Editar Vehículo"
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => eliminarVehiculo(v.id)}
+                              style={{
+                                background: '#fef2f2',
+                                color: '#ef4444',
+                                border: 'none',
+                                padding: '6px',
+                                borderRadius: 6,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background-color 0.2s',
+                              }}
+                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
+                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
+                              title="Eliminar Vehículo"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
@@ -369,6 +551,45 @@ export function RegistroVehiculoPage() {
 
                     <div className="vehicle-card-actions">
                       <button
+                        onClick={() => {
+                          const v2 = v
+                          const marcaId = typeof v2.marca === 'object' ? String(v2.marca?.id ?? '') : ''
+                          const lineaId = typeof v2.linea === 'object' ? String(v2.linea?.id ?? '') : ''
+                          const claseId = typeof v2.clase === 'object' ? String((v2.clase as any)?.id ?? '') : ''
+                          const colorId = typeof v2.color === 'object' ? String((v2.color as any)?.id ?? '') : ''
+                          const tipoVehiculoId = typeof v2.tipoVehiculo === 'object' ? String(v2.tipoVehiculo?.id ?? '') : ''
+                          const tipoCombustibleId = typeof v2.tipoCombustible === 'object' ? String((v2.tipoCombustible as any)?.id ?? '') : ''
+                          const tipoServicioId = typeof v2.tipoServicio === 'object' ? String((v2.tipoServicio as any)?.id ?? '') : ''
+                          setEditVehiculo(v2)
+                          setEditForm({
+                            placa: v2.placa || '',
+                            modelo: v2.modelo || '',
+                            certificadoNo: v2.certificadoNo || '',
+                            cilindraje: v2.cilindraje || '',
+                            marcaId, lineaId, claseId, colorId,
+                            tipoVehiculoId, tipoCombustibleId, tipoServicioId,
+                          })
+                          setEditError(null)
+                          setEditModalOpen(true)
+                        }}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontSize: '0.85rem',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <Pencil size={14} />
+                        Editar
+                      </button>
+                      <button
                         onClick={() => eliminarVehiculo(v.id)}
                         style={{
                           background: '#fef2f2',
@@ -417,12 +638,23 @@ export function RegistroVehiculoPage() {
                   setPagina(0)
                 }}
                 style={{
-                  padding: '4px 8px',
-                  borderRadius: 6,
+                  padding: '6px 10px',
+                  borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   background: '#fff',
                   outline: 'none',
                   cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  color: '#334155',
+                  minHeight: 'auto',
+                  marginTop: 0,
+                  width: 'auto',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  paddingRight: '24px',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 6px center',
                 }}
               >
                 <option value={5}>5</option>
@@ -757,35 +989,117 @@ export function RegistroVehiculoPage() {
 
               {/* ── Identificación del Vehículo ─────────────────────────────────── */}
               <fieldset className="form-row-2">
-                <label>
-                  Placa <span style={{ color: '#ef4444' }}>*</span>
+                <label style={labelStyle}>
+                  <div>Placa <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
                   <input
                     placeholder="Ej: ABC123 o ABC12A"
-                    style={{ textTransform: 'uppercase' }}
+                    style={{ ...inputStyle, textTransform: 'uppercase' }}
                     {...register('placa')}
                     disabled={enviando}
                     maxLength={7}
                   />
                   {errors.placa && (
-                    <span className="field-error">{errors.placa.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.placa.message}</span>
                   )}
                 </label>
 
-                <label>
-                  Tipo de vehículo <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('tipoVehiculoId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {tiposVehiculo.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de vehículo <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoTipoVehiculoInline && !editandoTipoVehiculoInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaTipoVehiculoNombre('')
+                              setCreandoTipoVehiculoInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoVehiculoId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoVehiculoId'))
+                                const item = localTiposVehiculo.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaTipoVehiculoNombre(item.nombre)
+                                  setEditandoTipoVehiculoInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoTipoVehiculoInline || editandoTipoVehiculoInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoTipoVehiculoInline ? "Editar tipo..." : "Nuevo tipo..."}
+                        value={nuevaTipoVehiculoNombre}
+                        onChange={(e) => setNuevaTipoVehiculoNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaTipoVehiculoNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoTipoVehiculoInline) {
+                              const selectedId = Number(watch('tipoVehiculoId'))
+                              const updated = await vehiculoService.actualizarTipoVehiculo(selectedId, nuevaTipoVehiculoNombre.trim())
+                              setLocalTiposVehiculo(localTiposVehiculo.map(t => t.id === selectedId ? updated : t))
+                              setEditandoTipoVehiculoInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoVehiculo(nuevaTipoVehiculoNombre.trim())
+                              setLocalTiposVehiculo([...localTiposVehiculo, nueva])
+                              setValue('tipoVehiculoId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoTipoVehiculoInline(false)
+                            }
+                            setNuevaTipoVehiculoNombre('')
+                          } catch (e) {
+                            alert(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaTipoVehiculoNombre('')
+                          setCreandoTipoVehiculoInline(false)
+                          setEditandoTipoVehiculoInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localTiposVehiculo.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoVehiculoId') || '')}
+                      onChange={(val) => setValue('tipoVehiculoId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.tipoVehiculoId && (
-                    <span className="field-error">
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
                       {errors.tipoVehiculoId.message}
                     </span>
                   )}
@@ -798,13 +1112,14 @@ export function RegistroVehiculoPage() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
-                    padding: '10px 14px',
+                    gap: 10,
+                    padding: '12px 16px',
                     background: esMotocicleta ? '#fefce8' : '#f0f9ff',
                     border: `1px solid ${esMotocicleta ? '#fde68a' : '#bae6fd'}`,
-                    borderRadius: 8,
+                    borderRadius: 10,
                     color: esMotocicleta ? '#854d0e' : '#075985',
                     fontSize: '0.9rem',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.01)',
                   }}
                 >
                   {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
@@ -819,9 +1134,9 @@ export function RegistroVehiculoPage() {
 
               {/* ── Cilindraje (solo para motos) ────────────────────────────────── */}
               {esMotocicleta && (
-                <label>
-                  Cilindraje (cc) <span style={{ color: '#ef4444' }}>*</span>
-                  <div style={{ position: 'relative' }}>
+                <label style={labelStyle}>
+                  <div>Cilindraje (cc) <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                  <div style={{ position: 'relative', width: '100%' }}>
                     <div
                       style={{
                         position: 'absolute',
@@ -835,124 +1150,544 @@ export function RegistroVehiculoPage() {
                     </div>
                     <input
                       placeholder="Ej: 150"
-                      style={{ paddingLeft: 40 }}
+                      style={{ ...inputStyle, paddingLeft: 40 }}
                       {...register('cilindraje')}
                       disabled={enviando}
                     />
                   </div>
                   {errors.cilindraje && (
-                    <span className="field-error">{errors.cilindraje.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.cilindraje.message}</span>
                   )}
                 </label>
               )}
 
               {/* ── Marca, Línea y Clase ─────────────────────────────────────────── */}
               <fieldset className="form-row-2">
-                <label>
-                  Marca <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('marcaId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {marcas.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Marca <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoMarcaInline && !editandoMarcaInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaMarcaNombre('')
+                              setCreandoMarcaInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('marcaId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('marcaId'))
+                                const item = localMarcas.find(m => m.id === selectedId)
+                                if (item) {
+                                  setNuevaMarcaNombre(item.nombre)
+                                  setEditandoMarcaInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoMarcaInline || editandoMarcaInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoMarcaInline ? "Editar marca..." : "Nueva marca..."}
+                        value={nuevaMarcaNombre}
+                        onChange={(e) => setNuevaMarcaNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaMarcaNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoMarcaInline) {
+                              const selectedId = Number(watch('marcaId'))
+                              const updated = await vehiculoService.actualizarMarca(selectedId, nuevaMarcaNombre.trim())
+                              setLocalMarcas(localMarcas.map(m => m.id === selectedId ? updated : m))
+                              setEditandoMarcaInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearMarca(nuevaMarcaNombre.trim())
+                              setLocalMarcas([...localMarcas, nueva])
+                              setValue('marcaId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoMarcaInline(false)
+                            }
+                            setNuevaMarcaNombre('')
+                          } catch (e) {
+                            alert(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaMarcaNombre('')
+                          setCreandoMarcaInline(false)
+                          setEditandoMarcaInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localMarcas.map((m) => ({ value: String(m.id), label: m.nombre }))}
+                      value={String(watch('marcaId') || '')}
+                      onChange={(val) => setValue('marcaId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.marcaId && (
-                    <span className="field-error">{errors.marcaId.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.marcaId.message}</span>
                   )}
                 </label>
 
-                <label>
-                  Línea <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('lineaId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {lineas.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Línea <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoLineaInline && !editandoLineaInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaLineaNombre('')
+                              setCreandoLineaInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('lineaId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('lineaId'))
+                                const item = localLineas.find(l => l.id === selectedId)
+                                if (item) {
+                                  setNuevaLineaNombre(item.nombre)
+                                  setEditandoLineaInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoLineaInline || editandoLineaInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoLineaInline ? "Editar línea..." : "Nueva línea..."}
+                        value={nuevaLineaNombre}
+                        onChange={(e) => setNuevaLineaNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaLineaNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoLineaInline) {
+                              const selectedId = Number(watch('lineaId'))
+                              const marcaIdActual = watch('marcaId')
+                              const updated = await vehiculoService.actualizarLinea(
+                                selectedId,
+                                nuevaLineaNombre.trim(),
+                                marcaIdActual ? Number(marcaIdActual) : undefined
+                              )
+                              setLocalLineas(localLineas.map(l => l.id === selectedId ? updated : l))
+                              setEditandoLineaInline(false)
+                            } else {
+                              const marcaIdActual = watch('marcaId')
+                              const nueva = await vehiculoService.crearLinea(
+                                nuevaLineaNombre.trim(),
+                                marcaIdActual ? Number(marcaIdActual) : undefined
+                              )
+                              setLocalLineas([...localLineas, nueva])
+                              setValue('lineaId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoLineaInline(false)
+                            }
+                            setNuevaLineaNombre('')
+                          } catch (e) {
+                            alert(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaLineaNombre('')
+                          setCreandoLineaInline(false)
+                          setEditandoLineaInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localLineas.map((l) => ({ value: String(l.id), label: l.nombre }))}
+                      value={String(watch('lineaId') || '')}
+                      onChange={(val) => setValue('lineaId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.lineaId && (
-                    <span className="field-error">{errors.lineaId.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.lineaId.message}</span>
                   )}
                 </label>
               </fieldset>
 
               <fieldset className="form-row-2">
-                <label>
-                  Clase <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('claseId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {clases.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Clase <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoClaseInline && !editandoClaseInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaClaseNombre('')
+                              setCreandoClaseInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nueva
+                          </button>
+                          {Number(watch('claseId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('claseId'))
+                                const item = localClases.find(c => c.id === selectedId)
+                                if (item) {
+                                  setNuevaClaseNombre(item.nombre)
+                                  setEditandoClaseInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoClaseInline || editandoClaseInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoClaseInline ? "Editar clase..." : "Nueva clase..."}
+                        value={nuevaClaseNombre}
+                        onChange={(e) => setNuevaClaseNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaClaseNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoClaseInline) {
+                              const selectedId = Number(watch('claseId'))
+                              const updated = await vehiculoService.actualizarClase(selectedId, nuevaClaseNombre.trim())
+                              setLocalClases(localClases.map(c => c.id === selectedId ? updated : c))
+                              setEditandoClaseInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearClase(nuevaClaseNombre.trim())
+                              setLocalClases([...localClases, nueva])
+                              setValue('claseId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoClaseInline(false)
+                            }
+                            setNuevaClaseNombre('')
+                          } catch (e) {
+                            alert(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaClaseNombre('')
+                          setCreandoClaseInline(false)
+                          setEditandoClaseInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localClases.map((c) => ({ value: String(c.id), label: c.nombre }))}
+                      value={String(watch('claseId') || '')}
+                      onChange={(val) => setValue('claseId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.claseId && (
-                    <span className="field-error">{errors.claseId.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.claseId.message}</span>
                   )}
                 </label>
 
-                <label>
-                  Color <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('colorId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {colores.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Color <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoColorInline && !editandoColorInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaColorNombre('')
+                              setCreandoColorInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('colorId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('colorId'))
+                                const item = localColores.find(c => c.id === selectedId)
+                                if (item) {
+                                  setNuevaColorNombre(item.nombre)
+                                  setEditandoColorInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoColorInline || editandoColorInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoColorInline ? "Editar color..." : "Nuevo color..."}
+                        value={nuevaColorNombre}
+                        onChange={(e) => setNuevaColorNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaColorNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoColorInline) {
+                              const selectedId = Number(watch('colorId'))
+                              const updated = await vehiculoService.actualizarColor(selectedId, nuevaColorNombre.trim())
+                              setLocalColores(localColores.map(c => c.id === selectedId ? updated : c))
+                              setEditandoColorInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearColor(nuevaColorNombre.trim())
+                              setLocalColores([...localColores, nueva])
+                              setValue('colorId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoColorInline(false)
+                            }
+                            setNuevaColorNombre('')
+                          } catch (e) {
+                            alert(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaColorNombre('')
+                          setCreandoColorInline(false)
+                          setEditandoColorInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localColores.map((c) => ({ value: String(c.id), label: c.nombre }))}
+                      value={String(watch('colorId') || '')}
+                      onChange={(val) => setValue('colorId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.colorId && (
-                    <span className="field-error">{errors.colorId.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.colorId.message}</span>
                   )}
                 </label>
               </fieldset>
 
               {/* ── Modelo, Combustible, Servicio ────────────────────────────────── */}
               <fieldset className="form-row-2">
-                <label>
-                  Modelo (año) <span style={{ color: '#ef4444' }}>*</span>
+                <label style={labelStyle}>
+                  <div>Modelo (año) <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
                   <input
                     placeholder="Ej: 2024"
                     maxLength={4}
+                    style={inputStyle}
                     {...register('modelo')}
                     disabled={enviando}
                   />
                   {errors.modelo && (
-                    <span className="field-error">{errors.modelo.message}</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.modelo.message}</span>
                   )}
                 </label>
 
-                <label>
-                  Tipo de combustible <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('tipoCombustibleId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {tiposCombustible.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de combustible <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoCombustibleInline && !editandoCombustibleInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaCombustibleNombre('')
+                              setCreandoCombustibleInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoCombustibleId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoCombustibleId'))
+                                const item = localCombustibles.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaCombustibleNombre(item.nombre)
+                                  setEditandoCombustibleInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoCombustibleInline || editandoCombustibleInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoCombustibleInline ? "Editar combustible..." : "Nuevo combustible..."}
+                        value={nuevaCombustibleNombre}
+                        onChange={(e) => setNuevaCombustibleNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaCombustibleNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoCombustibleInline) {
+                              const selectedId = Number(watch('tipoCombustibleId'))
+                              const updated = await vehiculoService.actualizarTipoCombustible(selectedId, nuevaCombustibleNombre.trim())
+                              setLocalCombustibles(localCombustibles.map(t => t.id === selectedId ? updated : t))
+                              setEditandoCombustibleInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoCombustible(nuevaCombustibleNombre.trim())
+                              setLocalCombustibles([...localCombustibles, nueva])
+                              setValue('tipoCombustibleId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoCombustibleInline(false)
+                            }
+                            setNuevaCombustibleNombre('')
+                          } catch (e) {
+                            alert(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaCombustibleNombre('')
+                          setCreandoCombustibleInline(false)
+                          setEditandoCombustibleInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localCombustibles.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoCombustibleId') || '')}
+                      onChange={(val) => setValue('tipoCombustibleId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.tipoCombustibleId && (
-                    <span className="field-error">
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
                       {errors.tipoCombustibleId.message}
                     </span>
                   )}
@@ -960,38 +1695,119 @@ export function RegistroVehiculoPage() {
               </fieldset>
 
               <fieldset className="form-row-2">
-                <label>
-                  Tipo de servicio <span style={{ color: '#ef4444' }}>*</span>
-                  <select
-                    {...register('tipoServicioId', { valueAsNumber: true })}
-                    disabled={enviando}
-                  >
-                    <option value={0}>-- Seleccione --</option>
-                    {tiposServicio.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.nombre}
-                      </option>
-                    ))}
-                  </select>
+                <label style={labelStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>Tipo de servicio <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!creandoTipoServicioInline && !editandoTipoServicioInline && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNuevaTipoServicioNombre('')
+                              setCreandoTipoServicioInline(true)
+                            }}
+                            style={btnActionStyle}
+                          >
+                            <Plus size={14} /> Crear nuevo
+                          </button>
+                          {Number(watch('tipoServicioId') || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectedId = Number(watch('tipoServicioId'))
+                                const item = localTiposServicio.find(t => t.id === selectedId)
+                                if (item) {
+                                  setNuevaTipoServicioNombre(item.nombre)
+                                  setEditandoTipoServicioInline(true)
+                                }
+                              }}
+                              style={btnActionStyle}
+                            >
+                              <Pencil size={12} /> Editar
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {creandoTipoServicioInline || editandoTipoServicioInline ? (
+                    <div style={{ display: 'flex', gap: 8, marginTop: '4px' }}>
+                      <input
+                        placeholder={editandoTipoServicioInline ? "Editar servicio..." : "Nuevo servicio..."}
+                        value={nuevaTipoServicioNombre}
+                        onChange={(e) => setNuevaTipoServicioNombre(e.target.value)}
+                        style={inputStyle}
+                        disabled={guardandoCatalogo}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!nuevaTipoServicioNombre.trim()) return
+                          setGuardandoCatalogo(true)
+                          try {
+                            if (editandoTipoServicioInline) {
+                              const selectedId = Number(watch('tipoServicioId'))
+                              const updated = await vehiculoService.actualizarTipoServicio(selectedId, nuevaTipoServicioNombre.trim())
+                              setLocalTiposServicio(localTiposServicio.map(t => t.id === selectedId ? updated : t))
+                              setEditandoTipoServicioInline(false)
+                            } else {
+                              const nueva = await vehiculoService.crearTipoServicio(nuevaTipoServicioNombre.trim())
+                              setLocalTiposServicio([...localTiposServicio, nueva])
+                              setValue('tipoServicioId', Number(nueva.id), { shouldValidate: true, shouldDirty: true })
+                              setCreandoTipoServicioInline(false)
+                            }
+                            setNuevaTipoServicioNombre('')
+                          } catch (e) {
+                            alert(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio')
+                          } finally {
+                            setGuardandoCatalogo(false)
+                          }
+                        }}
+                        style={btnSaveStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        {guardandoCatalogo ? '...' : 'Guardar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNuevaTipoServicioNombre('')
+                          setCreandoTipoServicioInline(false)
+                          setEditandoTipoServicioInline(false)
+                        }}
+                        style={btnCancelStyle}
+                        disabled={guardandoCatalogo}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ) : (
+                    <CustomSelect
+                      options={localTiposServicio.map((t) => ({ value: String(t.id), label: t.nombre }))}
+                      value={String(watch('tipoServicioId') || '')}
+                      onChange={(val) => setValue('tipoServicioId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                      placeholder="-- Seleccione --"
+                    />
+                  )}
                   {errors.tipoServicioId && (
-                    <span className="field-error">
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
                       {errors.tipoServicioId.message}
                     </span>
                   )}
                 </label>
 
-                <label>
-                  Número de certificado{' '}
-                  <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>
-                    (opcional)
-                  </span>
+                <label style={labelStyle}>
+                  <div>Número de certificado <small style={{ color: '#9ca3af', fontSize: '0.8rem', fontWeight: 400 }}>(opcional)</small></div>
                   <input
                     placeholder="Ej: CERT-001"
+                    style={inputStyle}
                     {...register('certificadoNo')}
                     disabled={enviando}
                   />
                 </label>
               </fieldset>
+
 
               {/* ── Botones de envío / cancelación ── */}
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 16 }}>
@@ -1035,6 +1851,215 @@ export function RegistroVehiculoPage() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+      </Modal>
+
+      {/* ── Modal Editar Vehículo ──────────────────────────────────────────── */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => !editGuardando && setEditModalOpen(false)}
+        title={`Editar Vehículo${editVehiculo ? ' — ' + editVehiculo.placa : ''}`}
+        maxWidth="700px"
+      >
+        {editVehiculo && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {editError && (
+              <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', color: '#991b1b', fontSize: '0.9rem' }}>
+                <AlertCircle size={16} /><span>{editError}</span>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+              {/* Placa */}
+              <label style={labelStyle}>
+                Placa <span style={{ color: '#ef4444' }}>*</span>
+                <input
+                  value={editForm.placa || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, placa: e.target.value.toUpperCase() }))}
+                  placeholder="ABC123"
+                  style={inputStyle}
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Modelo */}
+              <label style={labelStyle}>
+                Modelo (año)
+                <input
+                  value={editForm.modelo || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, modelo: e.target.value }))}
+                  placeholder="2024"
+                  style={inputStyle}
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Marca */}
+              <label style={labelStyle}>
+                Marca
+                <CustomSelect
+                  options={localMarcas.map(m => ({ value: String(m.id), label: m.nombre }))}
+                  value={editForm.marcaId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, marcaId: val }))}
+                  placeholder="Seleccione marca"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Línea */}
+              <label style={labelStyle}>
+                Línea
+                <CustomSelect
+                  options={localLineas.map(l => ({ value: String(l.id), label: l.nombre }))}
+                  value={editForm.lineaId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, lineaId: val }))}
+                  placeholder="Seleccione línea"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Clase */}
+              <label style={labelStyle}>
+                Clase
+                <CustomSelect
+                  options={localClases.map(c => ({ value: String(c.id), label: c.nombre }))}
+                  value={editForm.claseId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, claseId: val }))}
+                  placeholder="Seleccione clase"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Color */}
+              <label style={labelStyle}>
+                Color
+                <CustomSelect
+                  options={localColores.map(c => ({ value: String(c.id), label: c.nombre }))}
+                  value={editForm.colorId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, colorId: val }))}
+                  placeholder="Seleccione color"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Tipo de Vehículo */}
+              <label style={labelStyle}>
+                Tipo de vehículo
+                <CustomSelect
+                  options={localTiposVehiculo.map(t => ({ value: String(t.id), label: t.nombre }))}
+                  value={editForm.tipoVehiculoId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, tipoVehiculoId: val }))}
+                  placeholder="Seleccione tipo"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Tipo de Combustible */}
+              <label style={labelStyle}>
+                Combustible
+                <CustomSelect
+                  options={localCombustibles.map(c => ({ value: String(c.id), label: c.nombre }))}
+                  value={editForm.tipoCombustibleId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, tipoCombustibleId: val }))}
+                  placeholder="Seleccione combustible"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Tipo de Servicio */}
+              <label style={labelStyle}>
+                Tipo de servicio
+                <CustomSelect
+                  options={localTiposServicio.map(t => ({ value: String(t.id), label: t.nombre }))}
+                  value={editForm.tipoServicioId || ''}
+                  onChange={(val) => setEditForm(f => ({ ...f, tipoServicioId: val }))}
+                  placeholder="Seleccione servicio"
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Cilindraje */}
+              <label style={labelStyle}>
+                Cilindraje
+                <input
+                  value={editForm.cilindraje || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, cilindraje: e.target.value }))}
+                  placeholder="Ej: 1600cc"
+                  style={inputStyle}
+                  disabled={editGuardando}
+                />
+              </label>
+
+              {/* Certificado */}
+              <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
+                Número de certificado
+                <input
+                  value={editForm.certificadoNo || ''}
+                  onChange={(e) => setEditForm(f => ({ ...f, certificadoNo: e.target.value }))}
+                  placeholder="Ej: CERT-001"
+                  style={inputStyle}
+                  disabled={editGuardando}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+              <button
+                type="button"
+                onClick={() => setEditModalOpen(false)}
+                disabled={editGuardando}
+                style={{ padding: '10px 20px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={editGuardando || !editForm.placa}
+                onClick={async () => {
+                  if (!editVehiculo) return
+                  setEditGuardando(true)
+                  setEditError(null)
+                  try {
+                    await vehiculoService.actualizarVehiculo(editVehiculo.id, {
+                      placa: editForm.placa,
+                      modelo: editForm.modelo,
+                      certificadoNo: editForm.certificadoNo,
+                      cilindraje: editForm.cilindraje,
+                      ...(editForm.marcaId ? { marcaId: Number(editForm.marcaId) } : {}),
+                      ...(editForm.lineaId ? { lineaId: Number(editForm.lineaId) } : {}),
+                      ...(editForm.claseId ? { claseId: Number(editForm.claseId) } : {}),
+                      ...(editForm.colorId ? { colorId: Number(editForm.colorId) } : {}),
+                      ...(editForm.tipoVehiculoId ? { tipoVehiculoId: Number(editForm.tipoVehiculoId) } : {}),
+                      ...(editForm.tipoCombustibleId ? { tipoCombustibleId: Number(editForm.tipoCombustibleId) } : {}),
+                      ...(editForm.tipoServicioId ? { tipoServicioId: Number(editForm.tipoServicioId) } : {}),
+                    } as any)
+                    setEditModalOpen(false)
+                    setPagina(0)
+                  } catch (err: any) {
+                    setEditError(err?.response?.data?.message || err?.message || 'Error al actualizar el vehículo')
+                  } finally {
+                    setEditGuardando(false)
+                  }
+                }}
+                style={{
+                  padding: '10px 24px',
+                  background: editGuardando ? '#93c5fd' : '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: editGuardando ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                {editGuardando && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />}
+                {editGuardando ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
           </div>
         )}
       </Modal>

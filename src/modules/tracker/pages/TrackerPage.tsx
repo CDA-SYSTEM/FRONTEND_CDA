@@ -56,6 +56,15 @@ export function TrackerPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const cargarDatos = async () => {
     setCargando(true)
     setError(null)
@@ -74,8 +83,8 @@ export function TrackerPage() {
   }, [])
 
   // ── Generar Nodos y Enlaces ──────────────────────────────────────────────
-  const { nodes, edges } = useMemo(() => {
-    if (!data) return { nodes: [], edges: [] }
+  const { nodes, edges, height } = useMemo(() => {
+    if (!data) return { nodes: [], edges: [], height: 500 }
 
     const generatedNodes: GraphNode[] = []
     const generatedEdges: GraphEdge[] = []
@@ -142,7 +151,7 @@ export function TrackerPage() {
       }
     })
 
-    return { nodes: generatedNodes, edges: generatedEdges }
+    return { nodes: generatedNodes, edges: generatedEdges, height }
   }, [data])
 
   // ── Filtrado por Búsqueda ────────────────────────────────────────────────
@@ -456,16 +465,16 @@ export function TrackerPage() {
               </div>
 
               {/* Panel principal del Grafo (Lienzo + Panel Lateral) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem', alignItems: 'start' }} className="panel-grid">
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1.25rem', alignItems: 'start' }} className="panel-grid">
                 
                 {/* SVG Canvas Box */}
                 <div 
                   style={{
-                    gridColumn: selectedNode ? 'span 2' : 'span 3',
+                    gridColumn: isMobile ? 'span 1' : (selectedNode ? 'span 2' : 'span 3'),
                     background: '#fafafa',
                     border: '1px solid #e2e8f0',
                     borderRadius: 16,
-                    height: '600px',
+                    height: isMobile ? '450px' : '600px',
                     position: 'relative',
                     overflow: 'hidden',
                     cursor: isDragging ? 'grabbing' : 'grab',
@@ -479,6 +488,7 @@ export function TrackerPage() {
                   <svg 
                     width="100%" 
                     height="100%"
+                    viewBox={isMobile ? `0 0 850 ${height}` : undefined}
                     style={{ userSelect: 'none' }}
                   >
                     {/* Definición de gradientes y marcadores de flechas */}

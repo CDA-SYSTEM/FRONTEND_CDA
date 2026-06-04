@@ -101,6 +101,8 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
           style={{
             padding: '24px',
             overflowY: 'auto',
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {children}

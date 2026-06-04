@@ -195,7 +195,13 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
     vehicle_type: String(body.vehicle_type ?? body.vehicleType ?? vehicle.vehicle_type ?? vehicle.tipoVehiculo ?? 'LIVIANO') as ChecklistInspection['vehicle_type'],
     template_id: toStringId(body.template_id ?? body.templateId),
     inspection_datetime: toStringId(body.inspection_datetime ?? body.inspectionDatetime ?? body.created_at ?? body.createdAt),
-    inspector_id: toStringId(body.inspector_id ?? body.inspectorId ?? body.operator_id ?? body.operatorId),
+    inspector_id: toStringId(
+      body.inspector_id ??
+      body.inspectorId ??
+      body.operator_id ??
+      body.operatorId ??
+      (body.inspector && typeof body.inspector === 'object' ? (body.inspector as any).id : undefined)
+    ),
     status: toStringId(body.status),
     general_result: toStringId(body.general_result ?? body.generalResult),
     responses: Array.isArray(body.responses) ? (body.responses as ChecklistInspection['responses']) : undefined,

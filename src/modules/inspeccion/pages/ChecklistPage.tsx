@@ -359,7 +359,7 @@ export function ChecklistPage() {
           {inspectorName && (
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-                Inspector Asignado
+                {(checklistInspection?.inspector as any)?.role === 'operario' ? 'Operario Asignado' : 'Inspector Asignado'}
               </label>
               <input
                 type="text"

@@ -421,8 +421,6 @@ export function RecepcionPage() {
             { value: 'todos', label: 'Todos' },
             { value: 'recepcion', label: 'En recepción' },
             { value: 'inspeccion', label: 'En inspección' },
-            { value: 'aprobado', label: 'Aprobado' },
-            { value: 'rechazado', label: 'Rechazado' },
           ].map((opt) => {
             const isSelected = statusFilter === opt.value
             return (

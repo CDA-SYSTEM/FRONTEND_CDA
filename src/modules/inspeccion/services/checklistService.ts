@@ -198,8 +198,6 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
     inspector_id: toStringId(
       body.inspector_id ??
       body.inspectorId ??
-      body.operator_id ??
-      body.operatorId ??
       (body.inspector && typeof body.inspector === 'object' ? (body.inspector as any).id : undefined)
     ),
     status: toStringId(body.status),

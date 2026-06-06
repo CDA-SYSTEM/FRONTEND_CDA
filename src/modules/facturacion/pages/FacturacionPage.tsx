@@ -29,7 +29,6 @@ export function FacturacionPage() {
   
   // Estados disponibles (desde el backend)
   const [statuses, setStatuses] = useState<Status[]>([])
-  const [statusesLoading, setStatusesLoading] = useState(true)
 
   // Paginación y Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -94,7 +93,6 @@ export function FacturacionPage() {
           { id: '6a1ad9c04d644ab738782e4c', name: 'Pagado' },
         ])
       })
-      .finally(() => setStatusesLoading(false))
   }, [])
 
   // Animación staggered de las filas de la tabla al cargar

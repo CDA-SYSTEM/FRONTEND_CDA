@@ -9,8 +9,6 @@ export interface InspectionStatusUpdate {
   statusName?: string
 }
 
-const PAGADO_STATUS_ID = '6a1ad9c04d644ab738782e4c'
-
 export function useInvoiceSocket() {
   const [latestInvoice, setLatestInvoice] = useState<Factura | null>(null)
   const [invoiceUpdate, setInvoiceUpdate] = useState<Factura | null>(null)

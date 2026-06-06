@@ -22,16 +22,6 @@ import type { AdminDashboardData, ClientStats, VehicleStats, InspectionStats, In
 import '../Admin.css'
 
 const CHART_COLORS = ['#155dfc', '#0f47d6', '#16a34a', '#d97706', '#9333ea', '#e11d48', '#0891b2', '#4f46e5', '#ca8a04']
-const CHART_GRADIENTS = [
-  { id: 'blueGrad', start: '#155dfc', end: '#0f47d6' },
-  { id: 'greenGrad', start: '#16a34a', end: '#15803d' },
-  { id: 'amberGrad', start: '#d97706', end: '#b45309' },
-  { id: 'purpleGrad', start: '#9333ea', end: '#7c3aed' },
-  { id: 'roseGrad', start: '#e11d48', end: '#be123c' },
-  { id: 'cyanGrad', start: '#0891b2', end: '#0e7490' },
-  { id: 'indigoGrad', start: '#4f46e5', end: '#3730a3' },
-  { id: 'goldGrad', start: '#ca8a04', end: '#a16207' },
-]
 const STATUS_NAMES: Record<string, string> = {
   '6a1ad9bf4d644ab738782e4b': 'COMPLETADA',
   '6a1ad9c04d644ab738782e4c': 'PENDIENTE',
@@ -421,7 +411,6 @@ const STATUS_MAP: Record<string, string> = {
 
 function statusBadge(statusId: string) {
   const name = STATUS_MAP[statusId] || 'PENDIENTE'
-  const isPaid = name === 'PAGADO'
   return (
     <span className="admin-invoice-status" data-status={name}>
       {name}

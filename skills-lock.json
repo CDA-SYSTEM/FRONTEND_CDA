@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/animate-text/SKILL.md",
       "computedHash": "81b7719e45013fcf651f1f4c9a1ca2af9618e99667ff5cd3e5d102369235ec5e"
+    },
+    "refero-design": {
+      "source": "referodesign/refero_skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "1a8693b617be5be1a70ab7f4d64ff0365c5a93dda938ef034d704e0fe6270b50"
     }
   }
 }

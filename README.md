@@ -1,11 +1,12 @@
-# FRONTEND_CDA — CDA del Putumayo
+# FRONTEND_CDA — Sistema de Gestión CDA del Putumayo
 
-Frontend del sistema de gestión del Centro de Diagnóstico Automotor del Putumayo.
-Construido con React 18 + TypeScript, arquitectura **Híbrida Modular + Clean Architecture**.
+Frontend híbrido responsivo para la administración, recepción, facturación y trazabilidad de inspecciones del **Centro de Diagnóstico Automotor (CDA) del Putumayo**. 
+
+Construido utilizando **React 18 + TypeScript**, orquestado bajo una arquitectura **Híbrida Modular** inspirada en los principios de **Clean Architecture**, y empaquetado para plataformas **Web y Android** mediante **Capacitor 8**.
 
 ---
 
-## Stack Técnico
+## 🚀 Stack Técnico Principal
 
 | Herramienta | Uso |
 |---|---|
@@ -44,13 +45,12 @@ npm install
 Crea el archivo `.env` con base en `.env.example`:
 
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000/api
 VITE_API_KEY_FRONT=tu_api_key_aqui
 VITE_APP_NAME=CDA Putumayo
 ```
 
-> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000`
-> Para un dispositivo físico usa la IP LAN o el dominio real del backend.
+> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000/api`
 
 ---
 
@@ -70,135 +70,189 @@ VITE_APP_NAME=CDA Putumayo
 
 ---
 
-## Arquitectura Híbrida Modular + Clean
+## 📁 Arquitectura Híbrida Modular + Clean
 
-El proyecto combina **arquitectura modular** (cada dominio de negocio es independiente) con los principios de **Clean Architecture** aplicados *dentro* de cada módulo.
+El proyecto está diseñado bajo una **estructura modular** (donde cada módulo agrupa una funcionalidad de negocio independiente), implementando internamente la separación de responsabilidades de **Clean Architecture** (Capa de Dominio, Aplicación, Adaptadores y Presentación).
 
-### Capas globales (`src/`)
+### Estructura de Directorios (`src/`)
 
 ```
 src/
-├── core/                        # Infraestructura transversal
-│   ├── api/                     # Cliente Axios (interceptores de token y API Key)
-│   ├── router/                  # React Router — rutas y guard de sesión
-│   └── store/                   # Estado global (authStore con Zustand)
+├── core/                        # Piezas globales transversales de infraestructura
+│   ├── api/                     # Cliente Axios (apiClient) con interceptores y logs de red
+│   ├── router/                  # Definición de rutas, jerarquías y Guards de seguridad
+│   └── store/                   # Almacén de Zustand para persistencia de credenciales (authStore)
 │
-├── modules/                     # Módulos de dominio (uno por área de negocio)
+├── modules/                     # Módulos encapsulados por dominio de negocio
 │   └── <modulo>/
-│       ├── domain/              # Tipos TS y esquemas Zod (reglas puras, sin React)
-│       ├── hooks/               # Casos de uso: custom hooks que orquestan servicios
-│       ├── services/            # Adaptadores HTTP: llaman a core/api/apiClient
-│       ├── components/          # Componentes UI reutilizables del módulo
-│       └── pages/               # Vistas completas (solo JSX, sin lógica de negocio)
+│       ├── domain/              # Lógica pura: tipos TS, interfaces y esquemas Zod (sin dependencias de React)
+│       ├── hooks/               # Casos de uso: custom hooks que manejan estado y operaciones del módulo
+│       ├── services/            # Adaptadores de datos: llamadas HTTP consumiendo apiClient
+│       ├── components/          # Elementos visuales reutilizables internos del módulo
+│       └── pages/               # Páginas completas (Vistas controladas por hooks)
 │
-└── shared/                      # Piezas compartidas entre módulos
-    ├── layout/                  # AppLayout: topbar, navegación, modal de logout
-    ├── components/              # Componentes UI globales reutilizables
-    └── hooks/                   # Hooks globales reutilizables
+└── shared/                      # Componentes e infraestructura de interfaz reutilizable globalmente
+    ├── layout/                  # Estructura visual global (Sidebar responsiva, Topbar, Modales)
+    ├── components/              # Inputs premium, modales, alertas y botones genéricos
+    └── hooks/                   # Hooks globales (ej. geolocalización, cámara, conectividad)
 ```
 
-### Capas internas de cada módulo
+### Tabla de Responsabilidades de Capas
 
-| Capa | Carpeta | Qué contiene | Puede importar de |
-|---|---|---|---|
-| **Dominio** | `domain/` | Interfaces, tipos, schemas Zod | Nada externo (TypeScript puro) |
-| **Aplicación** | `hooks/` | Custom hooks con lógica y estado | `domain/` + `services/` |
-| **Adaptadores** | `services/` | Llamadas HTTP al backend | `core/api/` + `domain/` |
-| **Presentación** | `components/` + `pages/` | JSX puro, sin lógica | `hooks/` + `domain/` |
-
-### Módulos actuales
-
-| Módulo | Descripción | Backend destino |
-|---|---|---|
-| `auth` | Login, guard de sesión, store global | `/auth/*` |
-| `recepcion` | Registro de clientes y vehículos | PostgreSQL |
-| `inspeccion` | Checklist NTC 5375 | Cassandra |
-| `facturacion` | Cola y emisión de facturas | Tiempo real |
-| `dashboard` | Panel de resumen | Agregado |
-| `usuarios` | Gestión de usuarios y roles (solo ADMIN) | `/auth/users/*` |
-
-### Flujo de datos típico
-
-```
-Page (JSX)
-  └── useXxx() hook     ← caso de uso, maneja estado
-        └── xxxService  ← adaptador HTTP
-              └── apiClient (Axios + token + API Key)
-                    └── Backend REST
-```
+| Capa | Carpeta Interna | Descripción | Puede importar de |
+| :--- | :--- | :--- | :--- |
+| **Dominio** | `domain/` | Interfaces de negocio, entidades y validaciones de datos (Zod). | Nada (TypeScript puro). |
+| **Adaptadores** | `services/` | Implementación de peticiones HTTP mapeadas a los endpoints. | `core/api/` y `domain/`. |
+| **Aplicación** | `hooks/` | Custom hooks con lógica y estado, orquestando servicios locales y de API. | `domain/` y `services/`. |
+| **Presentación**| `components/` o `pages/` | Elementos JSX responsivos orientados a la experiencia de usuario. | `hooks/` y `domain/`. |
 
 ---
 
-## Flujo Web Mínimo
+## 📦 Módulos del Sistema
 
-1. Abrir `/login` e ingresar credenciales.
-2. El sistema redirige según rol: `ADMIN → /dashboard`, `RECEPCIONISTA → /recepcion`, etc.
-3. Navegar los módulos habilitados para el rol.
-4. Cerrar sesión desde el topbar.
-
-### Roles del sistema
-
-| Rol | Ruta inicial | Módulos accesibles |
-|---|---|---|
-| `ADMIN` | `/dashboard` | Todos + Usuarios |
-| `RECEPCIONISTA` | `/recepcion` | Recepción, Inspección, Facturación |
-| `INSPECTOR` | `/inspeccion` | Inspección |
-| `FACTURADOR` | `/facturacion` | Facturación |
+| Módulo | Ruta Base | Funcionalidad |
+| :--- | :--- | :--- |
+| **`auth`** | `/login` | Inicio de sesión, persistencia de tokens de acceso, logout y refresco automático de sesión. |
+| **`dashboard`** | `/dashboard` | Resumen del estado de la operación general del CDA, gráficos y KPIs principales. |
+| **`usuarios`** | `/usuarios` | Módulo restringido para la administración de usuarios del sistema (solo `ADMIN`). |
+| **`recepcion`** | `/recepcion` | Asistente de recepción de vehículos, asignación de clientes e inicio de órdenes de servicio. |
+| **`clientes`** | `/clientes` | Creación, consulta y edición de perfiles de clientes naturales o jurídicos. |
+| **`inspeccion`** | `/inspeccion/*` | Autoasignación de inspecciones y checklist interactivo bajo la norma NTC 5375. |
+| **`vehiculo`** | `/vehiculo/*` | Registro exhaustivo de vehículos, con parametrización dinámica de catálogos inline. |
+| **`facturacion`** | `/facturacion` | Gestión y visualización de la cola de facturación de servicios de inspección. |
+| **`precios`** | `/precios` | Configuración y control de tarifas de servicios del CDA (solo `ADMIN` y `MANAGER`). |
+| **`estados`** | `/estados` | Parametrización y visualización del flujo de estados de inspecciones del CDA. |
+| **`storage`** | `/archivos` | Galería interactiva y administración física de archivos de evidencias en storage. |
+| **`tracker`** | `/tracker` | Trazabilidad gráfica interactiva (SVG) del mapa de relaciones Cliente ➔ Vehículo ➔ Planilla. |
 
 ---
 
-## Pruebas
+## 🌐 Control de Acceso Basado en Roles (RBAC)
 
+El frontend mapea dinámicamente las rutas de inicio y la visibilidad de la barra lateral (Sidebar) según el rol asignado al token del usuario:
+
+### Mapeo de Rutas Iniciales
+
+| Rol Backend | Ruta Inicial en Frontend |
+| :--- | :--- |
+| `ADMIN` | `/dashboard` |
+| `MANAGER` | `/recepcion` |
+| `OPERARIO` | `/recepcion` |
+| `RECEPCIONISTA` | `/recepcion` |
+| `INSPECTOR` | `/inspeccion/asignacion` |
+| `FACTURADOR` | `/facturacion` |
+
+### Tabla de Visibilidad de Módulos (Sidebar)
+
+| Módulo / Ruta | Roles Autorizados |
+| :--- | :--- |
+| **Dashboard** (`/dashboard`) | Todos los usuarios autenticados. |
+| **Usuarios** (`/usuarios`) | `ADMIN` |
+| **Recepción** (`/recepcion`) | `ADMIN`, `RECEPCIONISTA`, `MANAGER`, `OPERARIO` |
+| **Clientes** (`/clientes`) | `ADMIN`, `RECEPCIONISTA`, `MANAGER`, `OPERARIO` |
+| **Checklist** (`/inspeccion/asignacion`) | `ADMIN`, `INSPECTOR` |
+| **Vehículos** (`/vehiculo/registro`) | `ADMIN`, `RECEPCIONISTA`, `MANAGER`, `OPERARIO` |
+| **Facturación** (`/facturacion`) | `ADMIN`, `FACTURADOR`, `MANAGER` |
+| **Tarifas** (`/precios`) | `ADMIN`, `MANAGER` |
+| **Estados** (`/estados`) | `ADMIN`, `MANAGER` |
+| **Plantillas** (`/plantillas`) | `ADMIN`, `MANAGER` |
+| **Archivos** (`/archivos`) | `ADMIN` |
+| **Trazabilidad** (`/tracker`) | `ADMIN`, `MANAGER` |
+
+---
+
+## 📶 Mecanismo de Sincronización Offline (HU-021)
+
+El sistema cuenta con un motor robusto para operar bajo condiciones de **conectividad limitada o nula** de manera transparente para el usuario:
+
+1.  **Monitoreo del Estado**: Un suscriptor global (`navigator.onLine`) monitorea el estado del enlace de red en tiempo real.
+2.  **Cola de Peticiones en IndexedDB**: Si la red falla, cualquier petición de mutación de datos (peticiones `POST`, `PATCH`, `PUT`, `DELETE` — excluyendo el login y refresco de tokens) se encola localmente en **IndexedDB** a través del servicio `offlineStorage`.
+3.  **Resolución Local Inmediata**: La interfaz responde al usuario de manera inmediata como "Operación Local Guardada", evitando pantallas de error de carga o bloqueos.
+4.  **Autosincronización al Volver a Conectar**: En el momento en que se restablece la conexión (`online` event), el sistema activa de forma asíncrona un proceso de vaciado de la cola de IndexedDB, enviando las peticiones pendientes al backend secuencialmente.
+
+---
+
+## 🛠️ Configuración y Desarrollo
+
+### Prerrequisitos
+- Node.js **20.19+** o **22.12+**
+- npm **10+**
+
+### Instalación
 ```bash
-npm run test
+npm install
 ```
 
-Pruebas unitarias cubiertas:
+### Configuración del Entorno (`.env`)
+Copia el archivo de ejemplo `.env.example` como `.env` en la raíz del proyecto y edítalo:
+```env
+VITE_API_URL="https://api-tu-dominio.com/api"
+VITE_API_KEY_FRONT="tu_api_key_aqui"
+VITE_APP_NAME="CDA Putumayo"
 
-| Archivo | Qué prueba |
-|---|---|
-| `core/store/authStore.test.ts` | Login demo, logout, persistencia en localStorage |
-| `modules/auth/domain/auth.schema.test.ts` | Validación del schema Zod de login |
-| `modules/auth/components/guard.test.ts` | Lógica pura del guard de sesión |
+# Variables para la firma de la aplicación Android
+KEYSTORE_PASSWORD="tu_contrasena_de_firma"
+KEY_ALIAS="cda_key"
+KEY_PASSWORD="tu_contrasena_de_firma"
+```
+
+### Scripts de Desarrollo
+- `npm run dev`: Servidor de desarrollo Web local.
+- `npm run build`: Compilación optimizada para producción (genera carpeta `dist/`).
+- `npm run test`: Ejecución de pruebas unitarias con Vitest.
+- `npm run lint`: Validación de reglas de estilo y sintaxis con ESLint.
 
 ---
 
-## Android (Capacitor)
+## 📱 Empaquetado y Configuración Android (Capacitor)
 
-### Sincronizar y abrir
+El proyecto incluye soporte nativo para compilarse y distribuirse como aplicación de Android.
 
+### 1. Sincronización de Recursos Web
+Cada vez que realices cambios en el código de React/Vite, debes compilar y sincronizar los recursos con el proyecto de Android nativo:
 ```bash
-npm run android:sync   # build web + sync
-npm run android:open   # abre Android Studio
+npm run android:sync
 ```
 
-### Generar APK debug
+### 2. Configuración de Red en VPN (Tailscale y DNS Privado)
+Dado que el entorno de desarrollo y pruebas se ejecuta sobre una VPN privada de **Tailscale**:
 
-En Android Studio: `Build > Build Bundle(s)/APK(s) > Build APK(s)`
+> [!IMPORTANT]
+> **DNS Privado de Android**: Si el dispositivo Android tiene configurado un DNS Privado (como NextDNS, AdGuard o Cloudflare DoH), el sistema operativo bloqueará la resolución local de los dominios de la VPN debido a políticas de seguridad contra *DNS Rebinding*. Asegúrate de ir a **Ajustes > Redes e Internet > DNS Privado** en tu celular y ponerlo en **Desactivado** para que la app pueda conectar.
 
-El APK queda en: `android/app/build/outputs/apk/debug/`
-
----
-
-## Checklist antes de hacer push
-
-- [ ] `npm run dev` — sin errores en consola
-- [ ] `npm run lint` — sin advertencias ni errores
-- [ ] `npm run test` — todos los tests pasan
-- [ ] `npm run build` — compilación exitosa
+> [!NOTE]
+> **Certificados de Seguridad**: El archivo `network_security_config.xml` está configurado para confiar tanto en los certificados raíz del sistema operativo como en los del usuario (`user`). Esto permite instalar certificados de desarrollo (ej. firmas CA de Tailscale) de forma manual en el almacén de credenciales del móvil y que la WebView de la app los reconozca.
 
 ---
 
-## Troubleshooting
+## 🔑 Compilación de Producción y Firma del APK
 
-**Error de versión de Node con Vite**
-Verifica con `node -v`. Usa Node 20.19+ o 22.12+.
+El flujo de construcción nativa lee las credenciales del archivo `.env` mediante variables del sistema operativo en Gradle.
 
-**Falla `npm install` por dependencias opcionales**
-Borra `node_modules` y `package-lock.json`, luego ejecuta `npm install` nuevamente.
+### Paso 1: Generar Keystore (Una sola vez)
+Si necesitas crear un nuevo archivo de firma, ve al directorio `android/` y ejecuta:
+```bash
+mkdir keystore
+keytool -genkey -v -keystore keystore/cda_release_key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias cda_key
+```
 
-**El emulador Android no conecta al backend local**
-Usa `VITE_API_URL=http://10.0.2.2:3000/api` en el `.env`.
+### Paso 2: Compilar y Firmar el APK
+Abre tu consola de terminal (en Windows PowerShell) y ejecuta los siguientes comandos en la raíz del proyecto para generar el APK optimizado y firmado:
 
-**El token no se envía en las peticiones**
-Verifica que `VITE_API_KEY_FRONT` esté definido en el `.env`.
+```powershell
+# 1. Cargar las credenciales de firma de tu .env al entorno de Gradle
+$env:KEYSTORE_PASSWORD="tu_contrasena_de_firma"
+$env:KEY_ALIAS="cda_key"
+$env:KEY_PASSWORD="tu_contrasena_de_firma"
+
+# 2. Sincronizar activos web
+npm run android:sync
+
+# 3. Construir el paquete nativo firmado de Android
+cd android
+./gradlew assembleRelease
+```
+
+### Ubicación del Instalable Final:
+Una vez termine el build con éxito, tu instalador APK firmado estará listo en:
+👉 `android/app/build/outputs/apk/release/app-release.apk`

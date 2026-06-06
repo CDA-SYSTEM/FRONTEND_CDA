@@ -13,7 +13,9 @@ import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
 import { EstadosPage } from '@/modules/estados/pages/EstadosPage'
 import { PlantillasPage } from '@/modules/inspeccion/pages/PlantillasPage'
+import { AdminDashboard } from '@/modules/admin/pages/AdminDashboard'
 import { ArchivosPage } from '@/modules/storage/pages/ArchivosPage'
+import { TrackerPage } from '@/modules/tracker/pages/TrackerPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
@@ -31,7 +33,7 @@ function RoleBasedRedirect() {
   // Mapeo de roles backend → ruta inicial del frontend
   // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
   const roleRoutes: Record<string, string> = {
-    ADMIN: '/dashboard',
+    ADMIN: '/admin/dashboard',
     MANAGER: '/recepcion',
     OPERARIO: '/recepcion',
     INSPECTOR: '/inspeccion/asignacion',
@@ -52,6 +54,7 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<RoleBasedRedirect />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
@@ -66,6 +69,7 @@ export function AppRouter() {
             <Route path="/archivos" element={<ArchivosPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
+            <Route path="/tracker" element={<TrackerPage />} />
           </Route>
         </Route>
 

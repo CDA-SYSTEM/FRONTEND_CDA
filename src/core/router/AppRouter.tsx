@@ -31,7 +31,7 @@ function RoleBasedRedirect() {
   // Mapeo de roles backend → ruta inicial del frontend
   // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
   const roleRoutes: Record<string, string> = {
-    ADMIN: '/dashboard',
+    ADMIN: '/admin/dashboard',
     MANAGER: '/recepcion',
     OPERARIO: '/recepcion',
     INSPECTOR: '/inspeccion/asignacion',

@@ -3,10 +3,12 @@ import type {
   Factura,
   CreateInvoiceDTO,
   UpdateInvoiceDTO,
+  Status,
 } from '../domain/factura.types'
 
 export interface GetInvoicesParams {
   invoice_number?: string
+  search?: string
   statusId?: string
   inspection_id?: string
   includeDeleted?: string
@@ -69,6 +71,15 @@ export const facturaService = {
    */
   async eliminarFactura(id: string): Promise<void> {
     await apiClient.delete(`/api/v1/invoices/${id}`)
+  },
+
+  /**
+   * Obtiene todos los estados disponibles.
+   */
+  async listarStatuses(): Promise<Status[]> {
+    const response = await apiClient.get<{ data: { data: Status[] } }>('/api/v1/statuses')
+    const raw = response.data as any
+    return raw?.data?.data || raw?.data || raw || []
   },
 
   /**

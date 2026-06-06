@@ -1,26 +1,12 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useState, useCallback, useEffect } from 'react'
+import { Outlet, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut, Menu, WifiOff, X, KeyRound } from 'lucide-react'
+import { LogOut, WifiOff, KeyRound } from 'lucide-react'
 import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
 import { offlineStorage } from '@/core/services/offlineStorage'
 import { authService } from '@/modules/auth/services/authService'
+import { Navigation } from './Navigation'
 import './AppLayout.css'
-
-const links = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/usuarios', label: 'Usuarios', roles: ['ADMIN'] },
-  { to: '/recepcion', label: 'Recepcion', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/clientes', label: 'Clientes', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/inspeccion/asignacion', label: 'Checklist', roles: ['ADMIN', 'INSPECTOR'] },
-  { to: '/vehiculo/registro', label: 'Vehículos', roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/facturacion', label: 'Facturacion', roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
-  { to: '/precios', label: 'Tarifas', roles: ['ADMIN', 'MANAGER'] },
-  { to: '/estados', label: 'Estados', roles: ['ADMIN', 'MANAGER'] },
-  { to: '/plantillas', label: 'Plantillas', roles: ['ADMIN', 'MANAGER'] },
-  { to: '/archivos', label: 'Archivos', roles: ['ADMIN'] },
-  { to: '/tracker', label: 'Trazabilidad', roles: ['ADMIN', 'MANAGER'] },
-]
 
 export function AppLayout() {
   const navigate = useNavigate()
@@ -85,8 +71,6 @@ export function AppLayout() {
     }
   }
 
-  const [menuAbierto, setMenuAbierto] = useState(false)
-  const cerrarMenu = useCallback(() => setMenuAbierto(false), [])
 
   const [online, setOnline] = useState(estaOnline())
   const [pendientes, setPendientes] = useState(0)
@@ -109,83 +93,51 @@ export function AppLayout() {
     }
   }, [online])
 
-  const linksFiltrados = links.filter(
-    (link) =>
-      !link.roles || (user?.role && link.roles.includes(user.role)),
-  )
-
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar-left">
-          <button
-            className="hamburger"
-            onClick={() => setMenuAbierto((v) => !v)}
-            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
-          >
-            {menuAbierto ? <X size={22} /> : <Menu size={22} />}
-          </button>
-          <strong>CDA Putumayo</strong>
-        </div>
-        <div className="topbar-right" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="badge">{user?.role ?? 'SIN ROL'}</span>
-          {user?.role === 'ADMIN' && (
-            <button
-              className="btn-logout-topbar"
-              onClick={() => setChangePassOpen(true)}
-              style={{
-                background: '#f1f5f9',
-                color: '#1e293b',
-                border: '1px solid #cbd5e1',
-                marginRight: 6,
-              }}
-              title="Cambiar contraseña"
-            >
-              <KeyRound size={16} />
-              <span className="btn-text">Cambiar contraseña</span>
+      <Navigation />
+      
+      <div className="app-shell__main">
+        <header className="topbar">
+          <div className="topbar-left">
+            <strong>CDA Putumayo</strong>
+          </div>
+          <div className="topbar-right">
+            <span className="badge">{user?.role ?? 'SIN ROL'}</span>
+            {user?.role === 'ADMIN' && (
+              <button
+                className="btn-logout-topbar"
+                onClick={() => setChangePassOpen(true)}
+                title="Cambiar contraseña"
+              >
+                <KeyRound size={16} />
+                <span className="btn-text">Cambiar contraseña</span>
+              </button>
+            )}
+            <button className="btn-logout-topbar" onClick={openConfirm} title="Cerrar sesión">
+              <LogOut size={16} />
+              <span className="btn-text">Cerrar sesión</span>
             </button>
-          )}
-          <button className="btn-logout-topbar" onClick={openConfirm} title="Cerrar sesión">
-            <LogOut size={16} />
-            <span className="btn-text">Cerrar sesión</span>
-          </button>
-        </div>
-      </header>
+          </div>
+        </header>
 
-      {/* HU-037: Indicador de conectividad */}
-      {!online && (
-        <div className="offline-bar">
-          <WifiOff size={14} />
-          <span>Sin conexión</span>
-          {pendientes > 0 && (
-            <span className="offline-pending">
-              — {pendientes} {pendientes === 1 ? 'cambio pendiente' : 'cambios pendientes'} de sincronización
-            </span>
-          )}
-        </div>
-      )}
+        {/* HU-037: Indicador de conectividad */}
+        {!online && (
+          <div className="offline-bar">
+            <WifiOff size={14} />
+            <span>Sin conexión</span>
+            {pendientes > 0 && (
+              <span className="offline-pending">
+                — {pendientes} {pendientes === 1 ? 'cambio pendiente' : 'cambios pendientes'} de sincronización
+              </span>
+            )}
+          </div>
+        )}
 
-      <nav className={`tabs${menuAbierto ? ' tabs--open' : ''}`}>
-        {linksFiltrados.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === '/'}
-            className={({ isActive }) => (isActive ? 'tab active' : 'tab')}
-            onClick={cerrarMenu}
-          >
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      {menuAbierto && (
-        <div className="nav-overlay" onClick={cerrarMenu} />
-      )}
-
-      <section className="content">
-        <Outlet />
-      </section>
+        <section className="content">
+          <Outlet />
+        </section>
+      </div>
 
       {showConfirm && (
         <div className="logout-modal-backdrop" role="dialog" aria-modal="true">

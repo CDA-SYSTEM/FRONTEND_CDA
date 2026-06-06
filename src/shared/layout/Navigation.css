@@ -1,0 +1,266 @@
+/* ═══════════════════════════════════════════════
+   Navigation System - Refero Design Guidelines
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* Spacing scale - multiples of 8px */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  
+  /* Motion tokens */
+  --duration-fast: 120ms;
+  --duration-default: 200ms;
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  
+  /* Navigation dimensions */
+  --sidebar-width: 240px;
+  --bottom-nav-height: 64px;
+  --touch-target-min: 44px;
+  
+  /* Colors */
+  --nav-bg: #0f172a;
+  --nav-bg-hover: rgba(255, 255, 255, 0.08);
+  --nav-text: #cbd5e1;
+  --nav-text-active: #ffffff;
+  --nav-accent: #3b82f6;
+  --nav-accent-hover: #2563eb;
+  --nav-border: rgba(255, 255, 255, 0.1);
+}
+
+/* ═══════════════════════════════════════════════
+   Desktop: Fixed Sidebar
+   ═══════════════════════════════════════════════ */
+
+@media (min-width: 769px) {
+  .navigation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--nav-bg);
+    border-right: 1px solid var(--nav-border);
+    z-index: 1000;
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .navigation__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .navigation__item {
+    margin: 0;
+  }
+
+  .navigation__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    min-height: var(--touch-target-min);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--nav-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    position: relative;
+    transition: background-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
+  }
+
+  .navigation__link:hover {
+    background: var(--nav-bg-hover);
+    color: var(--nav-text-active);
+  }
+
+  .navigation__link:focus-visible {
+    outline: 2px solid var(--nav-accent);
+    outline-offset: 2px;
+  }
+
+  .navigation__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .navigation__label {
+    line-height: 1.4;
+  }
+
+  /* Active state with elastic indicator */
+  .navigation__link--active {
+    color: var(--nav-text-active);
+    background: rgba(59, 130, 246, 0.15);
+  }
+
+  .navigation__link--active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    background: var(--nav-accent);
+    border-radius: 0 2px 2px 0;
+    transition: height var(--duration-default) var(--ease-in-out);
+  }
+
+  .navigation__link--active:hover::before {
+    height: 60%;
+  }
+
+  .navigation__link--active:not(:hover)::before {
+    height: 40%;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Mobile: Bottom Navigation (max-width: 768px)
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--nav-border);
+    z-index: 1000;
+    padding: 0 var(--space-2);
+  }
+
+  .navigation__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 100%;
+    gap: var(--space-1);
+  }
+
+  .navigation__item {
+    margin: 0;
+    flex: 1;
+    max-width: 80px;
+  }
+
+  .navigation__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: var(--touch-target-min);
+    padding: var(--space-1) var(--space-2);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--nav-text);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    position: relative;
+    transition: background-color var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .navigation__link:hover {
+    background: var(--nav-bg-hover);
+    color: var(--nav-text-active);
+  }
+
+  .navigation__link:active {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .navigation__link:focus-visible {
+    outline: 2px solid var(--nav-accent);
+    outline-offset: 2px;
+  }
+
+  .navigation__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .navigation__label {
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Active state with elastic indicator */
+  .navigation__link--active {
+    color: var(--nav-accent);
+  }
+
+  .navigation__link--active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 24px;
+    height: 3px;
+    background: var(--nav-accent);
+    border-radius: 0 0 2px 2px;
+    transition: transform var(--duration-default) var(--ease-in-out);
+  }
+
+  .navigation__link--active:not(:hover)::before {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .navigation__link--active:hover::before {
+    transform: translateX(-50%) scaleX(1.2);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Reduced Motion
+   ═══════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation__link,
+  .navigation__link--active::before {
+    transition-duration: 0ms !important;
+  }
+  
+  .navigation__link--active::before {
+    transform: translateY(-50%) scaleX(1) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Safe Area for iOS
+   ═══════════════════════════════════════════════ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    .navigation {
+      padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-1));
+    }
+  }
+}

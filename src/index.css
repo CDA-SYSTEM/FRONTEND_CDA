@@ -1037,6 +1037,121 @@ a {
 }
 
 /* ═══════════════════════════════════════════════
+   Facturacion Module - Refero Design Guidelines
+   ═══════════════════════════════════════════════ */
+
+/* Invoice Action Buttons - Horizontal Layout with Refero Motion */
+.invoice-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.invoice-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.invoice-action-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.invoice-action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Contextual hover behaviors */
+.invoice-action-view:hover,
+.invoice-action-edit:hover {
+  background: rgba(59, 130, 246, 0.08);
+  color: #3b82f6;
+}
+
+.invoice-action-delete:hover {
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+}
+
+/* Invoice Card Footer Actions */
+.invoice-card-footer .invoice-actions {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* Stripe-style Status Badges */
+.invoice-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.invoice-status-badge[data-status="paid"] {
+  background: rgba(16, 185, 129, 0.06);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.invoice-status-badge[data-status="pending"] {
+  background: rgba(245, 158, 11, 0.06);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+/* Header Buttons - Elastic Spring Response */
+.panel header button.btn-primary,
+.panel header button.btn-secondary {
+  min-height: 48px;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.panel header button.btn-primary:hover:not(:disabled),
+.panel header button.btn-secondary:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.panel header button.btn-primary:active:not(:disabled),
+.panel header button.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .invoice-action-btn {
+    transition-duration: 0ms;
+  }
+  
+  .panel header button.btn-primary,
+  .panel header button.btn-secondary {
+    transition-duration: 0ms;
+  }
+  
+  .panel header button.btn-primary:hover:not(:disabled),
+  .panel header button.btn-secondary:hover:not(:disabled),
+  .panel header button.btn-primary:active:not(:disabled),
+  .panel header button.btn-secondary:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════
    Filtros y Buscadores Responsivos
    ═══════════════════════════════════════════════ */
 .filters-bar {

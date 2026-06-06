@@ -1,0 +1,67 @@
+import { NavLink } from 'react-router-dom'
+import { useAuthStore } from '@/core/store/authStore'
+import { 
+  LayoutDashboard, 
+  Users, 
+  ClipboardCheck, 
+  Car, 
+  FileText, 
+  DollarSign, 
+  Tag, 
+  List, 
+  FileArchive, 
+  Activity,
+  Home
+} from 'lucide-react'
+import './Navigation.css'
+
+interface NavItem {
+  to: string
+  label: string
+  icon: React.ReactNode
+  roles?: string[]
+}
+
+const navItems: NavItem[] = [
+  { to: '/', label: 'Dashboard', icon: <Home size={20} /> },
+  { to: '/usuarios', label: 'Usuarios', icon: <Users size={20} />, roles: ['ADMIN'] },
+  { to: '/recepcion', label: 'Recepción', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/inspeccion/asignacion', label: 'Checklist', icon: <ClipboardCheck size={20} />, roles: ['ADMIN', 'INSPECTOR'] },
+  { to: '/vehiculo/registro', label: 'Vehículos', icon: <Car size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
+  { to: '/facturacion', label: 'Facturación', icon: <DollarSign size={20} />, roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
+  { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['ADMIN', 'MANAGER'] },
+  { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['ADMIN', 'MANAGER'] },
+  { to: '/plantillas', label: 'Plantillas', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
+  { to: '/archivos', label: 'Archivos', icon: <FileArchive size={20} />, roles: ['ADMIN'] },
+  { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['ADMIN', 'MANAGER'] },
+]
+
+export function Navigation() {
+  const user = useAuthStore((state) => state.user)
+
+  const filteredItems = navItems.filter(
+    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+  )
+
+  return (
+    <nav className="navigation" aria-label="Navegación principal">
+      <ul className="navigation__list">
+        {filteredItems.map((item) => (
+          <li key={item.to} className="navigation__item">
+            <NavLink
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) => 
+                `navigation__link ${isActive ? 'navigation__link--active' : ''}`
+              }
+            >
+              <span className="navigation__icon">{item.icon}</span>
+              <span className="navigation__label">{item.label}</span>
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}

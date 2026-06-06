@@ -102,7 +102,7 @@ export function useRegistrarCliente() {
     return () => {
       mounted = false
     }
-  }, [form])
+  }, [])
 
   // ── Reset completo ─────────────────────────────────────────────────────────
   const resetFormulario = () => {

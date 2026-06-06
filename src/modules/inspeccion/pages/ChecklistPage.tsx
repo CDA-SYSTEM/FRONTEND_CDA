@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
 import { type TemplateSection, type VehicleType } from '@/modules/inspeccion/domain/checklist.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 /* ═══════════════════════════════════════════════
    Helpers
@@ -62,6 +63,57 @@ function sectionIcon(title: string) {
   if (t.includes('visibilidad') || t.includes('retrovisor'))
     return <Eye size={16} />
   return <ClipboardList size={16} />
+}
+
+function getFriendlySectionTitle(code: string, title: string): string {
+  const normalizedCode = (code || '').trim()
+  if (normalizedCode.startsWith('10.')) {
+    return `${normalizedCode} ADAPTACIONES DE LOS VEHICULOS UTILIZADOS PARA IMPARTIR LA ENSEÑANZA AUTOMOVILISTICA`
+  }
+  return title
+}
+
+function agruparSeccionesPlantilla(sections: TemplateSection[]): TemplateSection[] {
+  const result: TemplateSection[] = []
+  let seccion10: TemplateSection | null = null
+
+  for (const sec of sections) {
+    const code = (sec.code || '').trim()
+    const title = (sec.title || '').toUpperCase()
+    const isAnexoA =
+      code.startsWith('10.') ||
+      code === '10' ||
+      code.startsWith('ANEXO A') ||
+      title.includes('ADAPTACIONES DE LOS VEHICULOS')
+
+    if (isAnexoA) {
+      if (!seccion10) {
+        seccion10 = {
+          code: '10',
+          title: 'ADAPTACIONES DE LOS VEHICULOS UTILIZADOS PARA IMPARTIR LA ENSEÑANZA AUTOMOVILISTICA En los vehiculos autorizados para impartir la enseñanza automovilistica se debe verificar:',
+          order: sec.order || 10,
+          subsections: []
+        }
+        result.push(seccion10)
+      }
+      
+      for (const sub of sec.subsections) {
+        const subTitle = sub.title || sec.title || ''
+        seccion10.subsections.push({
+          ...sub,
+          title: subTitle
+        })
+      }
+    } else {
+      result.push(sec)
+    }
+  }
+
+  if (seccion10) {
+    seccion10.subsections.sort((a, b) => (a.order || 0) - (b.order || 0))
+  }
+
+  return result
 }
 
 /* ═══════════════════════════════════════════════
@@ -156,7 +208,6 @@ export function ChecklistPage() {
     return null
   }, [vehicleTypeParam])
   const {
-    checklistInspection,
     estado,
     template,
     responses,
@@ -175,19 +226,17 @@ export function ChecklistPage() {
     responderItem,
     guardar,
     cerrar,
+    inspectorId,
+    setInspectorId,
+    inspectores,
   } = useChecklist(inspectionId || '', vehicleTypeFromUrl)
 
-  const inspectorName = useMemo(() => {
-    if (!checklistInspection?.inspector) return null
-    const ins = checklistInspection.inspector as Record<string, unknown>
-    if (typeof ins.name === 'string' && ins.name.trim()) return ins.name.trim()
-    const built = [ins.firstName, ins.lastName].filter(Boolean).join(' ').trim()
-    if (built) return built
-    if (typeof ins.email === 'string' && ins.email.trim()) return ins.email.trim()
-    return null
-  }, [checklistInspection?.inspector])
-
-
+  const optionsInspectores = useMemo(() => {
+    return inspectores.map((ins) => ({
+      value: ins.id,
+      label: ins.name || [ins.firstName, ins.lastName].filter(Boolean).join(' ') || ins.email || '',
+    }))
+  }, [inspectores])
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
   const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
   const [guardando, setGuardando] = useState(false)
@@ -302,7 +351,7 @@ export function ChecklistPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: 900, margin: '0 auto' }}>
 
       {/* ═══════ Cabecera ═══════ */}
-      <div className="panel" style={{ borderTop: '4px solid #155DFC' }}>
+      <div className="panel" style={{ borderTop: '4px solid #155DFC', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <div style={{
             width: 48, height: 48, borderRadius: '50%',
@@ -339,7 +388,7 @@ export function ChecklistPage() {
         )}
 
         {/* Placa + Inspector + Fecha */}
-        <div className={`checklist-header-grid ${inspectorName ? 'has-inspector' : ''}`}>
+        <div className="checklist-header-grid has-inspector">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>
@@ -356,23 +405,20 @@ export function ChecklistPage() {
               }}
             />
           </div>
-          {inspectorName && (
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-                Inspector Asignado
-              </label>
-              <input
-                type="text"
-                value={inspectorName}
-                readOnly
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 8,
-                  border: '1px solid #e2e8f0', background: '#f8fafc',
-                  fontSize: '0.95rem', color: '#475569', boxSizing: 'border-box',
-                }}
-              />
-            </div>
-          )}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+              Inspector Asignado <span style={{ color: '#dc2626' }}>*</span>
+            </label>
+            <CustomSelect
+              options={optionsInspectores}
+              value={inspectorId}
+              onChange={setInspectorId}
+              placeholder="Seleccione inspector..."
+              style={{
+                marginTop: 0,
+              }}
+            />
+          </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Fecha de Inspección
@@ -424,7 +470,7 @@ export function ChecklistPage() {
       )}
 
       {/* ═══════ Secciones Accordion ═══════ */}
-      {template && template.sections
+      {template && agruparSeccionesPlantilla(template.sections)
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((section, idx) => (
@@ -597,7 +643,7 @@ function AccordionSection({
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: '0.95rem', color: '#1e293b', textAlign: 'left' }}>
           <span style={{ color: colors[index % colors.length], flexShrink: 0 }}>{sectionIcon(section.title)}</span>
-          {section.title}
+          {getFriendlySectionTitle(section.code || '', section.title)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
           <span style={{
@@ -632,9 +678,9 @@ function AccordionSection({
                   {sub.items
                     .slice()
                     .sort((a, b) => a.order - b.order)
-                    .map((item) => (
+                    .map((item, itemIdx) => (
                       <ItemRow
-                        key={`${section.code || ''}:${sub.code || ''}:${item.code}`}
+                        key={`${section.code || ''}:${sub.code || ''}:${item.code}-${itemIdx}`}
                         item={item}
                         sectionCode={section.code || ''}
                         subsectionCode={sub.code || ''}

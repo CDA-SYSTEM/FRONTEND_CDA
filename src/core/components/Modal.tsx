@@ -99,10 +99,12 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px', cl
         <div
           className="cliente-modal-content"
           style={{
-            padding: '24px',
-            overflowY: 'auto',
+            padding: className ? '0' : '24px',
+            overflowY: className ? 'hidden' : 'auto',
             flex: 1,
             minHeight: 0,
+            display: className ? 'flex' : 'block',
+            flexDirection: className ? 'column' : 'initial',
           }}
         >
           {children}

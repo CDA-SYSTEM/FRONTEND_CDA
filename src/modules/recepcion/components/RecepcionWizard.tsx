@@ -444,6 +444,7 @@ function PasoCliente({
         onClose={onCloseModal}
         title="Registro de Cliente"
         maxWidth="800px"
+        className="cliente-registro-window"
       >
         {estado === 'cargando' ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
@@ -451,247 +452,255 @@ function PasoCliente({
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando tipos de documentos...</span>
           </div>
         ) : (
-          <>
-            <p style={{ color: '#6b7280', marginBottom: 20 }}>
-              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
-            </p>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', margin: 0 }}>
+            <div className="cliente-registro-body">
+              <p style={{ color: '#6b7280', marginBottom: 20 }}>
+                Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+              </p>
 
-        {errorServidor && (
-          <div
-            role="alert"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 8,
-              padding: '10px 14px',
-              marginBottom: 16,
-              color: '#991b1b',
-              fontSize: '0.9rem',
-            }}
-          >
-            <AlertCircle size={16} />
-            <span>{errorServidor}</span>
-          </div>
-        )}
-
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Nombre y Apellido */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Nombre <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder="Ej: Juan Carlos"
-                {...register('nombre')}
-                disabled={enviando}
-                style={{
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-              />
-              {errors.nombre && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.nombre.message}</span>
+              {errorServidor && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorServidor}</span>
+                </div>
               )}
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Apellido <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder="Ej: Pérez Gómez"
-                {...register('apellido')}
-                disabled={enviando}
-                style={{
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-              />
-              {errors.apellido && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.apellido.message}</span>
+              {/* Nombre y Apellido */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Nombre <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder="Ej: Juan Carlos"
+                    {...register('nombre')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
+                  {errors.nombre && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.nombre.message}</span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Apellido <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder="Ej: Pérez Gómez"
+                    {...register('apellido')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
+                  {errors.apellido && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.apellido.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tipo de documento e Identity */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <CustomSelect
+                    options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
+                    value={String(documentTypeId || '')}
+                    onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                  />
+                  {errors.documentTypeId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+                      {errors.documentTypeId.message}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Número de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder={placeholderIdentity}
+                    {...register('identity')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                  {errors.identity && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.identity.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tipo de persona */}
+              {tiposPersona.length > 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <CustomSelect
+                    options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
+                    value={String(personTypeId || '')}
+                    onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                  />
+                  {errors.personTypeId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
+                  )}
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Tipo de documento e Identity */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <CustomSelect
-                options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
-                value={String(documentTypeId || '')}
-                onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
-              />
-              {errors.documentTypeId && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
-                  {errors.documentTypeId.message}
+              {/* Celular */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Celular <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
-              )}
+                <input
+                  type="tel"
+                  placeholder="Ej: 3001234567"
+                  maxLength={10}
+                  {...register('celular')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.celular && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.celular.message}</span>
+                )}
+              </div>
+
+              {/* Correo (opcional) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Correo electrónico{' '}
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
+                    (opcional)
+                  </span>
+                </span>
+                <input
+                  type="email"
+                  placeholder="Ej: juan@correo.com"
+                  {...register('email')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.email && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.email.message}</span>
+                )}
+              </div>
+
+              {/* Dirección (opcional) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Dirección{' '}
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
+                    (opcional)
+                  </span>
+                </span>
+                <input
+                  placeholder="Ej: Cra 5 # 12-34, Mocoa"
+                  {...register('direccion')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.direccion && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
+                )}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Número de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder={placeholderIdentity}
-                {...register('identity')}
+            <div className="cliente-registro-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={enviando}
+                onClick={onCloseModal}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
                 disabled={enviando}
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '12px 24px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  textTransform: 'uppercase',
+                  background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
+                  transition: 'opacity 0.2s',
+                  opacity: enviando ? 0.7 : 1,
                 }}
-              />
-              {errors.identity && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.identity.message}</span>
-              )}
+              >
+                {enviando && (
+                  <Loader2
+                    size={18}
+                    style={{ animation: 'spin 1s linear infinite' }}
+                  />
+                )}
+                {enviando ? 'Guardando...' : 'Guardar Cliente'}
+              </button>
             </div>
-          </div>
-
-          {/* Tipo de persona */}
-          {tiposPersona.length > 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <CustomSelect
-                options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
-                value={String(personTypeId || '')}
-                onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
-              />
-              {errors.personTypeId && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
-              )}
-            </div>
-          )}
-
-          {/* Celular */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Celular <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-            </span>
-            <input
-              type="tel"
-              placeholder="Ej: 3001234567"
-              maxLength={10}
-              {...register('celular')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.celular && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.celular.message}</span>
-            )}
-          </div>
-
-          {/* Correo (opcional) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Correo electrónico{' '}
-              <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                (opcional)
-              </span>
-            </span>
-            <input
-              type="email"
-              placeholder="Ej: juan@correo.com"
-              {...register('email')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.email && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.email.message}</span>
-            )}
-          </div>
-
-          {/* Dirección (opcional) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Dirección{' '}
-              <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                (opcional)
-              </span>
-            </span>
-            <input
-              placeholder="Ej: Cra 5 # 12-34, Mocoa"
-              {...register('direccion')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.direccion && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
-            )}
-          </div>
-
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={enviando}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              marginTop: '1rem',
-              padding: '12px 24px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
-              color: '#fff',
-              cursor: 'pointer',
-              border: 'none',
-              boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
-              transition: 'opacity 0.2s',
-              opacity: enviando ? 0.7 : 1,
-              width: '100%',
-            }}
-          >
-            {enviando && (
-              <Loader2
-                size={18}
-                style={{ animation: 'spin 1s linear infinite' }}
-              />
-            )}
-            {enviando ? 'Guardando...' : 'Guardar cliente'}
-          </button>
-        </form>
-        </>
+          </form>
         )}
       </Modal>
     </article>

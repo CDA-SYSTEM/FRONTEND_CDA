@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -55,19 +55,22 @@ export function useRegistrarVehiculo() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm)
-      setPagina(0)
-    }, 400)
-    return () => clearTimeout(handler)
-  }, [searchTerm])
+  const lastFetchedRef = useRef({ page: -1, search: '____none____' })
 
-  const cargarVehiculos = useCallback(async () => {
+  const cargarVehiculos = useCallback(async (pageOverride?: number, searchOverride?: string) => {
+    const pageToUse = pageOverride !== undefined ? pageOverride : pagina
+    const searchToUse = searchOverride !== undefined ? searchOverride : debouncedSearch
+
+    // Evitar peticiones duplicadas idénticas consecutivas
+    if (lastFetchedRef.current.page === pageToUse && lastFetchedRef.current.search === searchToUse) {
+      return
+    }
+    lastFetchedRef.current = { page: pageToUse, search: searchToUse }
+
     setCargandoVehiculos(true)
     setErrorVehiculos(null)
     try {
-      const data = await vehiculoService.listarVehiculos(pagina, limite, debouncedSearch)
+      const data = await vehiculoService.listarVehiculos(pageToUse, limite, searchToUse)
       setVehiculos(data.content)
       setTotalElementos(data.totalElements)
       setTotalPaginas(data.totalPages)
@@ -79,19 +82,34 @@ export function useRegistrarVehiculo() {
     }
   }, [pagina, limite, debouncedSearch])
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setPagina(0)
+    }, 400)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
+
+  // Efecto para cambios en el término de búsqueda debounced (forzando página 0)
+  useEffect(() => {
+    cargarVehiculos(0, debouncedSearch)
+  }, [debouncedSearch, cargarVehiculos])
+
+  // Efecto para cambios en la paginación manual
+  useEffect(() => {
+    cargarVehiculos(pagina, debouncedSearch)
+  }, [pagina, debouncedSearch, cargarVehiculos])
+
   const eliminarVehiculo = useCallback(async (id: string | number) => {
     if (!window.confirm('¿Seguro que desea eliminar este vehículo?')) return
     try {
       await vehiculoService.eliminarVehiculo(id)
-      await cargarVehiculos()
+      lastFetchedRef.current = { page: -1, search: '____none____' }
+      await cargarVehiculos(pagina, debouncedSearch)
     } catch (err) {
       alert('No se pudo eliminar el vehículo.')
     }
-  }, [cargarVehiculos])
-
-  useEffect(() => {
-    cargarVehiculos()
-  }, [cargarVehiculos])
+  }, [cargarVehiculos, pagina, debouncedSearch])
 
 
   const form = useForm<VehiculoSchema>({
@@ -303,5 +321,6 @@ export function useRegistrarVehiculo() {
     totalPaginas,
     searchTerm,
     setSearchTerm,
+    debouncedSearch,
   }
 }

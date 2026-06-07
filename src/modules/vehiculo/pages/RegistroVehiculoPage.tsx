@@ -71,6 +71,7 @@ export function RegistroVehiculoPage() {
     totalPaginas,
     searchTerm,
     setSearchTerm,
+    debouncedSearch,
   } = useRegistrarVehiculo()
 
   const {
@@ -302,7 +303,7 @@ export function RegistroVehiculoPage() {
 
       {/* Tabla / Lista de Vehículos */}
       <article className="vh-table-card">
-        {cargandoVehiculos ? (
+        {cargandoVehiculos || searchTerm !== debouncedSearch ? (
           <div className="vh-state">
             <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
           </div>

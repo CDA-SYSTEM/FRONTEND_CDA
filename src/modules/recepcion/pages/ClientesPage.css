@@ -755,20 +755,35 @@
    9. MODAL ALINEACIÓN — fixed height y scroll
    ══════════════════════════════════════════════════════════════ */
 
+/* Corrección de doble scroll y estructura del modal */
+.cliente-modal-window {
+  overflow: hidden !important;
+}
+
+.cliente-modal-window .cliente-modal-content {
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 /* Formulario principal del modal */
 .cliente-modal-form {
   display: flex !important;
   flex-direction: column !important;
-  max-height: calc(100vh - 160px) !important;
+  max-height: calc(90vh - 70px) !important; /* Adaptar al tamaño del modal */
   overflow: hidden !important;
   margin: 0 !important;
+  flex: 1;
 }
 
 /* Cuerpo deslizable intermedio */
 .cliente-modal-body {
   flex: 1;
   overflow-y: auto !important;
-  padding-right: 6px; /* Evitar solape con scrollbar */
+  padding: 24px 24px 24px 24px !important;
+  padding-right: 18px !important; /* Evitar solape con scrollbar */
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -795,7 +810,7 @@
 /* Footer fijo abajo */
 .cliente-modal-footer {
   border-top: 1px solid var(--cl-border);
-  padding-top: 12px;
+  padding: 16px 24px !important;
   background: #ffffff;
   display: flex;
   justify-content: flex-end;

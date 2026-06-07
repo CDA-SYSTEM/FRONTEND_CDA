@@ -177,33 +177,6 @@ export function ClientesPage() {
         title="Registro de Cliente"
         maxWidth="800px"
       >
-      <p style={{ color: '#6b7280', marginBottom: 20 }}>
-        Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son
-        obligatorios.
-      </p>
-
-      {/* Error global del servidor */}
-      {errorServidor && (
-        <div
-          role="alert"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: 8,
-            padding: '10px 14px',
-            marginBottom: 16,
-            color: '#991b1b',
-            fontSize: '0.9rem',
-          }}
-        >
-          <AlertCircle size={16} />
-          <span>{errorServidor}</span>
-        </div>
-      )}
-
       <form onSubmit={onSubmit} className="cliente-modal-form">
         <div className="cliente-modal-body">
           <p style={{ color: '#6b7280', marginBottom: 20 }}>

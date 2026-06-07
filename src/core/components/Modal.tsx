@@ -48,6 +48,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
     >
       <div
         ref={modalRef}
+        className="cliente-modal-window"
         style={{
           background: '#fff',
           borderRadius: 12,
@@ -94,6 +95,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
           </button>
         </div>
         <div
+          className="cliente-modal-content"
           style={{
             padding: '24px',
             overflowY: 'auto',

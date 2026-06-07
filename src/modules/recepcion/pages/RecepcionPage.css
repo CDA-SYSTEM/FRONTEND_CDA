@@ -369,12 +369,14 @@
    4. TABLA DE DATOS — premium limpio estilo Linear
    ══════════════════════════════════════════════════════════════ */
 .recepcion-table-scroll {
-  overflow-x: auto;
+  width: 100% !important;
+  overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
 }
 
 .recepcion-table {
   width: 100%;
+  min-width: 900px !important;
   border-collapse: collapse;
   font-size: 0.875rem;
 }

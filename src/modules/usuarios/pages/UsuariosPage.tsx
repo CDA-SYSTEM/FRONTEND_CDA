@@ -5,6 +5,7 @@ import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import './UsuariosPage.css'
 import './UsuariosModal.css'
+import './RestablecerPasswordModal.css'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -623,18 +624,17 @@ export function UsuariosPage() {
 
       {/* Modal restablecer contraseña */}
       {resetUserId && createPortal(
-        <div className="modal-overlay-premium">
-          <div className="modal-window-premium" style={{ width: '90%', maxWidth: '400px', padding: '24px' }}>
-            <h3 style={{ marginTop: 0 }}>Restablecer Contraseña</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 16 }}>
+        <div className="pwd-modal-overlay">
+          <div className="pwd-modal-window">
+            <h3 className="pwd-modal-title">Restablecer Contraseña</h3>
+            <p className="pwd-modal-desc">
               Defina la nueva contraseña temporal para la cuenta de este usuario.
             </p>
-            <form
-              onSubmit={handleResetPassword}
-              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-            >
-              <label>
-                Nueva Contraseña
+            <form onSubmit={handleResetPassword}>
+              <div className="pwd-form-group">
+                <label className="pwd-form-label">
+                  Nueva Contraseña
+                </label>
                 <input
                   type="password"
                   required
@@ -642,45 +642,23 @@ export function UsuariosPage() {
                   value={resetPasswordVal}
                   onChange={(e) => setResetPasswordVal(e.target.value)}
                   placeholder="Mínimo 4 caracteres"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    marginTop: '4px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                  }}
+                  className="pwd-form-input"
                 />
-              </label>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              </div>
+              <div className="pwd-modal-footer">
                 <button
                   type="button"
                   onClick={() => {
                     setResetUserId(null)
                     setResetPasswordVal('')
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-pwd-cancel-ghost"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-pwd-confirm"
                 >
                   Confirmar
                 </button>

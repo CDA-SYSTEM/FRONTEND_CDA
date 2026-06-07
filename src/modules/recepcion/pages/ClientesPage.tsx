@@ -9,11 +9,24 @@ import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
+import { clienteService } from '@/modules/recepcion/services/clienteService'
 import './ClientesPage.css'
 
 export function ClientesPage() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleEliminarCliente = async (cliente: ClientePersonaNatural) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar al cliente ${cliente.nombre} ${cliente.apellido}?`)) return
+    try {
+      await clienteService.eliminarCliente(cliente.id)
+      alert('Cliente eliminado con éxito')
+      buscador.refrescar()
+    } catch (err) {
+      console.error(err)
+      alert('No se pudo eliminar el cliente.')
+    }
+  }
 
   const {
     form,
@@ -145,6 +158,7 @@ export function ClientesPage() {
           cargando={buscador.cargando}
           error={buscador.error}
           onSeleccionarCliente={setClienteSeleccionado}
+          onEliminarCliente={handleEliminarCliente}
           pagina={buscador.pagina}
           onPageChange={buscador.setPagina}
           limite={buscador.limite}

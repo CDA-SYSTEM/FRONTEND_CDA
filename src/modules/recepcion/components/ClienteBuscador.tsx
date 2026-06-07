@@ -1,5 +1,6 @@
-import { Search, Loader2, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Loader2, User, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
+import { useAuthStore } from '@/core/store/authStore'
 
 interface Props {
   query: string
@@ -8,6 +9,7 @@ interface Props {
   cargando: boolean
   error: string | null
   onSeleccionarCliente: (cliente: ClientePersonaNatural) => void
+  onEliminarCliente?: (cliente: ClientePersonaNatural) => void
   pagina: number
   onPageChange: (p: number) => void
   limite: number
@@ -25,6 +27,7 @@ export function ClienteBuscador({
   cargando,
   error,
   onSeleccionarCliente,
+  onEliminarCliente,
   pagina,
   onPageChange,
   limite,
@@ -34,6 +37,9 @@ export function ClienteBuscador({
   incluirInactivos,
   onIncluirInactivosChange,
 }: Props) {
+  const { user } = useAuthStore()
+  const puedeEliminar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
+
   return (
     <div>
       {/* ── Barra de búsqueda y filtros ── */}
@@ -116,12 +122,28 @@ export function ClienteBuscador({
                         </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <button
-                          className="cl-btn-view"
-                          onClick={() => onSeleccionarCliente(c)}
-                        >
-                          Ver
-                        </button>
+                        <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <button
+                            className="cl-btn-view"
+                            onClick={() => onSeleccionarCliente(c)}
+                            type="button"
+                          >
+                            Ver
+                          </button>
+                          {puedeEliminar && isActive && onEliminarCliente && (
+                            <button
+                              className="cl-btn-delete"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onEliminarCliente(c)
+                              }}
+                              type="button"
+                            >
+                              <Trash2 size={13} style={{ marginRight: 4 }} />
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -155,13 +177,29 @@ export function ClienteBuscador({
                     <span className="client-card-value">{c.celular || '—'}</span>
                   </div>
 
-                  <div className="client-card-actions">
+                  <div className="client-card-actions" style={{ display: 'flex', gap: '8px' }}>
                     <button
                       className="cl-btn-view"
                       onClick={() => onSeleccionarCliente(c)}
+                      type="button"
+                      style={{ flex: 1 }}
                     >
                       Ver
                     </button>
+                    {puedeEliminar && isActive && onEliminarCliente && (
+                      <button
+                        className="cl-btn-delete"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEliminarCliente(c)
+                        }}
+                        type="button"
+                        style={{ flex: 1 }}
+                      >
+                        <Trash2 size={13} style={{ marginRight: 4 }} />
+                        Eliminar
+                      </button>
+                    )}
                   </div>
                 </div>
               )

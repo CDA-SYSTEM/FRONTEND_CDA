@@ -764,6 +764,62 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
+   9. MODAL DETALLE — layout premium y scroll
+   ══════════════════════════════════════════════════════════════ */
+.recepcion-modal-detail-window {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  max-height: calc(100vh - 60px) !important;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.recepcion-modal-detail-body {
+  padding: 1.5rem;
+  overflow-y: auto !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+/* Scrollbar ultra-delgado personalizado para el cuerpo del modal */
+.recepcion-modal-detail-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recepcion-modal-detail-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recepcion-modal-detail-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.recepcion-modal-detail-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
    8. REDUCED MOTION — accesibilidad
    ══════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {

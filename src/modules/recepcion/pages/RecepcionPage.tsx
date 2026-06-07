@@ -684,17 +684,7 @@ export function RecepcionPage() {
           zIndex: 9999,
           padding: '1rem',
         }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: 680,
-            maxHeight: '90vh',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}>
+          <div className="recepcion-modal-detail-window">
             {/* Cabecera Modal */}
             <div style={{
               padding: '1.25rem 1.5rem',
@@ -730,7 +720,7 @@ export function RecepcionPage() {
             </div>
 
             {/* Contenido Modal */}
-            <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="recepcion-modal-detail-body">
               {cargandoDetalle ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 40, gap: 12 }}>
                   <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />

@@ -13,8 +13,7 @@ import {
   FileArchive, 
   Activity,
   Home,
-  Menu,
-  X
+  Menu
 } from 'lucide-react'
 import './Navigation.css'
 

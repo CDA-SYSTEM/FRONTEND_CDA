@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface Props {
@@ -27,7 +28,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px', cl
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -107,6 +108,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px', cl
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

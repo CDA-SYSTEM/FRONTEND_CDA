@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Loader2, Trash2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowLeft, Loader2, Save, Trash2 } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'
+import { clienteSchema, type ClienteSchema } from '@/modules/recepcion/domain/recepcion.schema'
 import type { ClientePersonaNatural, Vehiculo, DocumentType, PersonType } from '@/modules/recepcion/domain/recepcion.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 interface Props {
   clienteInicial: ClientePersonaNatural
@@ -102,11 +106,37 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   const [cargandoVehiculos, setCargandoVehiculos] = useState(true)
   const [actualizando, setActualizando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   
   const [tiposDocumento, setTiposDocumento] = useState<DocumentType[]>([])
   const [tiposPersona, setTiposPersona] = useState<PersonType[]>([])
 
   const puedeEditar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isDirty },
+    reset,
+  } = useForm<ClienteSchema>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: {
+      nombre: clienteInicial.nombre,
+      apellido: clienteInicial.apellido,
+      identity: clienteInicial.identity,
+      celular: clienteInicial.celular,
+      email: clienteInicial.email ?? '',
+      direccion: clienteInicial.direccion ?? '',
+      birthDate: clienteInicial.birthDate ?? '',
+      documentTypeId: clienteInicial.documentTypeId,
+      personTypeId: clienteInicial.personTypeId,
+    },
+  })
+
+  const docTypeIdWatch = watch('documentTypeId')
+  const persTypeIdWatch = watch('personTypeId')
 
   useEffect(() => {
     let mounted = true
@@ -134,8 +164,40 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     }
   }, [clienteInicial.id])
 
+  // Reset form when clienteInicial changes
+  useEffect(() => {
+    reset({
+      nombre: clienteInicial.nombre,
+      apellido: clienteInicial.apellido,
+      identity: clienteInicial.identity,
+      celular: clienteInicial.celular,
+      email: clienteInicial.email ?? '',
+      direccion: clienteInicial.direccion ?? '',
+      birthDate: clienteInicial.birthDate ?? '',
+      documentTypeId: clienteInicial.documentTypeId,
+      personTypeId: clienteInicial.personTypeId,
+    })
+  }, [clienteInicial, reset])
+
   const docTipoNombre = tiposDocumento.find((d) => d.id === clienteInicial.documentTypeId)?.nombre || '—'
   const persTipoNombre = tiposPersona.find((p) => p.id === clienteInicial.personTypeId)?.nombre || '—'
+
+  const onSubmit = async (data: ClienteSchema) => {
+    if (!puedeEditar) return
+    setActualizando(true)
+    setError(null)
+    try {
+      await clienteService.actualizarCliente(clienteInicial.id, data)
+      alert('Cliente actualizado con éxito')
+      setIsEditing(false)
+      onActualizado()
+    } catch (err) {
+      console.error(err)
+      setError('No se pudo actualizar el cliente.')
+    } finally {
+      setActualizando(false)
+    }
+  }
 
   return (
     <div className="panel-grid" style={{ gridTemplateColumns: '1fr' }}>
@@ -228,56 +290,150 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
           }}>{error}</div>
         )}
 
-        <DataDisplayGroup>
-          <Grid columns={2} gap="1.75rem">
-            <InfoField label="Nombre" value={clienteInicial.nombre} />
-            <InfoField label="Apellido" value={clienteInicial.apellido} />
-            
-            <InfoField label="Documento" value={clienteInicial.identity} />
-            <InfoField label="Celular" value={clienteInicial.celular} />
-            
-            <InfoField label="Tipo de documento" value={docTipoNombre} />
-            <InfoField label="Tipo de persona" value={persTipoNombre} />
-            
-            <InfoField label="Correo electrónico" value={clienteInicial.email} />
-            <InfoField label="Dirección" value={clienteInicial.direccion} />
-          </Grid>
-        </DataDisplayGroup>
+        {isEditing ? (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <Grid columns={2} gap="1.5rem">
+                <div className="cl-field">
+                  <span className="cl-field-label">Nombre <span className="cl-field-required">*</span></span>
+                  <input className="cl-input" {...register('nombre')} disabled={actualizando} />
+                  {errors.nombre && <span className="cl-field-error">{errors.nombre.message}</span>}
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Apellido <span className="cl-field-required">*</span></span>
+                  <input className="cl-input" {...register('apellido')} disabled={actualizando} />
+                  {errors.apellido && <span className="cl-field-error">{errors.apellido.message}</span>}
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Documento (solo lectura)</span>
+                  <input className="cl-input" {...register('identity')} disabled />
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Celular <span className="cl-field-required">*</span></span>
+                  <input className="cl-input" type="tel" maxLength={10} {...register('celular')} disabled={actualizando} />
+                  {errors.celular && <span className="cl-field-error">{errors.celular.message}</span>}
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Tipo de documento <span className="cl-field-required">*</span></span>
+                  <CustomSelect
+                    options={tiposDocumento.map((d) => ({ value: String(d.id), label: d.nombre }))}
+                    value={String(docTypeIdWatch)}
+                    onChange={(val) => setValue('documentTypeId', Number(val), { shouldDirty: true })}
+                  />
+                  {errors.documentTypeId && <span className="cl-field-error">{errors.documentTypeId.message}</span>}
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Tipo de persona <span className="cl-field-required">*</span></span>
+                  <CustomSelect
+                    options={tiposPersona.map((p) => ({ value: String(p.id), label: p.nombre }))}
+                    value={String(persTypeIdWatch)}
+                    onChange={(val) => setValue('personTypeId', Number(val), { shouldDirty: true })}
+                  />
+                  {errors.personTypeId && <span className="cl-field-error">{errors.personTypeId.message}</span>}
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Correo electrónico</span>
+                  <input className="cl-input" type="email" {...register('email')} disabled={actualizando} />
+                </div>
+                <div className="cl-field">
+                  <span className="cl-field-label">Dirección</span>
+                  <input className="cl-input" {...register('direccion')} disabled={actualizando} />
+                </div>
+              </Grid>
+              
+              <Flex justify="end" style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--cl-border)' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  disabled={actualizando}
+                  className="cl-btn-view"
+                  style={{ background: '#f1f5f9', color: '#475569', borderColor: '#e2e8f0' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={actualizando || !isDirty}
+                  className="cl-btn-primary"
+                  style={{ height: '38px', minHeight: 'unset', display: 'inline-flex', gap: 6, margin: 0 }}
+                >
+                  {actualizando ? <Loader2 size={16} className="spin" /> : <Save size={16} />}
+                  Guardar Cambios
+                </button>
+              </Flex>
+            </div>
+          </form>
+        ) : (
+          <>
+            <DataDisplayGroup>
+              <Grid columns={2} gap="1.75rem">
+                <InfoField label="Nombre" value={clienteInicial.nombre} />
+                <InfoField label="Apellido" value={clienteInicial.apellido} />
+                
+                <InfoField label="Documento" value={clienteInicial.identity} />
+                <InfoField label="Celular" value={clienteInicial.celular} />
+                
+                <InfoField label="Tipo de documento" value={docTipoNombre} />
+                <InfoField label="Tipo de persona" value={persTipoNombre} />
+                
+                <InfoField label="Correo electrónico" value={clienteInicial.email} />
+                <InfoField label="Dirección" value={clienteInicial.direccion} />
+              </Grid>
+            </DataDisplayGroup>
 
-        {puedeEditar && clienteInicial && (clienteInicial as any).active !== false && (
-          <Flex justify="end" style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cl-border)' }}>
-            <button
-              type="button"
-              onClick={async () => {
-                if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) return
-                setActualizando(true)
-                setError(null)
-                try {
-                  await clienteService.eliminarCliente(clienteInicial.id)
-                  alert('Cliente eliminado con éxito')
-                  onActualizado()
-                } catch (err) {
-                  console.error(err)
-                  setError('No se pudo eliminar el cliente.')
-                } finally {
-                  setActualizando(false)
-                }
-              }}
-              disabled={actualizando}
-              className="cl-btn-delete"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                height: '42px',
-                paddingInline: '1.25rem',
-                fontSize: '0.875rem',
-              }}
-            >
-              {actualizando ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
-              Eliminar Cliente
-            </button>
-          </Flex>
+            {puedeEditar && clienteInicial && (clienteInicial as any).active !== false && (
+              <Flex justify="between" style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cl-border)' }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) return
+                    setActualizando(true)
+                    setError(null)
+                    try {
+                      await clienteService.eliminarCliente(clienteInicial.id)
+                      alert('Cliente eliminado con éxito')
+                      onActualizado()
+                    } catch (err) {
+                      console.error(err)
+                      setError('No se pudo eliminar el cliente.')
+                    } finally {
+                      setActualizando(false)
+                    }
+                  }}
+                  disabled={actualizando}
+                  className="cl-btn-delete"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: '42px',
+                    paddingInline: '1.25rem',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {actualizando ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
+                  Eliminar Cliente
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="cl-btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    height: '42px',
+                    paddingInline: '1.25rem',
+                    fontSize: '0.875rem',
+                    margin: 0
+                  }}
+                >
+                  Editar Cliente
+                </button>
+              </Flex>
+            )}
+          </>
         )}
       </article>
 
@@ -321,4 +477,3 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     </div>
   )
 }
-

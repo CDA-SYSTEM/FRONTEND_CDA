@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuthStore } from '@/core/store/authStore'
 import { 
@@ -11,7 +12,9 @@ import {
   List, 
   FileArchive, 
   Activity,
-  Home
+  Home,
+  Menu,
+  X
 } from 'lucide-react'
 import './Navigation.css'
 
@@ -39,6 +42,7 @@ const navItems: NavItem[] = [
 
 export function Navigation() {
   const user = useAuthStore((state) => state.user)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const filteredItems = navItems.filter(
     (item) => !item.roles || (user?.role && item.roles.includes(user.role))
@@ -46,7 +50,8 @@ export function Navigation() {
 
   return (
     <nav className="navigation" aria-label="Navegación principal">
-      <ul className="navigation__list">
+      {/* Desktop List */}
+      <ul className="navigation__list navigation__list--desktop">
         {filteredItems.map((item) => (
           <li key={item.to} className="navigation__item">
             <NavLink
@@ -62,6 +67,95 @@ export function Navigation() {
           </li>
         ))}
       </ul>
+
+      {/* Mobile List */}
+      <ul className="navigation__list navigation__list--mobile">
+        {filteredItems.length <= 5 ? (
+          filteredItems.map((item) => (
+            <li key={item.to} className="navigation__item">
+              <NavLink
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) => 
+                  `navigation__link ${isActive ? 'navigation__link--active' : ''}`
+                }
+              >
+                <span className="navigation__icon">{item.icon}</span>
+                <span className="navigation__label">{item.label}</span>
+              </NavLink>
+            </li>
+          ))
+        ) : (
+          <>
+            {filteredItems.slice(0, 4).map((item) => (
+              <li key={item.to} className="navigation__item">
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  className={({ isActive }) => 
+                    `navigation__link ${isActive ? 'navigation__link--active' : ''}`
+                  }
+                >
+                  <span className="navigation__icon">{item.icon}</span>
+                  <span className="navigation__label">{item.label}</span>
+                </NavLink>
+              </li>
+            ))}
+            <li className="navigation__item">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="navigation__link navigation__button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  width: '100%',
+                  cursor: 'pointer',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  color: 'var(--nav-text)'
+                }}
+              >
+                <span className="navigation__icon"><Menu size={20} /></span>
+                <span className="navigation__label">Más</span>
+              </button>
+            </li>
+          </>
+        )}
+      </ul>
+
+      {/* Mobile BottomSheet Drawer */}
+      {isMobileMenuOpen && (
+        <div className="mobile-nav-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="mobile-nav-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-nav-sheet-header">
+              <h3>Más opciones</h3>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-sheet-close">
+                <X size={20} />
+              </button>
+            </div>
+            <ul className="mobile-nav-sheet-list">
+              {filteredItems.slice(4).map((item) => (
+                <li key={item.to} className="mobile-nav-sheet-item">
+                  <NavLink
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) => 
+                      `mobile-nav-sheet-link ${isActive ? 'mobile-nav-sheet-link--active' : ''}`
+                    }
+                  >
+                    <span className="mobile-nav-sheet-icon">{item.icon}</span>
+                    <span className="mobile-nav-sheet-label">{item.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

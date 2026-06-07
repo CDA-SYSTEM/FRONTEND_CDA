@@ -190,8 +190,9 @@ export function RecepcionWizard({ onCancelar }: Props) {
             setSignatureBlob={wizard.setSignatureBlob}
             confirmacionAcuerdo={wizard.confirmacionAcuerdo}
             setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
-              tires={wizard.tires}
-              setTires={wizard.setTires}
+            tires={wizard.tires}
+            setTires={wizard.setTires}
+            vehiculo={wizard.vehiculo}
             estadoEnvio={wizard.estadoEnvio}
             errorEnvio={wizard.errorEnvio}
             tintedWindows={wizard.tintedWindows}
@@ -703,7 +704,7 @@ function PasoCliente({
   interface PasoVehiculoProps {
   vehiculos: Vehiculo[]
   cargando: boolean
-  onSeleccionar: (v: { id: number | string; placa: string }) => void
+  onSeleccionar: (v: Vehiculo) => void
   onSaltar: () => void
   cliente: any
   onVolver: () => void
@@ -984,7 +985,7 @@ function PasoVehiculo({
                       <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <button
-                          onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                          onClick={() => onSeleccionar(v)}
                           style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}
                         >
                           Seleccionar
@@ -1032,7 +1033,7 @@ function PasoVehiculo({
                   </div>
                   <div className="vehiculo-card-footer">
                     <button
-                      onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                      onClick={() => onSeleccionar(v)}
                       className="vehiculo-select-card-btn"
                     >
                       Seleccionar
@@ -2192,6 +2193,7 @@ interface PasoCondicionesProps {
   setBrakeFluidSightGlass: (v: string) => void
   onSubmit: () => void
   onVolver: () => void
+  vehiculo: Vehiculo | null
 }
 
 function PasoCondiciones({
@@ -2205,10 +2207,17 @@ function PasoCondiciones({
   armoredVehicle, setArmoredVehicle,
   brakeFluidSightGlass, setBrakeFluidSightGlass,
   onSubmit, onVolver,
+  vehiculo,
 }: PasoCondicionesProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const presionesInvalidas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
   const puedeFinalizar = confirmacionAcuerdo && !presionesInvalidas && estadoEnvio !== 'enviando'
+
+  const esMoto = vehiculo?.tipoVehiculo ? (
+    typeof vehiculo.tipoVehiculo === 'object'
+      ? (vehiculo.tipoVehiculo.nombre || vehiculo.tipoVehiculo.name || '').toLowerCase().includes('moto')
+      : String(vehiculo.tipoVehiculo).toLowerCase().includes('moto')
+  ) : false
 
   const actualizarPresion = (index: number, value: string) => {
     setTires(
@@ -2226,6 +2235,8 @@ function PasoCondiciones({
       case 'FRONT_RIGHT': return 'Delantera derecha'
       case 'REAR_LEFT': return 'Trasera izquierda'
       case 'REAR_RIGHT': return 'Trasera derecha'
+      case 'FRONT': return 'Delantera'
+      case 'REAR': return 'Trasera'
       default: return position
     }
   }
@@ -2264,32 +2275,36 @@ function PasoCondiciones({
       <div className="form-grid">
         {/* Condiciones del vehículo */}
         <div className="recepcion-condiciones-selects-grid">
-          <label>
-            <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
-            <CustomSelect
-              options={[
-                { value: 'NO', label: 'NO' },
-                { value: 'SI', label: 'SÍ' },
-                { value: 'NO_APLICA', label: 'NO APLICA' },
-              ]}
-              value={tintedWindows}
-              onChange={(val) => setTintedWindows(val)}
-              disabled={estadoEnvio === 'enviando'}
-            />
-          </label>
-          <label>
-            <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
-            <CustomSelect
-              options={[
-                { value: 'NO', label: 'NO' },
-                { value: 'SI', label: 'SÍ' },
-                { value: 'NO_APLICA', label: 'NO APLICA' },
-              ]}
-              value={armoredVehicle}
-              onChange={(val) => setArmoredVehicle(val)}
-              disabled={estadoEnvio === 'enviando'}
-            />
-          </label>
+          {!esMoto && (
+            <>
+              <label>
+                <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
+                <CustomSelect
+                  options={[
+                    { value: 'NO', label: 'NO' },
+                    { value: 'SI', label: 'SÍ' },
+                    { value: 'NO_APLICA', label: 'NO APLICA' },
+                  ]}
+                  value={tintedWindows}
+                  onChange={(val) => setTintedWindows(val)}
+                  disabled={estadoEnvio === 'enviando'}
+                />
+              </label>
+              <label>
+                <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
+                <CustomSelect
+                  options={[
+                    { value: 'NO', label: 'NO' },
+                    { value: 'SI', label: 'SÍ' },
+                    { value: 'NO_APLICA', label: 'NO APLICA' },
+                  ]}
+                  value={armoredVehicle}
+                  onChange={(val) => setArmoredVehicle(val)}
+                  disabled={estadoEnvio === 'enviando'}
+                />
+              </label>
+            </>
+          )}
           <label>
             <span style={{ fontWeight: 500 }}>Depósito líquido frenos</span>
             <CustomSelect

@@ -28,7 +28,7 @@ export function useCrearRecepcion() {
 
   const [cliente, setCliente] = useState<ClienteConVehiculos | null>(null)
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
-  const [vehiculo, setVehiculo] = useState<{ id: number | string; placa: string } | null>(null)
+  const [vehiculo, setVehiculo] = useState<Vehiculo | null>(null)
   const [cargandoVehiculos, setCargandoVehiculos] = useState(false)
 
   const [mileage, setMileage] = useState('')
@@ -165,8 +165,42 @@ export function useCrearRecepcion() {
     }
   }, [cliente])
 
-  const seleccionarVehiculo = useCallback((v: { id: number | string; placa: string }) => {
+  const seleccionarVehiculo = useCallback((v: Vehiculo) => {
     setVehiculo(v)
+
+    // Configurar ejes y llantas según tipo de vehículo (moto, etc.)
+    const isMotorcycle = v.tipoVehiculo ? (
+      typeof v.tipoVehiculo === 'object'
+        ? (v.tipoVehiculo.nombre || v.tipoVehiculo.name || '').toLowerCase().includes('moto')
+        : String(v.tipoVehiculo).toLowerCase().includes('moto')
+    ) : false
+
+    if (isMotorcycle) {
+      setTintedWindows('NO_APLICA')
+      setArmoredVehicle('NO_APLICA')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRASERO' },
+      ])
+      setTires([
+        { position: 'FRONT', code: '', tire_pressure: 0 },
+        { position: 'REAR', code: '', tire_pressure: 0 },
+      ])
+    } else {
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRASERO' },
+      ])
+      setTires([
+        { position: 'FRONT_LEFT', code: '', tire_pressure: 0 },
+        { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
+        { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
+        { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
+      ])
+    }
+
     setPaso('detalle')
   }, [])
 

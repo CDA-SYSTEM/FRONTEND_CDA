@@ -110,7 +110,7 @@ export function Navigation() {
                   border: 'none',
                   width: '100%',
                   cursor: 'pointer',
-                  padding: '8px 16px',
+                  padding: '6px 2px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',

@@ -144,7 +144,7 @@
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--nav-border);
     z-index: 1000;
-    padding: 0 var(--space-2);
+    padding: 0 var(--space-1);
   }
 
   .navigation__list {
@@ -155,13 +155,14 @@
     align-items: center;
     justify-content: space-around;
     height: 100%;
-    gap: var(--space-1);
+    gap: 4px;
   }
 
   .navigation__item {
     margin: 0;
     flex: 1;
-    max-width: 80px;
+    min-width: 0;
+    max-width: 70px;
   }
 
   .navigation__link {
@@ -171,13 +172,13 @@
     justify-content: center;
     gap: 4px;
     min-height: var(--touch-target-min);
-    padding: var(--space-1) var(--space-2);
+    padding: 6px 2px;
     border-radius: 12px;
     text-decoration: none;
     color: var(--nav-text);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 500;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.005em;
     position: relative;
     transition: background-color var(--duration-fast) var(--ease-out),
                 color var(--duration-fast) var(--ease-out);

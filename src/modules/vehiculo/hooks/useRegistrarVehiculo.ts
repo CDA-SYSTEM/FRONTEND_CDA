@@ -67,6 +67,8 @@ export function useRegistrarVehiculo() {
     }
     lastFetchedRef.current = { page: pageToUse, search: searchToUse }
 
+    console.log('[DEBUG] Fetching vehicles - page:', pageToUse, 'limit:', limite, 'search:', JSON.stringify(searchToUse))
+
     setCargandoVehiculos(true)
     setErrorVehiculos(null)
     try {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2 } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'
@@ -228,7 +228,46 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
           </fieldset>
 
           {puedeEditar && (
-            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              {clienteInicial && (clienteInicial as any).active !== false && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) return
+                    setActualizando(true)
+                    setError(null)
+                    try {
+                      await clienteService.eliminarCliente(clienteInicial.id)
+                      alert('Cliente eliminado con éxito')
+                      onActualizado()
+                    } catch (err) {
+                      console.error(err)
+                      setError('No se pudo eliminar el cliente.')
+                    } finally {
+                      setActualizando(false)
+                    }
+                  }}
+                  disabled={actualizando}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#ef4444',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '8px 16px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    minHeight: 'auto',
+                    boxShadow: 'none',
+                  }}
+                >
+                  {actualizando ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />}
+                  Eliminar Cliente
+                </button>
+              )}
+
               <button
                 type="submit"
                 disabled={actualizando || !isDirty}

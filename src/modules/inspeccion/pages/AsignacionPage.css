@@ -552,5 +552,21 @@
     margin-bottom: 6px !important;
     display: block !important;
   }
+
+  /* Centered Elastic layout for main panels */
+  .as-filters-panel,
+  .as-type-panel {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 16px auto !important;
+    position: relative !important;
+    left: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .as-input,
+  .as-filters-grid .as-field-label button {
+    box-sizing: border-box !important;
+  }
 }
 

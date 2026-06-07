@@ -1,0 +1,179 @@
+/* ═══════════════════════════════════════════════════════════════
+   ArchivosPage.css — Gestión de Archivos Módulo UI Premium
+   Refero design reference: Media grid auto-fit, image preview micro-zoom,
+   truncated titles, ghost footer actions.
+   ═══════════════════════════════════════════════════════════════ */
+
+.archivos-root {
+  --arc-bg:              #f8fafc;
+  --arc-surface:         #ffffff;
+  --arc-border:          #e2e8f0;
+  --arc-border-strong:   #cbd5e1;
+  --arc-text:            #0f172a;
+  --arc-text-muted:      #64748b;
+  --arc-text-subtle:     #94a3b8;
+  --arc-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 4px 16px rgba(15, 23, 42, 0.05),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --arc-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --arc-radius-card:     14px;
+  --arc-radius-btn:      8px;
+
+  /* Motion */
+  --arc-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --arc-dur-fast:        160ms;
+  --arc-dur-default:     220ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* GRID DE ARCHIVOS — 100% ANCHO CON AUTO-FIT */
+.archivos-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* PREMIUM FILE CARD */
+.archivo-premium-card {
+  background: var(--arc-surface);
+  border: 1px solid var(--arc-border);
+  border-radius: var(--arc-radius-card);
+  box-shadow: var(--arc-shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow var(--arc-dur-default) var(--arc-ease-out),
+    border-color var(--arc-dur-default) var(--arc-ease-out),
+    transform var(--arc-dur-default) var(--arc-ease-out);
+}
+
+.archivo-premium-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--arc-border-strong);
+  box-shadow: var(--arc-shadow-hover);
+}
+
+/* CONTENEDOR PREVIEW CON MICRO-ZOOM */
+.archivo-preview-box {
+  height: 160px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--arc-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.archivo-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s var(--arc-ease-out);
+}
+
+.archivo-premium-card:hover .archivo-preview-box img {
+  transform: scale(1.05);
+}
+
+/* DETALLES E INFORMACIÓN */
+.archivo-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.archivo-filename {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--arc-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archivo-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--arc-text-muted);
+}
+
+.archivo-id {
+  font-family: ui-monospace, 'SF Mono', Cascadia, Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--arc-text-subtle);
+}
+
+/* ACCIONES INFERIORES GHOST */
+.archivo-footer {
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
+  border-top: 1px solid var(--arc-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arc-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--arc-radius-btn);
+  background: transparent;
+  border: none;
+  color: var(--arc-text-muted);
+  cursor: pointer;
+  box-shadow: none !important;
+  text-decoration: none;
+  transition:
+    background    var(--arc-dur-fast) var(--arc-ease-out),
+    color         var(--arc-dur-fast) var(--arc-ease-out),
+    transform     90ms              var(--arc-ease-out);
+}
+
+.arc-btn-ghost:active {
+  transform: scale(0.92);
+}
+
+.arc-btn-ghost:hover {
+  background: #e2e8f0;
+  color: var(--arc-text);
+}
+
+/* Colores específicos de hover */
+.arc-btn-ghost--view:hover {
+  background: rgba(21, 93, 252, 0.08);
+  color: #155dfc;
+}
+
+.arc-btn-ghost--download:hover {
+  background: rgba(34, 197, 94, 0.08);
+  color: #16a34a;
+}
+
+.arc-btn-ghost--delete {
+  margin-left: auto; /* Alinear papelera a la derecha */
+}
+
+.arc-btn-ghost--delete:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}

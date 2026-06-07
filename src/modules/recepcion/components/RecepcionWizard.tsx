@@ -1021,6 +1021,7 @@ function PasoVehiculo({
         onClose={handleCloseModal}
         title="Registro de Vehículo"
         maxWidth="800px"
+        className="vehiculo-registro-window"
       >
         {estado === 'cargando' ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
@@ -1028,56 +1029,57 @@ function PasoVehiculo({
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando datos de catálogos de vehículos...</span>
           </div>
         ) : (
-          <div>
-            <p style={{ color: '#6b7280', marginBottom: 16 }}>
-              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
-            </p>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden', margin: 0 }}>
+            <div className="vehiculo-registro-body">
+              <p style={{ color: '#6b7280', marginBottom: 16 }}>
+                Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+              </p>
 
-            {/* Error de catálogos */}
-            {errorCatalogo && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '10px 14px',
-                  marginBottom: 16,
-                  color: '#991b1b',
-                  fontSize: '0.9rem',
-                }}
-              >
-                <AlertCircle size={16} />
-                <span>{errorCatalogo}</span>
-              </div>
-            )}
+              {/* Error de catálogos */}
+              {errorCatalogo && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorCatalogo}</span>
+                </div>
+              )}
 
-            {/* Error global del servidor */}
-            {errorServidor && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '10px 14px',
-                  marginBottom: 16,
-                  color: '#991b1b',
-                  fontSize: '0.9rem',
-                }}
-              >
-                <AlertCircle size={16} />
-                <span>{errorServidor}</span>
-              </div>
-            )}
+              {/* Error global del servidor */}
+              {errorServidor && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorServidor}</span>
+                </div>
+              )}
 
-            <form onSubmit={onSubmit} className="form-grid">
+              <div className="form-grid">
               {/* Cliente Info (Solo lectura) */}
               <div
                 style={{
@@ -1920,60 +1922,62 @@ function PasoVehiculo({
               </fieldset>
 
               {/* Botones de envío / cancelación */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20, width: '100%' }}>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '11px 20px',
-                    background: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontSize: '0.92rem',
-                    fontWeight: 600,
-                    transition: 'background-color 0.2s',
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    padding: '11px 22px',
-                    fontSize: '0.92rem',
-                    fontWeight: 600,
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
-                    transition: 'opacity 0.2s',
-                    opacity: enviando ? 0.7 : 1,
-                  }}
-                >
-                  {enviando && (
-                    <Loader2
-                      size={16}
-                      style={{ animation: 'spin 1s linear infinite' }}
-                    />
-                  )}
-                  {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
-                  {enviando ? 'Guardando...' : 'Registrar vehículo'}
-                </button>
-              </div>
-            </form>
-          </div>
+              </div> {/* Cierre de form-grid */}
+            </div> {/* Cierre de vehiculo-registro-body */}
+
+            <div className="vehiculo-registro-footer">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '11px 20px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={enviando}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '11px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
+                  transition: 'opacity 0.2s',
+                  opacity: enviando ? 0.7 : 1,
+                }}
+              >
+                {enviando && (
+                  <Loader2
+                    size={16}
+                    style={{ animation: 'spin 1s linear infinite' }}
+                  />
+                )}
+                {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
+                {enviando ? 'Guardando...' : 'Registrar vehículo'}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
     </article>

@@ -682,23 +682,40 @@
   background: var(--rc-surface);
   border: 1px solid var(--rc-border);
   border-radius: 7px;
-  color: var(--rc-text-muted);
+  color: var(--rc-text-muted) !important;
   cursor: pointer;
+  padding: 0 !important;
+  min-height: unset !important;
+  box-shadow: none !important;
   transition:
     background   var(--rc-dur-fast) var(--rc-ease-out),
     border-color var(--rc-dur-fast) var(--rc-ease-out),
     color        var(--rc-dur-fast) var(--rc-ease-out);
 }
 
+.recepcion-pagination-btn svg {
+  color: var(--rc-text-muted) !important;
+  stroke: var(--rc-text-muted) !important;
+}
+
 .recepcion-pagination-btn:hover:not(:disabled) {
   background: #f1f5f9;
   border-color: var(--rc-border-strong);
-  color: var(--rc-text);
+  color: var(--rc-text) !important;
+}
+
+.recepcion-pagination-btn:hover:not(:disabled) svg {
+  color: var(--rc-text) !important;
+  stroke: var(--rc-text) !important;
 }
 
 .recepcion-pagination-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.recepcion-pagination-btn:disabled svg {
+  opacity: 0.5;
 }
 
 .recepcion-footer-count {

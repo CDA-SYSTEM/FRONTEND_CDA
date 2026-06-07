@@ -7,9 +7,10 @@ interface Props {
   title: string
   children: React.ReactNode
   maxWidth?: string
+  className?: string
 }
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: Props) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = '800px', className }: Props) {
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
     >
       <div
         ref={modalRef}
-        className="cliente-modal-window"
+        className={`cliente-modal-window ${className || ''}`}
         style={{
           background: '#fff',
           borderRadius: 12,

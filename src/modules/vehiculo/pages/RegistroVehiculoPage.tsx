@@ -629,6 +629,7 @@ export function RegistroVehiculoPage() {
         onClose={handleCloseModal}
         title="Registro de Vehículo"
         maxWidth="800px"
+        className="vehiculo-modal-window"
       >
         {estado === 'exito' && vehiculoGuardado ? (
           <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
@@ -735,7 +736,8 @@ export function RegistroVehiculoPage() {
               </div>
             )}
 
-            <form onSubmit={onSubmit} className="form-grid">
+            <form onSubmit={onSubmit} className="vehiculo-modal-form">
+              <div className="vehiculo-modal-body">
               {/* ── Cliente ─────────────────────────────────────────────────────── */}
               <fieldset
                 style={{
@@ -1714,8 +1716,10 @@ export function RegistroVehiculoPage() {
               </fieldset>
 
 
+              </div>
+
               {/* ── Botones de envío / cancelación ── */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 16 }}>
+              <div className="vehiculo-modal-footer">
                 <button
                   type="button"
                   onClick={handleCloseModal}

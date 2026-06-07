@@ -347,7 +347,7 @@ function UsuariosTab() {
 
       <div className="admin-section-card">
         <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem', color: '#1e293b' }}>Roles del Sistema</h3>
-        <div className="admin-detail-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="admin-detail-grid">
           {[
             { role: 'ADMIN', desc: 'Acceso total al sistema' },
             { role: 'MANAGER', desc: 'Gestión operativa y reportes' },

@@ -934,3 +934,46 @@
   background: rgba(0, 0, 0, 0.16);
 }
 
+/* ── PAGINACIÓN DE CLIENTES EN WIZARD (Refero Design) ── */
+.table-pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.recepcion-pagination-text-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px !important;
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-border);
+  border-radius: 8px;
+  color: var(--rc-text-muted) !important;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: unset !important;
+  box-shadow: none !important;
+  transition:
+    background   var(--rc-dur-fast) var(--rc-ease-out),
+    border-color var(--rc-dur-fast) var(--rc-ease-out),
+    color        var(--rc-dur-fast) var(--rc-ease-out);
+}
+
+.recepcion-pagination-text-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: var(--rc-border-strong);
+  color: var(--rc-text) !important;
+}
+
+.recepcion-pagination-text-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+

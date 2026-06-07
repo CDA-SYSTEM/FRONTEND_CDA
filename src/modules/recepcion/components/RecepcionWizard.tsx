@@ -408,18 +408,35 @@ function PasoCliente({
               ))}
             </tbody>
           </table>
+
+          <div className="table-pagination-wrapper">
+            <button
+              type="button"
+              className="recepcion-pagination-text-btn"
+              disabled={buscador.pagina === 0}
+              onClick={() => buscador.setPagina(buscador.pagina - 1)}
+            >
+              Anterior
+            </button>
+            <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 500 }}>
+              Página {buscador.pagina + 1} de {buscador.totalPages}
+            </span>
+            <button
+              type="button"
+              className="recepcion-pagination-text-btn"
+              disabled={buscador.pagina >= buscador.totalPages - 1}
+              onClick={() => buscador.setPagina(buscador.pagina + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
-      ) : buscador.query.length >= 3 && !buscador.cargando ? (
+      ) : !buscador.cargando ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <User size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>No se encontraron clientes. Puede registrar uno nuevo.</p>
+          <p>No se encontraron clientes. Puede registrar uno nuevo o cambiar la búsqueda.</p>
         </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-          <Search size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>Escriba al menos 3 caracteres para buscar</p>
-        </div>
-      )}
+      ) : null}
 
       {/* Modal de Registro de Cliente */}
       <Modal

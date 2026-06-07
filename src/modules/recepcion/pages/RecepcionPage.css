@@ -890,3 +890,47 @@
     animation-duration:  0.01ms !important;
   }
 }
+
+/* ── WIZARD NUEVA RECEPCIÓN ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.recepcion-wizard-container {
+  display: flex !important;
+  flex-direction: column !important;
+  height: calc(100vh - var(--topbar-height) - 80px) !important;
+  overflow: hidden !important;
+  gap: 1.5rem;
+}
+
+.recepcion-sticky-header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.recepcion-step-content-scroll {
+  flex: 1;
+  overflow-y: auto !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 24px;
+}
+
+/* Scrollbar premium para el contenido del paso */
+.recepcion-step-content-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.recepcion-step-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recepcion-step-content-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.recepcion-step-content-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+

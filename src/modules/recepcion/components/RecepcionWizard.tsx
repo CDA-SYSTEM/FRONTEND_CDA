@@ -63,195 +63,199 @@ export function RecepcionWizard({ onCancelar }: Props) {
   const pasoActual = INDICE_PASO[wizard.paso]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Cabecera */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Nueva Recepción
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-              Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
-            </p>
-        </div>
-        <button
-          onClick={onCancelar}
+    <div className="recepcion-wizard-container">
+      <div className="recepcion-sticky-header">
+        {/* Cabecera */}
+        <div
           style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            background: '#f1f5f9',
-            color: '#475569',
-            border: '1px solid #e2e8f0',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: '0.85rem',
+            background: '#fff',
+            padding: '1.5rem',
+            borderRadius: 12,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           }}
         >
-          <X size={16} />
-          Cancelar
-        </button>
-      </div>
-
-      {/* Barra de progreso */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0,
-          background: '#fff',
-          borderRadius: 12,
-          padding: '12px 20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        {PASOS.map((p, i) => (
-          <div
-            key={p.key}
+          <div>
+              <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
+                Nueva Recepción
+              </h1>
+              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+                Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
+              </p>
+          </div>
+          <button
+            onClick={onCancelar}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              flex: 1,
+              gap: 6,
+              padding: '8px 14px',
+              background: '#f1f5f9',
+              color: '#475569',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: '0.85rem',
             }}
           >
+            <X size={16} />
+            Cancelar
+          </button>
+        </div>
+
+        {/* Barra de progreso */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0,
+            background: '#fff',
+            borderRadius: 12,
+            padding: '12px 20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          }}
+        >
+          {PASOS.map((p, i) => (
             <div
+              key={p.key}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                background: i <= pasoActual ? '#2563eb' : '#e2e8f0',
-                color: i <= pasoActual ? '#fff' : '#94a3b8',
-                flexShrink: 0,
+                gap: 8,
+                flex: 1,
               }}
             >
-              {i < pasoActual ? (
-                <CheckCircle2 size={16} />
-              ) : (
-                i + 1
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  background: i <= pasoActual ? '#2563eb' : '#e2e8f0',
+                  color: i <= pasoActual ? '#fff' : '#94a3b8',
+                  flexShrink: 0,
+                }}
+              >
+                {i < pasoActual ? (
+                  <CheckCircle2 size={16} />
+                ) : (
+                  i + 1
+                )}
+              </div>
+              <span
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: i === pasoActual ? 600 : 400,
+                  color: i <= pasoActual ? '#1e293b' : '#94a3b8',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {p.label}
+              </span>
+              {i < PASOS.length - 1 && (
+                <ChevronRight size={16} color="#cbd5e1" style={{ marginLeft: 'auto' }} />
               )}
             </div>
-            <span
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: i === pasoActual ? 600 : 400,
-                color: i <= pasoActual ? '#1e293b' : '#94a3b8',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {p.label}
-            </span>
-            {i < PASOS.length - 1 && (
-              <ChevronRight size={16} color="#cbd5e1" style={{ marginLeft: 'auto' }} />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Contenido según paso */}
-      {wizard.cargandoCatalogos ? (
-        <article className="panel" style={{ textAlign: 'center', padding: 40 }}>
-          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-          <p style={{ marginTop: 12, color: '#6b7280' }}>Cargando...</p>
-        </article>
-      ) : wizard.errorCatalogo ? (
-        <article className="panel">
-          <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', color: '#991b1b' }}>
-            <AlertCircle size={18} />
-            <span>{wizard.errorCatalogo}</span>
-          </div>
-        </article>
-      ) : wizard.paso === 'cliente' ? (
-        <PasoCliente
-          buscador={buscador}
-          onSeleccionar={wizard.seleccionarCliente}
-          onNuevoCliente={() => setClienteNuevoModal(true)}
-          clienteNuevoModal={clienteNuevoModal}
-          onCloseModal={() => setClienteNuevoModal(false)}
-            onClienteCreado={(c: ClientePersonaNatural) => {
-            setClienteNuevoModal(false)
-            wizard.seleccionarCliente(c)
-          }}
-        />
-      ) : wizard.paso === 'vehiculo' ? (
-        <PasoVehiculo
-          vehiculos={wizard.vehiculos}
-          cargando={wizard.cargandoVehiculos}
-          onSeleccionar={wizard.seleccionarVehiculo}
-          onSaltar={wizard.irADetalleSinVehiculo}
-          cliente={wizard.cliente}
-          onVolver={wizard.volver}
-          onVehiculoCreado={wizard.recargarVehiculos}
-        />
-      ) : wizard.paso === 'detalle' ? (
-        <PasoDetalle
-          mileage={wizard.mileage}
-          setMileage={wizard.setMileage}
-          revisionType={wizard.revisionType}
-          setRevisionType={wizard.setRevisionType}
-          customerType={wizard.customerType}
-          setCustomerType={wizard.setCustomerType}
-          tiposRevision={wizard.tiposRevision}
-          tiposCliente={wizard.tiposCliente}
-          usuarioAsignadoId={wizard.usuarioAsignadoId}
-          setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
-          usuariosAsignables={wizard.usuariosAsignables}
-          cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
-          errorUsuariosAsignables={wizard.errorUsuariosAsignables}
-          onSiguiente={wizard.irACondiciones}
-          onVolver={wizard.volver}
-        />
-      ) : wizard.paso === 'condiciones' ? (
-        <PasoCondiciones
-          observations={wizard.observations}
-          setObservations={wizard.setObservations}
-          photoFile={wizard.photoFile}
-          setPhotoFile={wizard.setPhotoFile}
-          signatureBlob={wizard.signatureBlob}
-          setSignatureBlob={wizard.setSignatureBlob}
-          confirmacionAcuerdo={wizard.confirmacionAcuerdo}
-          setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
-            tires={wizard.tires}
-            setTires={wizard.setTires}
-          estadoEnvio={wizard.estadoEnvio}
-          errorEnvio={wizard.errorEnvio}
-          tintedWindows={wizard.tintedWindows}
-          setTintedWindows={wizard.setTintedWindows}
-          armoredVehicle={wizard.armoredVehicle}
-          setArmoredVehicle={wizard.setArmoredVehicle}
-          brakeFluidSightGlass={wizard.brakeFluidSightGlass}
-          setBrakeFluidSightGlass={wizard.setBrakeFluidSightGlass}
-          onSubmit={wizard.enviar}
-          onVolver={wizard.volver}
-        />
-      ) : wizard.paso === 'confirmacion' && wizard.ordenCreada ? (
-        <PasoConfirmacion
-          orden={wizard.ordenCreada}
-          cliente={wizard.cliente}
-          vehiculo={wizard.vehiculo}
-          observations={wizard.observations}
-          tieneFoto={!!wizard.photoFile}
-          tieneFirma={!!wizard.signatureBlob}
-          onNuevaOrden={wizard.reset}
-          onSalir={onCancelar}
-        />
-      ) : null}
+      <div className="recepcion-step-content-scroll">
+        {wizard.cargandoCatalogos ? (
+          <article className="panel" style={{ textAlign: 'center', padding: 40 }}>
+            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            <p style={{ marginTop: 12, color: '#6b7280' }}>Cargando...</p>
+          </article>
+        ) : wizard.errorCatalogo ? (
+          <article className="panel">
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', color: '#991b1b' }}>
+              <AlertCircle size={18} />
+              <span>{wizard.errorCatalogo}</span>
+            </div>
+          </article>
+        ) : wizard.paso === 'cliente' ? (
+          <PasoCliente
+            buscador={buscador}
+            onSeleccionar={wizard.seleccionarCliente}
+            onNuevoCliente={() => setClienteNuevoModal(true)}
+            clienteNuevoModal={clienteNuevoModal}
+            onCloseModal={() => setClienteNuevoModal(false)}
+              onClienteCreado={(c: ClientePersonaNatural) => {
+              setClienteNuevoModal(false)
+              wizard.seleccionarCliente(c)
+            }}
+          />
+        ) : wizard.paso === 'vehiculo' ? (
+          <PasoVehiculo
+            vehiculos={wizard.vehiculos}
+            cargando={wizard.cargandoVehiculos}
+            onSeleccionar={wizard.seleccionarVehiculo}
+            onSaltar={wizard.irADetalleSinVehiculo}
+            cliente={wizard.cliente}
+            onVolver={wizard.volver}
+            onVehiculoCreado={wizard.recargarVehiculos}
+          />
+        ) : wizard.paso === 'detalle' ? (
+          <PasoDetalle
+            mileage={wizard.mileage}
+            setMileage={wizard.setMileage}
+            revisionType={wizard.revisionType}
+            setRevisionType={wizard.setRevisionType}
+            customerType={wizard.customerType}
+            setCustomerType={wizard.setCustomerType}
+            tiposRevision={wizard.tiposRevision}
+            tiposCliente={wizard.tiposCliente}
+            usuarioAsignadoId={wizard.usuarioAsignadoId}
+            setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
+            usuariosAsignables={wizard.usuariosAsignables}
+            cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
+            errorUsuariosAsignables={wizard.errorUsuariosAsignables}
+            onSiguiente={wizard.irACondiciones}
+            onVolver={wizard.volver}
+          />
+        ) : wizard.paso === 'condiciones' ? (
+          <PasoCondiciones
+            observations={wizard.observations}
+            setObservations={wizard.setObservations}
+            photoFile={wizard.photoFile}
+            setPhotoFile={wizard.setPhotoFile}
+            signatureBlob={wizard.signatureBlob}
+            setSignatureBlob={wizard.setSignatureBlob}
+            confirmacionAcuerdo={wizard.confirmacionAcuerdo}
+            setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
+              tires={wizard.tires}
+              setTires={wizard.setTires}
+            estadoEnvio={wizard.estadoEnvio}
+            errorEnvio={wizard.errorEnvio}
+            tintedWindows={wizard.tintedWindows}
+            setTintedWindows={wizard.setTintedWindows}
+            armoredVehicle={wizard.armoredVehicle}
+            setArmoredVehicle={wizard.setArmoredVehicle}
+            brakeFluidSightGlass={wizard.brakeFluidSightGlass}
+            setBrakeFluidSightGlass={wizard.setBrakeFluidSightGlass}
+            onSubmit={wizard.enviar}
+            onVolver={wizard.volver}
+          />
+        ) : wizard.paso === 'confirmacion' && wizard.ordenCreada ? (
+          <PasoConfirmacion
+            orden={wizard.ordenCreada}
+            cliente={wizard.cliente}
+            vehiculo={wizard.vehiculo}
+            observations={wizard.observations}
+            tieneFoto={!!wizard.photoFile}
+            tieneFirma={!!wizard.signatureBlob}
+            onNuevaOrden={wizard.reset}
+            onSalir={onCancelar}
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

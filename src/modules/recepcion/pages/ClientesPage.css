@@ -552,19 +552,33 @@
   background: var(--cl-surface);
   border: 1px solid var(--cl-border);
   border-radius: 7px;
-  color: var(--cl-text-muted);
+  color: var(--cl-text-muted) !important;
   cursor: pointer;
+  padding: 0 !important;
+  min-height: unset !important;
+  box-shadow: none !important;
   transition:
     background   var(--cl-dur-fast) var(--cl-ease-out),
     border-color var(--cl-dur-fast) var(--cl-ease-out),
     color        var(--cl-dur-fast) var(--cl-ease-out);
 }
 
+.cl-pagination-btn svg {
+  color: var(--cl-text-muted) !important;
+  stroke: var(--cl-text-muted) !important;
+}
+
 .cl-pagination-btn:hover:not(:disabled) {
   background: #f1f5f9;
   border-color: var(--cl-border-strong);
-  color: var(--cl-text);
+  color: var(--cl-text) !important;
 }
+
+.cl-pagination-btn:hover:not(:disabled) svg {
+  color: var(--cl-text) !important;
+  stroke: var(--cl-text) !important;
+}
+
 
 .cl-pagination-btn:disabled {
   opacity: 0.4;

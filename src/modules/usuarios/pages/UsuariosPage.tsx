@@ -153,84 +153,86 @@ export function UsuariosPage() {
       ) : tab === 'usuarios' ? (
         <>
           {/* Tabla de Usuarios */}
-          <div className="usuarios-table-container">
-            <table style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>Nombre Completo</th>
-                  <th>Email</th>
-                  <th>Rol Actual</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuarios.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      {user.firstName
-                        ? `${user.firstName} ${user.lastName}`
-                        : user.name}
-                    </td>
-                    <td>{user.email}</td>
-                    <td style={{ minWidth: '160px' }}>
-                      <CustomSelect
-                        options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
-                        value={user.role.toLowerCase()}
-                        onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
-                      />
-                    </td>
-                    <td>
-                      {user.isActive ? (
-                        <span className="status-badge-premium status-badge-premium--active">
-                          <CheckCircle2 size={14} />
-                          Activo
-                        </span>
-                      ) : (
-                        <span className="status-badge-premium status-badge-premium--inactive">
-                          <XCircle size={14} />
-                          Inactivo
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleToggleEstado(user)}
-                          style={{
-                            padding: '4px 10px',
-                            minHeight: 'auto',
-                            borderRadius: '4px',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          {user.isActive ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          onClick={() => setResetUserId(user.id)}
-                          className="usr-btn-action usr-btn-action--key"
-                        >
-                          <Key size={13} />
-                          Restablecer Clave
-                        </button>
-                        <button
-                          onClick={() => handleEliminarUsuario(user.id)}
-                          className="usr-btn-action usr-btn-action--delete"
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
+          <div className="usuarios-desktop-table-wrapper">
+            <div className="usuarios-table-container">
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th>Rol Actual</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {usuarios.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        {user.firstName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.name}
+                      </td>
+                      <td>{user.email}</td>
+                      <td style={{ minWidth: '160px' }}>
+                        <CustomSelect
+                          options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                          value={user.role.toLowerCase()}
+                          onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
+                        />
+                      </td>
+                      <td>
+                        {user.isActive ? (
+                          <span className="status-badge-premium status-badge-premium--active">
+                            <CheckCircle2 size={14} />
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="status-badge-premium status-badge-premium--inactive">
+                            <XCircle size={14} />
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button
+                            onClick={() => handleToggleEstado(user)}
+                            style={{
+                              padding: '4px 10px',
+                              minHeight: 'auto',
+                              borderRadius: '4px',
+                              boxShadow: 'none',
+                            }}
+                          >
+                            {user.isActive ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button
+                            onClick={() => setResetUserId(user.id)}
+                            className="usr-btn-action usr-btn-action--key"
+                          >
+                            <Key size={13} />
+                            Restablecer Clave
+                          </button>
+                          <button
+                            onClick={() => handleEliminarUsuario(user.id)}
+                            className="usr-btn-action usr-btn-action--delete"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Tarjetas para móviles */}
-          <div className="users-cards-mobile">
+          <div className="usuarios-mobile-cards-container">
             {usuarios.map((user) => (
-              <div key={user.id} className="user-card">
+              <div key={user.id} className="usuario-responsive-card">
                 <div className="user-card-header">
                   <div className="user-card-name">
                     {user.firstName
@@ -321,83 +323,85 @@ export function UsuariosPage() {
       ) : (
         <>
           {/* Tabla de Cuentas */}
-          <div className="usuarios-table-container">
-            <table style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>ID Cuenta</th>
-                  <th>Email / Cuenta</th>
-                  <th>Rol Actual</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cuentas.map((cuenta) => (
-                  <tr key={cuenta.id}>
-                    <td className="usuarios-id-monospace">{cuenta.id.substring(0, 8)}...</td>
-                    <td>{cuenta.email}</td>
-                    <td>
-                      {cuenta.role === 'superadmin' ? (
-                        <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
-                          Super Admin
-                        </span>
-                      ) : (
-                        <CustomSelect
-                          options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
-                          value={cuenta.role.toLowerCase()}
-                          onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      {cuenta.isActive ? (
-                        <span className="status-badge-premium status-badge-premium--active">
-                          <CheckCircle2 size={14} />
-                          Activo
-                        </span>
-                      ) : (
-                        <span className="status-badge-premium status-badge-premium--inactive">
-                          <XCircle size={14} />
-                          Inactivo
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="usr-actions-cell">
-                        <button
-                          onClick={() => handleToggleEstado(cuenta)}
-                          className="usr-btn-action usr-btn-action--toggle"
-                        >
-                          {cuenta.isActive ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          onClick={() => setResetUserId(cuenta.id)}
-                          className="usr-btn-action usr-btn-action--key"
-                        >
-                          <Key size={13} />
-                          Restablecer Clave
-                        </button>
-                        {cuenta.role !== 'superadmin' && (
-                          <button
-                            onClick={() => handleEliminarUsuario(cuenta.id)}
-                            className="usr-btn-action usr-btn-action--delete"
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <div className="usuarios-desktop-table-wrapper">
+            <div className="usuarios-table-container">
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>ID Cuenta</th>
+                    <th>Email / Cuenta</th>
+                    <th>Rol Actual</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {cuentas.map((cuenta) => (
+                    <tr key={cuenta.id}>
+                      <td className="usuarios-id-monospace">{cuenta.id.substring(0, 8)}...</td>
+                      <td>{cuenta.email}</td>
+                      <td>
+                        {cuenta.role === 'superadmin' ? (
+                          <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
+                            Super Admin
+                          </span>
+                        ) : (
+                          <CustomSelect
+                            options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                            value={cuenta.role.toLowerCase()}
+                            onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {cuenta.isActive ? (
+                          <span className="status-badge-premium status-badge-premium--active">
+                            <CheckCircle2 size={14} />
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="status-badge-premium status-badge-premium--inactive">
+                            <XCircle size={14} />
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="usr-actions-cell">
+                          <button
+                            onClick={() => handleToggleEstado(cuenta)}
+                            className="usr-btn-action usr-btn-action--toggle"
+                          >
+                            {cuenta.isActive ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button
+                            onClick={() => setResetUserId(cuenta.id)}
+                            className="usr-btn-action usr-btn-action--key"
+                          >
+                            <Key size={13} />
+                            Restablecer Clave
+                          </button>
+                          {cuenta.role !== 'superadmin' && (
+                            <button
+                              onClick={() => handleEliminarUsuario(cuenta.id)}
+                              className="usr-btn-action usr-btn-action--delete"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Tarjetas móviles para Cuentas */}
-          <div className="users-cards-mobile">
+          <div className="usuarios-mobile-cards-container">
             {cuentas.map((cuenta) => (
-              <div key={cuenta.id} className="user-card">
+              <div key={cuenta.id} className="usuario-responsive-card">
                 <div className="user-card-header">
                   <div className="user-card-name">{cuenta.email}</div>
                   <div className="user-card-email" style={{ fontFamily: 'monospace' }}>ID: {cuenta.id}</div>

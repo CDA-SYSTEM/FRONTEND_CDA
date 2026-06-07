@@ -138,9 +138,16 @@
   border-bottom: 1px solid var(--usr-border);
   padding-bottom: 8px;
   margin-bottom: 1.5rem;
+  white-space: nowrap !important;
+  overflow-x: auto !important;
+  scrollbar-width: none;
+}
+.users-tabs-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .users-tab-btn {
+  flex-shrink: 0 !important;
   height: 38px;
   padding: 0 16px;
   border-radius: 8px;
@@ -284,4 +291,72 @@
   background: rgba(239, 68, 68, 0.06) !important;
   border-color: rgba(239, 68, 68, 0.2) !important;
   color: #ef4444 !important;
+}
+
+/* ── MÓVILES RESPONSIVE CARDS (Refero Design) ── */
+.usuarios-desktop-table-wrapper {
+  display: block;
+}
+
+.usuarios-mobile-cards-container {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.usuario-responsive-card {
+  background: var(--usr-surface);
+  border-radius: var(--usr-radius-card);
+  border: 1px solid var(--usr-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.user-card-header {
+  border-bottom: 1px solid var(--usr-border);
+  padding-bottom: 8px;
+}
+
+.user-card-name {
+  font-weight: 700;
+  color: var(--usr-text);
+  font-size: 1.05rem;
+}
+
+.user-card-email {
+  color: var(--usr-text-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.user-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-card-label {
+  font-weight: 600;
+  color: var(--usr-text-muted);
+  font-size: 0.85rem;
+}
+
+.user-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .usuarios-desktop-table-wrapper {
+    display: none !important;
+  }
+  .usuarios-mobile-cards-container {
+    display: flex !important;
+  }
 }

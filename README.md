@@ -8,19 +8,65 @@ Construido utilizando **React 18 + TypeScript**, orquestado bajo una arquitectur
 
 ## 🚀 Stack Técnico Principal
 
-| Componente | Tecnología | Propósito |
-| :--- | :--- | :--- |
-| **Core UI** | React 18 + TypeScript | Renderizado de componentes y tipado estático estricto. |
-| **Bundler** | Vite 5 | Servidor de desarrollo ultrarrápido y compilación optimizada. |
-| **Enrutamiento** | React Router DOM v7 | Control de rutas privadas, públicas y Guards de autenticación. |
-| **Estado Global** | Zustand | Gestión ligera de la sesión del usuario (Tokens, Roles, Datos). |
-| **Caché y API** | TanStack Query v5 | Sincronización y caché del estado del servidor. |
-| **Base de Datos Local** | IndexedDB (idb) | Almacenamiento local para colas de peticiones y sincronización en modo offline. |
-| **Formularios** | React Hook Form + Zod | Orquestación de formularios y validaciones en tiempo de ejecución. |
-| **Cliente HTTP** | Axios | Cliente HTTP instrumentado con interceptores de seguridad (Tokens, API Keys y Logs). |
-| **Híbrido Móvil** | Capacitor 8 | Puente nativo para empaquetado y consumo de APIs de hardware en Android. |
-| **Estilos** | CSS Vanilla | Hojas de estilo estructuradas con variables globales de diseño moderno. |
-| **Tests** | Vitest | Ejecución ágil de pruebas unitarias y de integración. |
+| Herramienta | Uso |
+|---|---|
+| React 18 + TypeScript | UI y tipado estático |
+| Vite 5 | Bundler y servidor de desarrollo |
+| React Router DOM v7 | Enrutamiento |
+| Zustand | Estado global de autenticación |
+| TanStack Query | Estado de servidor (cache, refetch) |
+| React Hook Form + Zod | Formularios y validaciones |
+| Axios | Cliente HTTP con interceptores de token y API Key |
+| Capacitor 8 | Empaquetado Android |
+| ESLint + Prettier | Linting y formato |
+| Vitest | Pruebas unitarias |
+
+---
+
+## Prerrequisitos
+
+- Node.js **20.19+** o **22.12+**
+- npm 10+
+
+> Si tienes Node 22.11, usa Vite 5 (ya configurado en este proyecto).
+
+---
+
+## Instalación
+
+```bash
+npm install
+```
+
+---
+
+## Variables de Entorno
+
+Crea el archivo `.env` con base en `.env.example`:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+VITE_API_KEY_FRONT=tu_api_key_aqui
+VITE_APP_NAME=CDA Putumayo
+```
+
+> Para emulador Android usa `VITE_API_URL=http://10.0.2.2:3000/api`
+
+---
+
+## Scripts Disponibles
+
+| Script | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Compilación para producción |
+| `npm run preview` | Sirve el build local |
+| `npm run lint` | Ejecuta ESLint |
+| `npm run test` | Pruebas unitarias (una vez) |
+| `npm run test:watch` | Pruebas en modo watch |
+| `npm run cap:sync` | Build + sync Capacitor (todas las plataformas) |
+| `npm run android:sync` | Build + sync solo Android |
+| `npm run android:open` | Abre el proyecto en Android Studio |
 
 ---
 

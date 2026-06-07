@@ -10,6 +10,52 @@ interface LoginResponse {
 
 type JwtPayload = Record<string, unknown>
 
+function unwrapMaybeNestedRecord(value: unknown, depth = 0): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || depth > 5) return null
+
+  const record = value as Record<string, unknown>
+  if (
+    'accessToken' in record ||
+    'access_token' in record ||
+    'refreshToken' in record ||
+    'refresh_token' in record ||
+    'token' in record ||
+    'jwt' in record
+  ) {
+    return record
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const nested = unwrapMaybeNestedRecord(nestedValue, depth + 1)
+    if (nested) return nested
+  }
+
+  return record
+}
+
+function readStringFromCandidates(
+  value: unknown,
+  candidates: string[],
+  depth = 0,
+): string | null {
+  if (!value || typeof value !== 'object' || depth > 4) return null
+
+  const record = value as Record<string, unknown>
+  for (const candidate of candidates) {
+    const candidateValue = record[candidate]
+    if (typeof candidateValue === 'string' && candidateValue.trim()) {
+      return candidateValue
+    }
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const found = readStringFromCandidates(nestedValue, candidates, depth + 1)
+    if (found) return found
+  }
+
+  return null
+}
+
 function safeJsonBase64Decode(str: string): JwtPayload | null {
   try {
     const s = str.replace(/-/g, '+').replace(/_/g, '/')
@@ -66,28 +112,22 @@ function unwrapTokens(body: Record<string, unknown>): {
   accessToken: string | null
   refreshToken: string | null
 } {
-  const inner =
-    body['data'] && typeof body['data'] === 'object'
-      ? (body['data'] as Record<string, unknown>)
-      : body
+  const inner = unwrapMaybeNestedRecord(body['data']) ?? body
 
   return {
     accessToken:
-      (inner['accessToken'] as string) ||
-      (inner['access_token'] as string) ||
-      (inner['token'] as string) ||
-      (inner['jwt'] as string) ||
-      (inner['jwtToken'] as string) ||
-      (body['accessToken'] as string) ||
-      (body['access_token'] as string) ||
-      (body['token'] as string) ||
-      null,
+      readStringFromCandidates(inner, [
+        'accessToken',
+        'access_token',
+        'token',
+        'jwt',
+      ]) ?? null,
     refreshToken:
-      (inner['refreshToken'] as string) ||
-      (inner['refresh_token'] as string) ||
-      (body['refreshToken'] as string) ||
-      (body['refresh_token'] as string) ||
-      null,
+      readStringFromCandidates(inner, [
+        'refreshToken',
+        'refresh_token',
+        'refresh',
+      ]) ?? null,
   }
 }
 

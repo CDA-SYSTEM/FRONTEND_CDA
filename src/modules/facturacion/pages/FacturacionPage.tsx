@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Search,
-  Eye,
   Trash2,
   RefreshCw,
   Plus,
@@ -12,8 +11,7 @@ import {
   X,
   Loader2,
   AlertCircle,
-  FileSpreadsheet,
-  Pencil
+  FileSpreadsheet
 } from 'lucide-react'
 import { animate, stagger } from 'animejs'
 import { facturaService } from '../services/facturaService'
@@ -399,39 +397,47 @@ export function FacturacionPage() {
                     <td>{new Date(inv.createdAt).toLocaleDateString('es-CO')}</td>
                     <td>
                       <span 
-                        className={`badge text-xs px-2 py-1 rounded font-bold`}
-                        style={{
-                          backgroundColor: inv.statusName === 'Pagado' ? '#dcfce7' : '#fee2e2',
-                          color: inv.statusName === 'Pagado' ? '#166534' : '#991b1b'
-                        }}
+                        className="invoice-status-badge"
+                        data-status={inv.statusName === 'Pagado' ? 'paid' : 'pending'}
                       >
                         {inv.statusName || 'Pendiente'}
                       </span>
                     </td>
-                    <td className="text-right flex gap-1 justify-end">
-                      <button 
-                        className="btn btn-secondary p-1"
-                        title="Ver Detalles"
-                        onClick={() => setSelectedInvoice(inv)}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button 
-                        className="btn btn-secondary p-1"
-                        title="Editar Factura"
-                        onClick={() => handleOpenEdit(inv)}
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      {isAdmin && (
+                    <td className="text-right">
+                      <div className="invoice-actions">
                         <button 
-                          className="btn btn-secondary p-1 text-red-600 hover:bg-red-50"
-                          title="Eliminar Factura"
-                          onClick={() => handleDeleteInvoice(inv.id)}
+                          className="invoice-action-btn invoice-action-view"
+                          title="Ver Detalles"
+                          onClick={() => setSelectedInvoice(inv)}
                         >
-                          <Trash2 size={16} />
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
                         </button>
-                      )}
+                        <button 
+                          className="invoice-action-btn invoice-action-edit"
+                          title="Editar Factura"
+                          onClick={() => handleOpenEdit(inv)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/>
+                          </svg>
+                        </button>
+                        {isAdmin && (
+                          <button 
+                            className="invoice-action-btn invoice-action-delete"
+                            title="Eliminar Factura"
+                            onClick={() => handleDeleteInvoice(inv.id)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"/>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -474,47 +480,48 @@ export function FacturacionPage() {
                   <div className="invoice-card-row">
                     <span className="invoice-card-label">Estado</span>
                     <span 
-                      className={`badge text-xs px-2 py-1 rounded font-bold`}
-                      style={{
-                        backgroundColor: inv.statusName === 'Pagado' ? '#dcfce7' : '#fee2e2',
-                        color: inv.statusName === 'Pagado' ? '#166534' : '#991b1b',
-                        marginTop: 0
-                      }}
+                      className="invoice-status-badge"
+                      data-status={inv.statusName === 'Pagado' ? 'paid' : 'pending'}
                     >
                       {inv.statusName || 'Pendiente'}
                     </span>
                   </div>
                 </div>
-                <div className="invoice-card-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button 
-                    type="button"
-                    className="btn btn-secondary p-1"
-                    title="Ver Detalles"
-                    onClick={() => setSelectedInvoice(inv)}
-                    style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Eye size={14} /> Detalles
-                  </button>
-                  <button 
-                    type="button"
-                    className="btn btn-secondary p-1"
-                    title="Editar Factura"
-                    onClick={() => handleOpenEdit(inv)}
-                    style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <Pencil size={14} /> Editar
-                  </button>
-                  {isAdmin && (
+                <div className="invoice-card-footer">
+                  <div className="invoice-actions">
                     <button 
-                      type="button"
-                      className="btn btn-secondary p-1 text-red-600 hover:bg-red-50"
-                      title="Eliminar Factura"
-                      onClick={() => handleDeleteInvoice(inv.id)}
-                      style={{ minHeight: '36px', padding: '6px 12px', fontSize: '0.85rem', color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      className="invoice-action-btn invoice-action-view"
+                      title="Ver Detalles"
+                      onClick={() => setSelectedInvoice(inv)}
                     >
-                      <Trash2 size={14} /> Eliminar
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
                     </button>
-                  )}
+                    <button 
+                      className="invoice-action-btn invoice-action-edit"
+                      title="Editar Factura"
+                      onClick={() => handleOpenEdit(inv)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/>
+                      </svg>
+                    </button>
+                    {isAdmin && (
+                      <button 
+                        className="invoice-action-btn invoice-action-delete"
+                        title="Eliminar Factura"
+                        onClick={() => handleDeleteInvoice(inv.id)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"/>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

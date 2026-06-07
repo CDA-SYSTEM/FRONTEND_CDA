@@ -157,6 +157,9 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                 cursor: 'pointer',
                 transition: 'background 0.2s ease',
                 flexShrink: 0,
+                padding: 0,
+                minHeight: 'unset',
+                boxShadow: 'none',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
               onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}

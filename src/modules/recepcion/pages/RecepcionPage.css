@@ -891,29 +891,97 @@
   }
 }
 
+/* ── TOKENS de Recepción disponibles también fuera de .recepcion-root (wizard mode) ── */
+:root {
+  --rc-bg:            #f7f8fa;
+  --rc-surface:       #ffffff;
+  --rc-border:        #e8ecf0;
+  --rc-border-strong: #d1d8e0;
+  --rc-text:          #0f172a;
+  --rc-text-muted:    #64748b;
+  --rc-text-subtle:   #94a3b8;
+  --rc-accent:        #155dfc;
+  --rc-accent-tint:   rgba(21, 93, 252, 0.08);
+  --rc-accent-hover:  rgba(21, 93, 252, 0.90);
+  --rc-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --rc-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.05),
+    0 8px 24px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --rc-radius-card:   14px;
+  --rc-radius-pill:   999px;
+  --rc-radius-btn:    9px;
+  --touch-target:     44px;
+  --rc-ease-out:      cubic-bezier(0.0, 0.0, 0.2, 1);
+  --rc-ease-in-out:   cubic-bezier(0.4, 0.0, 0.2, 1);
+  --rc-dur-fast:      120ms;
+  --rc-dur-default:   200ms;
+}
+
+/* ── WRAPPER DE PÁGINA WIZARD — anula padding de .content en móvil ── */
+.recepcion-wizard-page-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ESCUDO HERMÉTICO — Todos los elementos hijos del wizard NUNCA exceden el viewport */
+.recepcion-wizard-page-wrapper *,
+.recepcion-wizard-page-wrapper *::before,
+.recepcion-wizard-page-wrapper *::after {
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .recepcion-wizard-page-wrapper {
+    /* NO usar márgenes negativos — simplemente contener sin desborde */
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    padding: 0;
+  }
+}
+
 /* ── WIZARD NUEVA RECEPCIÓN ESTRUCTURA ELÁSTICA (Refero Design) ── */
 .recepcion-wizard-container {
   display: flex !important;
   flex-direction: column !important;
-  height: calc(100vh - var(--topbar-height) - 80px) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  height: calc(100vh - var(--topbar-height, 64px) - 80px) !important;
   overflow: hidden !important;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .recepcion-sticky-header {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .recepcion-step-content-scroll {
   flex: 1;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   padding-bottom: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* Scrollbar premium para el contenido del paso */
@@ -1095,6 +1163,15 @@
 }
 
 /* ── PASO 4 CONDICIONES DE INGRESO (Refero Design) ── */
+.recepcion-condiciones-selects-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .recepcion-llantas-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr) !important;
@@ -1120,20 +1197,553 @@
   border-radius: 8px;
 }
 
+/* ── Barra de progreso del Wizard y Cards Responsivas ── */
+.recepcion-wizard-progress-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  /* Ocultar scrollbar — solo scroll táctil */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.recepcion-wizard-progress-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.recepcion-wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.recepcion-desktop-table-wrapper {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.recepcion-mobile-clients-cards {
+  display: none;
+}
+
+/* ── CABECERA DEL WIZARD — Responsive ── */
+.recepcion-wizard-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.recepcion-wizard-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.recepcion-wizard-header-text h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recepcion-wizard-header-text p {
+  margin: 0.2rem 0 0 0;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.recepcion-wizard-cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+.recepcion-wizard-cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+/* ── MÓVIL: ESCUDO HERMÉTICO COMPLETO DEL WIZARD (Refero Design) ── */
 @media (max-width: 768px) {
-  .recepcion-mobile-clients-cards,
-  .cliente-select-responsive-card {
-    box-sizing: border-box !important;
-  }
-  .recepcion-mobile-clients-cards {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-  .cliente-select-responsive-card button {
+
+  /* ════ NIVEL 1: CONTENEDORES RAÍZ ════ */
+  .recepcion-wizard-container {
+    height: calc(100dvh - 64px - 48px) !important;
+    gap: 0.75rem;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .recepcion-sticky-header {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    /* Solo bloqueamos el eje X — el Y puede crecer libremente */
+    overflow-x: hidden !important;
+    overflow-y: visible;
+  }
+
+  /* ════ NIVEL 2: CABECERA ════ */
+  .recepcion-wizard-header-card {
+    padding: 0.875rem 1rem;
+    align-items: center;
+    gap: 8px;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    /* Solo X: el botón Cancelar y el título no deben salirse del borde */
+    overflow-x: hidden !important;
+    overflow-y: visible;
+  }
+
+  .recepcion-wizard-header-text h1 {
+    font-size: 1.05rem;
+  }
+
+  .recepcion-wizard-header-text p {
+    display: none;
+  }
+
+  .recepcion-wizard-cancel-btn span {
+    display: none;
+  }
+
+  .recepcion-wizard-cancel-btn {
+    padding: 7px 10px;
+    min-width: 36px;
+    justify-content: center;
+  }
+
+  /* ════ NIVEL 2: PROGRESS BAR — WRAP EN 2 FILAS EN MÓVIL ════
+     En 375px los 5 pasos no caben en una fila.
+     Con flex-wrap:wrap el navegador coloca 3 pasos en fila 1
+     (Cliente + Vehículo + Detalle) y 2 en fila 2
+     (Condiciones + Confirmación). Todos los pasos son visibles.
+  ════ */
+  .recepcion-wizard-progress-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    white-space: normal !important;
+    row-gap: 6px !important;
+    column-gap: 4px !important;
+    padding: 10px 12px !important;
+  }
+
+  /* Cada paso: tamaño natural, no encoger, texto en una sola línea */
+  .recepcion-wizard-step {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    min-width: 0;
+  }
+
+  .recepcion-wizard-step span {
+    white-space: nowrap !important;
+    font-size: 0.8rem;
+  }
+
+  /* ════ NIVEL 2: CONTENIDO DEL PASO ════ */
+  .recepcion-step-content-scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    /* overflow-y:auto se preserva del estilo base — NO se toca */
+  }
+
+  /* ════ NIVEL 3: PANEL — ALINEADO A LA IZQUIERDA, RELATIVO AL PADRE ════
+     IMPORTANTE: NO usar margin:auto — eso centra el panel dentro de un padre
+     que puede ser más ancho que el viewport, desplazándolo hacia la derecha.
+     Usar width:100% relativo al padre correctamente contenido.
+  ════ */
+  .recepcion-wizard-container .panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    margin: 0 !important;
+  }
+
+  /* ════ NIVEL 4: INTERIOR DEL PANEL ════ */
+
+  /* Fila del header "Seleccionar Cliente" + botón "Nuevo Cliente":
+     Usar flex-row con flex-wrap para que el botón baje si no hay espacio,
+     SIN convertir a column (eso desalineaba el contenido) */
+  .recepcion-wizard-container .panel > div:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    gap: 8px !important;
+  }
+
+  /* Input de búsqueda — recalcula sobre el ancho físico real */
+  .recepcion-wizard-container .panel input[type="text"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Wrapper relativo del input de búsqueda */
+  .recepcion-wizard-container .panel > div:nth-child(2) {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ════ NIVEL 4: TABLA DESKTOP → OCULTAR ════ */
+  .recepcion-desktop-table-wrapper,
+  .recepcion-vehiculos-desktop-table {
+    display: none !important;
+  }
+
+  /* ════ NIVEL 4: TARJETAS MÓVIL DE CLIENTES ════ */
+  .recepcion-mobile-clients-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .cliente-select-responsive-card {
+    background: #ffffff;
+    border: 1px solid var(--rc-border, #e8ecf0);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible;
+  }
+
+  .cliente-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid var(--rc-border, #e8ecf0);
+    padding-bottom: 8px;
+  }
+
+  .cliente-card-identity {
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--rc-text-muted, #64748b);
+    letter-spacing: 0.04em;
+  }
+
+  .cliente-card-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--rc-text, #0f172a);
+    line-height: 1.3;
+  }
+
+  .cliente-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cliente-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .cliente-card-label {
+    color: var(--rc-text-muted, #64748b);
+    flex-shrink: 0;
+  }
+
+  .cliente-card-value {
+    color: var(--rc-text, #0f172a);
+    font-weight: 500;
+    text-align: right;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cliente-card-footer {
+    margin-top: 2px;
+  }
+
+  .btn-seleccionar-client-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 9px 16px;
+    font-size: 0.875rem;
+    background: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    box-shadow: none !important;
+    transition: background 120ms ease;
+  }
+
+  .btn-seleccionar-client-mobile:hover {
+    background: rgba(79, 70, 229, 0.16);
+  }
+
+  /* ════ PAGINACIÓN EN MÓVIL ════ */
+  .table-pagination-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* ════ PASO 4: CONDICIONES DE INGRESO RESPONSIVE ════ */
+  .recepcion-condiciones-selects-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .recepcion-llantas-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PASO 2 — SELECCIONAR VEHÍCULO: CABECERA Y TARJETAS MÓVIL
+   ══════════════════════════════════════════════════════════════ */
+
+/* Cabecera del panel: flecha + título + botón "Nuevo Vehículo" */
+.vehiculo-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Botón "Nuevo Vehículo" */
+.vehiculo-nuevo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Contenedor tarjetas — oculto en escritorio */
+.recepcion-mobile-vehicles-cards {
+  display: none;
+}
+
+/* ── Móvil: activar tarjetas, ocultar tabla ── */
+@media (max-width: 768px) {
+
+  /* Cabecera del panel de vehículos */
+  .vehiculo-panel-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .vehiculo-nuevo-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 9px 16px;
+  }
+
+  /* Mostrar tarjetas, ocultar tabla */
+  .recepcion-mobile-vehicles-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tarjeta individual de vehículo */
+  .vehiculo-select-responsive-card {
+    background: #ffffff;
+    border: 1px solid var(--rc-border, #e8ecf0);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible;
+  }
+
+  /* Badge de placa */
+  .vehiculo-card-placa {
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    align-self: flex-start;
+    border: 1px solid #e2e8f0;
+  }
+
+  .vehiculo-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-top: 1px solid var(--rc-border, #e8ecf0);
+    padding-top: 8px;
+  }
+
+  .vehiculo-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
+
+  .vehiculo-card-label {
+    color: var(--rc-text-muted, #64748b);
+    flex-shrink: 0;
+  }
+
+  .vehiculo-card-value {
+    color: var(--rc-text, #0f172a);
+    font-weight: 500;
+    text-align: right;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vehiculo-card-footer {
+    margin-top: 2px;
+  }
+
+  .btn-seleccionar-vehiculo-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 9px 16px;
+    font-size: 0.875rem;
+    background: rgba(79, 70, 229, 0.1);
+    color: #4f46e5;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    transition: background 120ms ease;
+  }
+
+  .btn-seleccionar-vehiculo-mobile:hover {
+    background: rgba(79, 70, 229, 0.16);
+  }
+
+  .btn-registrar-luego-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
 
 
 

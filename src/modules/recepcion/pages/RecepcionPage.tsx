@@ -307,7 +307,9 @@ export function RecepcionPage() {
   /* ── Wizard de nueva orden ──────────────────────────────────────────────── */
   if (modo === 'wizard') {
     return (
-      <RecepcionWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
+      <div className="recepcion-wizard-page-wrapper">
+        <RecepcionWizard onCancelar={() => { setModo('tabla'); cargarDatos() }} />
+      </div>
     )
   }
 

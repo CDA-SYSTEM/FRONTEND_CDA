@@ -66,66 +66,26 @@ export function RecepcionWizard({ onCancelar }: Props) {
     <div className="recepcion-wizard-container">
       <div className="recepcion-sticky-header">
         {/* Cabecera */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: '#fff',
-            padding: '1.5rem',
-            borderRadius: 12,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          }}
-        >
-          <div>
-              <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-                Nueva Recepción
-              </h1>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-                Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
-              </p>
+        <div className="recepcion-wizard-header-card">
+          <div className="recepcion-wizard-header-text">
+            <h1>Nueva Recepción</h1>
+            <p>Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica</p>
           </div>
           <button
             onClick={onCancelar}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              background: '#f1f5f9',
-              color: '#475569',
-              border: '1px solid #e2e8f0',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-            }}
+            className="recepcion-wizard-cancel-btn"
           >
             <X size={16} />
-            Cancelar
+            <span>Cancelar</span>
           </button>
         </div>
 
         {/* Barra de progreso */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0,
-            background: '#fff',
-            borderRadius: 12,
-            padding: '12px 20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          }}
-        >
+        <div className="recepcion-wizard-progress-bar">
           {PASOS.map((p, i) => (
             <div
               key={p.key}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                flex: 1,
-              }}
+              className="recepcion-wizard-step"
             >
               <div
                 style={{
@@ -371,43 +331,76 @@ function PasoCliente({
       )}
 
       {buscador.resultados.length > 0 ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style={{ padding: '12px 16px' }}>Documento</th>
-                <th style={{ padding: '12px 16px' }}>Nombre</th>
-                <th style={{ padding: '12px 16px' }}>Celular</th>
-                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {buscador.resultados.map((c: ClientePersonaNatural) => (
-                <tr key={c.id}>
-                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{c.identity}</td>
-                  <td style={{ padding: '12px 16px' }}>{c.nombre} {c.apellido}</td>
-                  <td style={{ padding: '12px 16px' }}>{c.celular}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <button
-                      onClick={() => onSeleccionar(c)}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: '0.8rem',
-                        background: '#e0e7ff',
-                        color: '#4f46e5',
-                        border: 'none',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Seleccionar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <>
+          {/* Vista de Tabla para Escritorio */}
+          <div className="recepcion-desktop-table-wrapper">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 16px' }}>Documento</th>
+                    <th style={{ padding: '12px 16px' }}>Nombre</th>
+                    <th style={{ padding: '12px 16px' }}>Celular</th>
+                    <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buscador.resultados.map((c: ClientePersonaNatural) => (
+                    <tr key={c.id}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>{c.identity}</td>
+                      <td style={{ padding: '12px 16px' }}>{c.nombre} {c.apellido}</td>
+                      <td style={{ padding: '12px 16px' }}>{c.celular}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          onClick={() => onSeleccionar(c)}
+                          style={{
+                            padding: '6px 14px',
+                            fontSize: '0.8rem',
+                            background: '#e0e7ff',
+                            color: '#4f46e5',
+                            border: 'none',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Seleccionar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Vista de Tarjetas para Móvil */}
+          <div className="recepcion-mobile-clients-cards">
+            {buscador.resultados.map((c: ClientePersonaNatural) => (
+              <div key={c.id} className="cliente-select-responsive-card">
+                <div className="cliente-card-header">
+                  <span className="cliente-card-identity">{c.identity}</span>
+                  <span className="cliente-card-name">{c.nombre} {c.apellido}</span>
+                </div>
+                <div className="cliente-card-body">
+                  {c.celular && (
+                    <div className="cliente-card-row">
+                      <span className="cliente-card-label">Celular:</span>
+                      <span className="cliente-card-value">{c.celular}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="cliente-card-footer">
+                  <button
+                    onClick={() => onSeleccionar(c)}
+                    className="btn-seleccionar-client-mobile"
+                  >
+                    Seleccionar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div className="table-pagination-wrapper">
             <button
@@ -430,7 +423,7 @@ function PasoCliente({
               Siguiente
             </button>
           </div>
-        </div>
+        </>
       ) : !buscador.cargando ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <User size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
@@ -908,33 +901,22 @@ function PasoVehiculo({
 
   return (
     <article className="panel">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+      {/* Cabecera: flecha volver + título + botón Nuevo Vehículo */}
+      <div className="vehiculo-panel-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+          <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
             <ArrowLeft size={18} />
           </button>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Vehículo</h2>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               Cliente: <strong>{clienteNombre}</strong>
             </p>
           </div>
         </div>
         <button
           onClick={() => setVehiculoNuevoModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 500,
-            fontSize: '0.85rem',
-          }}
+          className="vehiculo-nuevo-btn"
         >
           <Plus size={16} />
           Nuevo Vehículo
@@ -946,50 +928,92 @@ function PasoVehiculo({
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
         </div>
       ) : vehiculos.length > 0 ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style={{ padding: '12px 16px' }}>Placa</th>
-                <th style={{ padding: '12px 16px' }}>Marca</th>
-                <th style={{ padding: '12px 16px' }}>Línea</th>
-                <th style={{ padding: '12px 16px' }}>Modelo</th>
-                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehiculos.map((v) => (
-                <tr key={v.id}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {typeof v.marca === 'object' && v.marca ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '') : String(v.marca ?? '')}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {typeof v.linea === 'object' && v.linea ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '') : String(v.linea ?? '')}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
-                  <td style={{ padding: '12px 16px' }}>
+        <>
+          {/* Vista tabla — solo escritorio */}
+          <div className="recepcion-vehiculos-desktop-table">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 16px' }}>Placa</th>
+                    <th style={{ padding: '12px 16px' }}>Marca</th>
+                    <th style={{ padding: '12px 16px' }}>Línea</th>
+                    <th style={{ padding: '12px 16px' }}>Modelo</th>
+                    <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehiculos.map((v) => (
+                    <tr key={v.id}>
+                      <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {typeof v.marca === 'object' && v.marca ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '') : String(v.marca ?? '')}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {typeof v.linea === 'object' && v.linea ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '') : String(v.linea ?? '')}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                          style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}
+                        >
+                          Seleccionar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Vista tarjetas — solo móvil */}
+          <div className="recepcion-mobile-vehicles-cards">
+            {vehiculos.map((v) => {
+              const marcaNombre = typeof v.marca === 'object' && v.marca
+                ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '')
+                : String(v.marca ?? '')
+              const lineaNombre = typeof v.linea === 'object' && v.linea
+                ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '')
+                : String(v.linea ?? '')
+              return (
+                <div key={v.id} className="vehiculo-select-responsive-card">
+                  {/* Placa como badge destacado */}
+                  <div className="vehiculo-card-placa">{v.placa}</div>
+                  <div className="vehiculo-card-body">
+                    {marcaNombre && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Marca:</span>
+                        <span className="vehiculo-card-value">{marcaNombre}</span>
+                      </div>
+                    )}
+                    {lineaNombre && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Línea:</span>
+                        <span className="vehiculo-card-value">{lineaNombre}</span>
+                      </div>
+                    )}
+                    {v.modelo && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Modelo:</span>
+                        <span className="vehiculo-card-value">{v.modelo}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="vehiculo-card-footer">
                     <button
                       onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: '0.8rem',
-                        background: '#e0e7ff',
-                        color: '#4f46e5',
-                        border: 'none',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                      }}
+                      className="btn-seleccionar-vehiculo-mobile"
                     >
                       Seleccionar
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <Car size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
@@ -1000,16 +1024,8 @@ function PasoVehiculo({
       <div style={{ marginTop: 16, textAlign: 'center' }}>
         <button
           onClick={onSaltar}
-          style={{
-            padding: '8px 20px',
-            background: 'transparent',
-            color: '#2563eb',
-            border: '1px solid #2563eb',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 500,
-            fontSize: '0.85rem',
-          }}
+          className="btn-registrar-luego-mobile"
+          style={{ padding: '8px 20px', background: 'transparent', color: '#2563eb', border: '1px solid #2563eb', borderRadius: 8, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
         >
           Registrar vehiculo después
         </button>
@@ -2214,7 +2230,7 @@ function PasoCondiciones({
 
       <div className="form-grid">
         {/* Condiciones del vehículo */}
-        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <div className="recepcion-condiciones-selects-grid">
           <label>
             <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
             <CustomSelect
@@ -2520,26 +2536,26 @@ function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, t
       })
 
   return (
-    <article className="panel" style={{ textAlign: 'center', padding: '32px 24px' }}>
+    <article className="panel" style={{ textAlign: 'center', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
+          gap: 10,
+          padding: '12px 24px',
+          borderRadius: 999,
           background: '#dcfce7',
-          color: '#16a34a',
+          color: '#15803d',
           marginBottom: 16,
+          alignSelf: 'center',
+          fontWeight: 700,
+          fontSize: '1.2rem',
+          boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)',
         }}
       >
-        <CheckCircle2 size={36} strokeWidth={2} />
+        <CheckCircle2 size={24} strokeWidth={2.5} style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span>Recepción Registrada</span>
       </div>
-
-      <h2 style={{ margin: '0 0 4px', color: '#15803d' }}>
-        Recepción Registrada
-      </h2>
       <p style={{ color: '#6b7280', marginBottom: 24 }}>
         El vehículo ha sido registrado para revisión técnico-mecánica.
       </p>

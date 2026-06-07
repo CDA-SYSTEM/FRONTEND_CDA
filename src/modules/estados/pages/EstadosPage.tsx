@@ -308,24 +308,39 @@ export function EstadosPage() {
         <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <form
             onSubmit={handleSubmit}
-            className="modal-window-premium max-w-md"
+            className="modal-window-premium max-w-md estado-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>
                 {selectedStatus ? 'Editar Estado' : 'Agregar Nuevo Estado'}
               </h3>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setShowFormModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body">
+            <div className="estado-modal-body">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Código de Estado *</label>
                 <input
@@ -354,30 +369,10 @@ export function EstadosPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
                 <textarea
                   placeholder="Descripción detallada del estado..."
-                  className="form-control"
+                  className="estado-descripcion-textarea"
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{
-                    width: '100%',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '0.7rem 0.85rem',
-                    marginTop: '0.35rem',
-                    background: 'rgba(255, 255, 255, 0.92)',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    resize: 'none',
-                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#155dfc'
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#cbd5e1'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
                 />
               </div>
 
@@ -409,7 +404,7 @@ export function EstadosPage() {
               </div>
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="estado-modal-footer">
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -425,7 +420,7 @@ export function EstadosPage() {
               >
                 {submitting ? 'Guardando...' : 'Guardar Estado'}
               </button>
-            </footer>
+            </div>
           </form>
         </div>,
         document.body

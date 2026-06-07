@@ -1,7 +1,11 @@
+import { createPortal } from 'react-dom'
 import { CheckCircle2, XCircle, Key } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
 import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './UsuariosPage.css'
+import './UsuariosModal.css'
+import './RestablecerPasswordModal.css'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -57,7 +61,7 @@ export function UsuariosPage() {
   const isLoading = tab === 'usuarios' ? (loading && usuarios.length === 0) : (loadingCuentas && cuentas.length === 0)
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="usuarios-workspace">
       {/* Cabecera */}
       <div className="users-header">
         <div>
@@ -70,42 +74,16 @@ export function UsuariosPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre/correo/documento"
-            style={{
-              padding: '8px',
-              borderRadius: '6px',
-              minWidth: '200px',
-              flex: '1 1 auto',
-              marginTop: 0,
-              minHeight: 'auto',
-            }}
           />
           <button
             onClick={handleBuscar}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              background: '#fff',
-              color: '#334155',
-              boxShadow: 'none',
-            }}
+            className="btn-filter-action"
           >
             Buscar
           </button>
           <button
             onClick={handleLimpiarBusqueda}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              background: '#fff',
-              color: '#334155',
-              boxShadow: 'none',
-            }}
+            className="btn-filter-action"
           >
             Limpiar
           </button>
@@ -120,16 +98,7 @@ export function UsuariosPage() {
           )}
           <button
             onClick={() => setMostrarModal(true)}
-            style={{
-              padding: '8px 16px',
-              background: '#2563eb',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              boxShadow: 'none',
-            }}
+            className="btn-create-user"
           >
             + Nuevo Usuario
           </button>
@@ -164,36 +133,16 @@ export function UsuariosPage() {
         </p>
       )}
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #cbd5e1', paddingBottom: '10px', marginBottom: '20px' }}>
+      <div className="users-tabs-bar">
         <button
           onClick={() => setTab('usuarios')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: tab === 'usuarios' ? '#2563eb' : 'transparent',
-            color: tab === 'usuarios' ? '#fff' : '#64748b',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: tab === 'usuarios' ? 'bold' : 'normal',
-            boxShadow: 'none',
-            minHeight: 'auto',
-          }}
+          className={`users-tab-btn ${tab === 'usuarios' ? 'users-tab-btn--active' : ''}`}
         >
           Personal (Usuarios)
         </button>
         <button
           onClick={() => setTab('cuentas')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: tab === 'cuentas' ? '#2563eb' : 'transparent',
-            color: tab === 'cuentas' ? '#fff' : '#64748b',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: tab === 'cuentas' ? 'bold' : 'normal',
-            boxShadow: 'none',
-            minHeight: 'auto',
-          }}
+          className={`users-tab-btn ${tab === 'cuentas' ? 'users-tab-btn--active' : ''}`}
         >
           Cuentas de Acceso (Auth)
         </button>
@@ -204,114 +153,86 @@ export function UsuariosPage() {
       ) : tab === 'usuarios' ? (
         <>
           {/* Tabla de Usuarios */}
-          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
-            <table style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>Nombre Completo</th>
-                  <th>Email</th>
-                  <th>Rol Actual</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuarios.map((user) => (
-                  <tr key={user.id}>
-                    <td>
-                      {user.firstName
-                        ? `${user.firstName} ${user.lastName}`
-                        : user.name}
-                    </td>
-                    <td>{user.email}</td>
-                    <td style={{ minWidth: '160px' }}>
-                      <CustomSelect
-                        options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
-                        value={user.role.toLowerCase()}
-                        onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
-                      />
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {user.isActive ? (
-                          <>
-                            <CheckCircle2 size={16} color="#16a34a" />
-                            <span style={{ color: '#166534' }}>Activo</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle size={16} color="#dc2626" />
-                            <span style={{ color: '#991b1b' }}>Inactivo</span>
-                          </>
-                        )}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleToggleEstado(user)}
-                          style={{
-                            padding: '4px 10px',
-                            minHeight: 'auto',
-                            borderRadius: '4px',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          {user.isActive ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          onClick={() => setResetUserId(user.id)}
-                          style={{
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          <Key size={14} />
-                          Restablecer Clave
-                        </button>
-                        <button
-                          onClick={() => handleEliminarUsuario(user.id)}
-                          style={{
-                            background: '#ef4444',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
+          <div className="usuarios-desktop-table-wrapper">
+            <div className="usuarios-table-container">
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Nombre Completo</th>
+                    <th>Email</th>
+                    <th>Rol Actual</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {usuarios.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        {user.firstName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.name}
+                      </td>
+                      <td>{user.email}</td>
+                      <td style={{ minWidth: '160px' }}>
+                        <CustomSelect
+                          options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                          value={user.role.toLowerCase()}
+                          onChange={(val) => handleCambiarRol(user.id, val as RolUsuarioForm)}
+                        />
+                      </td>
+                      <td>
+                        {user.isActive ? (
+                          <span className="status-badge-premium status-badge-premium--active">
+                            <CheckCircle2 size={14} />
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="status-badge-premium status-badge-premium--inactive">
+                            <XCircle size={14} />
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button
+                            onClick={() => handleToggleEstado(user)}
+                            style={{
+                              padding: '4px 10px',
+                              minHeight: 'auto',
+                              borderRadius: '4px',
+                              boxShadow: 'none',
+                            }}
+                          >
+                            {user.isActive ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button
+                            onClick={() => setResetUserId(user.id)}
+                            className="usr-btn-action usr-btn-action--key"
+                          >
+                            <Key size={13} />
+                            Restablecer Clave
+                          </button>
+                          <button
+                            onClick={() => handleEliminarUsuario(user.id)}
+                            className="usr-btn-action usr-btn-action--delete"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Tarjetas para móviles */}
-          <div className="users-cards-mobile">
+          <div className="usuarios-mobile-cards-container">
             {usuarios.map((user) => (
-              <div key={user.id} className="user-card">
+              <div key={user.id} className="usuario-responsive-card">
                 <div className="user-card-header">
                   <div className="user-card-name">
                     {user.firstName
@@ -332,26 +253,17 @@ export function UsuariosPage() {
 
                 <div className="user-card-row">
                   <span className="user-card-label">Estado:</span>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {user.isActive ? (
-                      <>
-                        <CheckCircle2 size={16} color="#16a34a" />
-                        <span style={{ color: '#166534' }}>Activo</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={16} color="#dc2626" />
-                        <span style={{ color: '#991b1b' }}>Inactivo</span>
-                      </>
-                    )}
-                  </span>
+                  {user.isActive ? (
+                    <span className="status-badge-premium status-badge-premium--active">
+                      <CheckCircle2 size={14} />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="status-badge-premium status-badge-premium--inactive">
+                      <XCircle size={14} />
+                      Inactivo
+                    </span>
+                  )}
                 </div>
 
                 <div className="user-card-actions">
@@ -411,118 +323,85 @@ export function UsuariosPage() {
       ) : (
         <>
           {/* Tabla de Cuentas */}
-          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
-            <table style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <th>ID Cuenta</th>
-                  <th>Email / Cuenta</th>
-                  <th>Rol Actual</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cuentas.map((cuenta) => (
-                  <tr key={cuenta.id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{cuenta.id.substring(0, 8)}...</td>
-                    <td>{cuenta.email}</td>
-                    <td>
-                      {cuenta.role === 'superadmin' ? (
-                        <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
-                          Super Admin
-                        </span>
-                      ) : (
-                        <CustomSelect
-                          options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
-                          value={cuenta.role.toLowerCase()}
-                          onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
-                        />
-                      )}
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {cuenta.isActive ? (
-                          <>
-                            <CheckCircle2 size={16} color="#16a34a" />
-                            <span style={{ color: '#166534' }}>Activa</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle size={16} color="#dc2626" />
-                            <span style={{ color: '#991b1b' }}>Inactiva</span>
-                          </>
-                        )}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <button
-                          onClick={() => handleToggleEstado(cuenta)}
-                          style={{
-                            padding: '4px 10px',
-                            minHeight: 'auto',
-                            borderRadius: '4px',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          {cuenta.isActive ? 'Desactivar' : 'Activar'}
-                        </button>
-                        <button
-                          onClick={() => setResetUserId(cuenta.id)}
-                          style={{
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
-                        >
-                          <Key size={14} />
-                          Restablecer Clave
-                        </button>
-                        {cuenta.role !== 'superadmin' && (
-                          <button
-                            onClick={() => handleEliminarUsuario(cuenta.id)}
-                            style={{
-                              background: '#ef4444',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '4px',
-                              padding: '4px 10px',
-                              cursor: 'pointer',
-                              minHeight: 'auto',
-                              boxShadow: 'none',
-                            }}
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <div className="usuarios-desktop-table-wrapper">
+            <div className="usuarios-table-container">
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>ID Cuenta</th>
+                    <th>Email / Cuenta</th>
+                    <th>Rol Actual</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {cuentas.map((cuenta) => (
+                    <tr key={cuenta.id}>
+                      <td className="usuarios-id-monospace">{cuenta.id.substring(0, 8)}...</td>
+                      <td>{cuenta.email}</td>
+                      <td>
+                        {cuenta.role === 'superadmin' ? (
+                          <span style={{ padding: '4px 8px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem', color: '#475569', fontWeight: 600 }}>
+                            Super Admin
+                          </span>
+                        ) : (
+                          <CustomSelect
+                            options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                            value={cuenta.role.toLowerCase()}
+                            onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
+                          />
+                        )}
+                      </td>
+                      <td>
+                        {cuenta.isActive ? (
+                          <span className="status-badge-premium status-badge-premium--active">
+                            <CheckCircle2 size={14} />
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="status-badge-premium status-badge-premium--inactive">
+                            <XCircle size={14} />
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="usr-actions-cell">
+                          <button
+                            onClick={() => handleToggleEstado(cuenta)}
+                            className="usr-btn-action usr-btn-action--toggle"
+                          >
+                            {cuenta.isActive ? 'Desactivar' : 'Activar'}
+                          </button>
+                          <button
+                            onClick={() => setResetUserId(cuenta.id)}
+                            className="usr-btn-action usr-btn-action--key"
+                          >
+                            <Key size={13} />
+                            Restablecer Clave
+                          </button>
+                          {cuenta.role !== 'superadmin' && (
+                            <button
+                              onClick={() => handleEliminarUsuario(cuenta.id)}
+                              className="usr-btn-action usr-btn-action--delete"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Tarjetas móviles para Cuentas */}
-          <div className="users-cards-mobile">
+          <div className="usuarios-mobile-cards-container">
             {cuentas.map((cuenta) => (
-              <div key={cuenta.id} className="user-card">
+              <div key={cuenta.id} className="usuario-responsive-card">
                 <div className="user-card-header">
                   <div className="user-card-name">{cuenta.email}</div>
                   <div className="user-card-email" style={{ fontFamily: 'monospace' }}>ID: {cuenta.id}</div>
@@ -543,26 +422,17 @@ export function UsuariosPage() {
 
                 <div className="user-card-row">
                   <span className="user-card-label">Estado:</span>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {cuenta.isActive ? (
-                      <>
-                        <CheckCircle2 size={16} color="#16a34a" />
-                        <span style={{ color: '#166534' }}>Activa</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={16} color="#dc2626" />
-                        <span style={{ color: '#991b1b' }}>Inactiva</span>
-                      </>
-                    )}
-                  </span>
+                  {cuenta.isActive ? (
+                    <span className="status-badge-premium status-badge-premium--active">
+                      <CheckCircle2 size={14} />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="status-badge-premium status-badge-premium--inactive">
+                      <XCircle size={14} />
+                      Inactivo
+                    </span>
+                  )}
                 </div>
 
                 <div className="user-card-actions">
@@ -622,42 +492,19 @@ export function UsuariosPage() {
           </div>
         </>
       )}
+
       {/* Modal crear usuario */}
-      {mostrarModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '450px',
-              boxSizing: 'border-box',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
+      {mostrarModal && createPortal(
+        <div className="user-modal-overlay">
+          <div className="user-modal-window">
             <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
             <form
               onSubmit={handleCrearUsuario}
-              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+              className="user-form-grid"
             >
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-row-doc">
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Tipo Doc.
                   </label>
                   <CustomSelect
@@ -670,8 +517,8 @@ export function UsuariosPage() {
                     onChange={(val) => handleFormChange({ target: { name: 'identificationType', value: val } })}
                   />
                 </div>
-                <div style={{ flex: 2 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Número
                   </label>
                   <input
@@ -680,22 +527,14 @@ export function UsuariosPage() {
                     required
                     value={formData.identificationNumber}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-row-2">
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Nombres
                   </label>
                   <input
@@ -704,19 +543,11 @@ export function UsuariosPage() {
                     required
                     value={formData.firstName}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Apellidos
                   </label>
                   <input
@@ -725,21 +556,13 @@ export function UsuariosPage() {
                     required
                     value={formData.lastName}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Teléfono
                 </label>
                 <input
@@ -748,20 +571,12 @@ export function UsuariosPage() {
                   required
                   value={formData.phoneNumber}
                   onChange={handleFormChange}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    outline: 'none',
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box',
-                  }}
+                  className="user-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Correo Electrónico
                 </label>
                 <input
@@ -770,20 +585,12 @@ export function UsuariosPage() {
                   required
                   value={formData.email}
                   onChange={handleFormChange}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    outline: 'none',
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box',
-                  }}
+                  className="user-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Rol
                 </label>
                 <CustomSelect
@@ -798,80 +605,40 @@ export function UsuariosPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <div className="user-modal-footer">
                 <button
                   type="button"
                   onClick={() => setMostrarModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-premium-cancel-ghost"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#10b981',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-premium-save"
                 >
                   Guardar
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal restablecer contraseña */}
-      {resetUserId && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '400px',
-              boxSizing: 'border-box',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
-            <h3 style={{ marginTop: 0 }}>Restablecer Contraseña</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 16 }}>
+      {resetUserId && createPortal(
+        <div className="pwd-modal-overlay">
+          <div className="pwd-modal-window">
+            <h3 className="pwd-modal-title">Restablecer Contraseña</h3>
+            <p className="pwd-modal-desc">
               Defina la nueva contraseña temporal para la cuenta de este usuario.
             </p>
-            <form
-              onSubmit={handleResetPassword}
-              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-            >
-              <label>
-                Nueva Contraseña
+            <form onSubmit={handleResetPassword}>
+              <div className="pwd-form-group">
+                <label className="pwd-form-label">
+                  Nueva Contraseña
+                </label>
                 <input
                   type="password"
                   required
@@ -879,52 +646,31 @@ export function UsuariosPage() {
                   value={resetPasswordVal}
                   onChange={(e) => setResetPasswordVal(e.target.value)}
                   placeholder="Mínimo 4 caracteres"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    marginTop: '4px',
-                    borderRadius: '4px',
-                    border: '1px solid #cbd5e1',
-                  }}
+                  className="pwd-form-input"
                 />
-              </label>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              </div>
+              <div className="pwd-modal-footer">
                 <button
                   type="button"
                   onClick={() => {
                     setResetUserId(null)
                     setResetPasswordVal('')
                   }}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-pwd-cancel-ghost"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-pwd-confirm"
                 >
                   Confirmar
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

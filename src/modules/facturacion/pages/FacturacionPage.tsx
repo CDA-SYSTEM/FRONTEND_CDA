@@ -275,7 +275,7 @@ export function FacturacionPage() {
           />
           <p className="text-gray-500 text-sm" style={{ marginTop: '4px' }}>Gestione las facturas del sistema y asócielas con inspecciones de recepción.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="facturacion-actions-container">
           <button 
             className="btn btn-secondary flex items-center gap-2"
             onClick={() => setShowGenerateModal(true)}
@@ -557,7 +557,7 @@ export function FacturacionPage() {
     {/* Modal de Detalle */}
     {selectedInvoice && (
       <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
-          <div className="floating-modal-box" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
+          <div className="floating-modal-box factura-modal-window" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
             <header className="floating-modal-header">
               <h3 className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FileSpreadsheet className="text-primary" /> Factura {selectedInvoice.invoice_number}
@@ -570,7 +570,7 @@ export function FacturacionPage() {
                 <X size={24} />
               </button>
             </header>
-            <div className="floating-modal-body">
+            <div className="factura-modal-body">
               {/* Información del Cliente */}
               <div className="form-row-2">
                 <div>
@@ -653,14 +653,14 @@ export function FacturacionPage() {
                 </div>
               )}
             </div>
-            <footer className="floating-modal-footer">
+            <div className="factura-modal-footer">
               <button 
                 className="btn btn-secondary"
                 onClick={() => setSelectedInvoice(null)}
               >
                 Cerrar
               </button>
-            </footer>
+            </div>
           </div>
         </div>
       )}
@@ -733,25 +733,39 @@ export function FacturacionPage() {
         <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleSaveInvoice}
-            className="floating-modal-box"
+            className="floating-modal-box factura-editar-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>{editingInvoiceId ? 'Editar Factura' : 'Crear Factura Manual'}</h3>
-              <button 
-                type="button" 
-                className="text-gray-400 hover:text-gray-600"
+              <button
+                type="button"
                 onClick={() => {
                   setShowCreateModal(false)
                   setEditingInvoiceId(null)
                 }}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
             
-            <div className="floating-modal-body">
+            <div className="factura-editar-modal-body">
               {/* Cliente */}
               <div>
                 <h4 className="text-sm font-bold text-gray-800 mb-3" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px', fontWeight: 'bold' }}>Datos del Cliente</h4>
@@ -899,18 +913,19 @@ export function FacturacionPage() {
               </div>
 
               {/* Observaciones */}
-              <div style={{ marginTop: '1.5rem' }}>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones / Notas Adicionales</label>
+              <div className="observaciones-form-group" style={{ marginTop: '1.5rem' }}>
+                <label className="block text-xs font-semibold text-gray-600">Observaciones / Notas Adicionales</label>
                 <textarea
-                  className="form-control"
+                  className="factura-observaciones-textarea"
                   rows={2}
+                  placeholder="Ej: Ninguna de momento..."
                   value={newInvoice.observations}
                   onChange={(e) => setNewInvoice({ ...newInvoice, observations: e.target.value })}
                 />
               </div>
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="factura-editar-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"
@@ -929,7 +944,7 @@ export function FacturacionPage() {
               >
                 {submitting ? 'Guardando...' : (editingInvoiceId ? 'Actualizar Factura' : 'Emitir Factura')}
               </button>
-            </footer>
+            </div>
           </form>
         </div>
       )}

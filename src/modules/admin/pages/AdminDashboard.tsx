@@ -125,22 +125,24 @@ function PieStatChart({ data, title, icon }: { data: Record<string, number> | un
   return (
     <div className="admin-chart-card">
       <h3>{icon} {title}</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChart>
-          <defs>
-            {entries.map((_, i) => (
-              <linearGradient key={i} id={`pieGrad_${i}`} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.9} />
-                <stop offset="100%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.6} />
-              </linearGradient>
-            ))}
-          </defs>
-          <Pie data={entries.map(([k, v]) => ({ name: statNameDisplay(k), value: v }))} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} isAnimationActive animationDuration={900} animationEasing="ease-out">
-            {entries.map((_, i) => <Cell key={i} fill={`url(#pieGrad_${i})`} stroke="rgba(255,255,255,0.3)" strokeWidth={2} />)}
-          </Pie>
-          <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
-        </PieChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', height: 220, position: 'relative' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <defs>
+              {entries.map((_, i) => (
+                <linearGradient key={i} id={`pieGrad_${i}`} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.6} />
+                </linearGradient>
+              ))}
+            </defs>
+            <Pie data={entries.map(([k, v]) => ({ name: statNameDisplay(k), value: v }))} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} isAnimationActive animationDuration={900} animationEasing="ease-out">
+              {entries.map((_, i) => <Cell key={i} fill={`url(#pieGrad_${i})`} stroke="rgba(255,255,255,0.3)" strokeWidth={2} />)}
+            </Pie>
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
@@ -152,37 +154,39 @@ function BarStatChart({ data, title, icon, color = '#155dfc', layout = 'vertical
   return (
     <div className="admin-chart-card">
       <h3>{icon} {title}</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        {layout === 'vertical' ? (
-          <BarChart data={chartData}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.9} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.4} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} />
-            <YAxis type="number" tick={{ fontSize: 12 }} />
-            <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
-            <Bar dataKey="count" fill={`url(#${gradientId})`} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
-          </BarChart>
-        ) : (
-          <BarChart data={chartData} layout="vertical">
-            <defs>
-              <linearGradient id={`${gradientId}_h`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor={color} stopOpacity={0.4} />
-                <stop offset="100%" stopColor={color} stopOpacity={0.9} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis type="number" tick={{ fontSize: 12 }} />
-            <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={100} />
-            <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
-            <Bar dataKey="count" fill={`url(#${gradientId}_h)`} radius={[0, 4, 4, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
-          </BarChart>
-        )}
-      </ResponsiveContainer>
+      <div style={{ width: '100%', height: 220, position: 'relative' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          {layout === 'vertical' ? (
+            <BarChart data={chartData}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.4} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis type="number" tick={{ fontSize: 12 }} />
+              <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
+              <Bar dataKey="count" fill={`url(#${gradientId})`} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
+            </BarChart>
+          ) : (
+            <BarChart data={chartData} layout="vertical">
+              <defs>
+                <linearGradient id={`${gradientId}_h`} x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.9} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis type="number" tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={100} />
+              <Tooltip content={<ChartTooltip formatter={formatter} />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
+              <Bar dataKey="count" fill={`url(#${gradientId}_h)`} radius={[0, 4, 4, 0]} isAnimationActive animationDuration={staggerDuration} animationEasing="ease-out" />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
@@ -229,21 +233,23 @@ function DashboardTab({ data, loading, error }: { data: AdminDashboardData; load
         {revenueData.length === 0 ? <ChartSkeleton /> : (
           <div className="admin-chart-card">
             <h3><TrendingUp size={16} /> Ingresos Mensuales</h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#155dfc" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v.toFixed(0)}M`} />
-                <Tooltip content={<ChartTooltip formatter={(v) => `$${v.toFixed(1)}M`} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
-                <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#revenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div style={{ width: '100%', height: 220, position: 'relative' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#155dfc" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v.toFixed(0)}M`} />
+                  <Tooltip content={<ChartTooltip formatter={(v) => `$${v.toFixed(1)}M`} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
+                  <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#revenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         )}
       </div>
@@ -341,7 +347,7 @@ function UsuariosTab() {
 
       <div className="admin-section-card">
         <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem', color: '#1e293b' }}>Roles del Sistema</h3>
-        <div className="admin-detail-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="admin-detail-grid">
           {[
             { role: 'ADMIN', desc: 'Acceso total al sistema' },
             { role: 'MANAGER', desc: 'Gestión operativa y reportes' },
@@ -533,21 +539,23 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
             {revenueData.length > 0 ? (
               <div className="admin-chart-card">
                 <h3><TrendingUp size={16} /> Ingresos por Mes</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <AreaChart data={revenueData}>
-                    <defs>
-                      <linearGradient id="invRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#155dfc" stopOpacity={0.2} />
-                        <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(Number(v) / 1000000).toFixed(0)}M`} />
-                    <Tooltip content={<ChartTooltip formatter={(v) => formatCurrency(Number(v))} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
-                    <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#invRevenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#155dfc', stroke: '#fff', strokeWidth: 2 }} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div style={{ width: '100%', height: 250, position: 'relative' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revenueData}>
+                      <defs>
+                        <linearGradient id="invRevenueGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#155dfc" stopOpacity={0.2} />
+                          <stop offset="100%" stopColor="#155dfc" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(Number(v) / 1000000).toFixed(0)}M`} />
+                      <Tooltip content={<ChartTooltip formatter={(v) => formatCurrency(Number(v))} />} cursor={{ stroke: '#155dfc', strokeDasharray: '4 4' }} />
+                      <Area type="monotone" dataKey="revenue" stroke="#155dfc" strokeWidth={2.5} fill="url(#invRevenueGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#155dfc', stroke: '#fff', strokeWidth: 2 }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             ) : <ChartSkeleton />}
             <PieStatChart data={data.byStatus} title="Por Estado" icon={<Activity size={16} />} />
@@ -655,21 +663,23 @@ function TrackerTab({ data, loading, error }: { data: TrackerStats | undefined; 
           <div className="admin-chart-card">
           <h3><Calendar size={16} /> Planillas por Fecha</h3>
           {(data.planillas_por_fecha?.filter((p) => p.fecha) ?? []).length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={data.planillas_por_fecha.filter((p) => p.fecha).map((p) => ({ fecha: p.fecha!.split('T')[0], total: p.total }))}>
-                <defs>
-                  <linearGradient id="trackerGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#9333ea" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#9333ea" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="fecha" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#9333ea', strokeDasharray: '4 4' }} />
-                <Area type="monotone" dataKey="total" stroke="#9333ea" strokeWidth={2.5} fill="url(#trackerGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#9333ea', stroke: '#fff', strokeWidth: 2 }} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div style={{ width: '100%', height: 220, position: 'relative' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.planillas_por_fecha.filter((p) => p.fecha).map((p) => ({ fecha: p.fecha!.split('T')[0], total: p.total }))}>
+                  <defs>
+                    <linearGradient id="trackerGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#9333ea" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#9333ea" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="fecha" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#9333ea', strokeDasharray: '4 4' }} />
+                  <Area type="monotone" dataKey="total" stroke="#9333ea" strokeWidth={2.5} fill="url(#trackerGrad)" isAnimationActive animationDuration={1000} animationEasing="ease-out" activeDot={{ r: 6, fill: '#9333ea', stroke: '#fff', strokeWidth: 2 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           ) : <div className="chart-empty">Sin planillas registradas</div>}
         </div>
       </div>

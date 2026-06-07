@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   title: string
   children: React.ReactNode
   maxWidth?: string
+  className?: string
 }
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: Props) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = '800px', className }: Props) {
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -48,6 +50,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
     >
       <div
         ref={modalRef}
+        className={`cliente-modal-window ${className || ''}`}
         style={{
           background: '#fff',
           borderRadius: 12,
@@ -94,16 +97,20 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '800px' }: 
           </button>
         </div>
         <div
+          className="cliente-modal-content"
           style={{
-            padding: '24px',
-            overflowY: 'auto',
+            padding: className ? '0' : '24px',
+            overflowY: className ? 'hidden' : 'auto',
             flex: 1,
             minHeight: 0,
+            display: className ? 'flex' : 'block',
+            flexDirection: className ? 'column' : 'initial',
           }}
         >
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

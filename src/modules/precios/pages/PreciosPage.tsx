@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   DollarSign,
   Plus,
@@ -8,7 +9,8 @@ import {
   Loader2,
   X,
   AlertCircle,
-  Tag
+  Tag,
+  Eye
 } from 'lucide-react'
 import { animate, stagger } from 'animejs'
 import { precioService } from '../services/precioService'
@@ -16,6 +18,7 @@ import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './TarifasPage.css'
 
 export function PreciosPage() {
   const [prices, setPrices] = useState<Precio[]>([])
@@ -28,7 +31,9 @@ export function PreciosPage() {
 
   // Modales
   const [showFormModal, setShowFormModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedPrice, setSelectedPrice] = useState<Precio | null>(null)
+  const [detailPrice, setDetailPrice] = useState<Precio | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Datos para nuevo/editar precio
@@ -82,7 +87,7 @@ export function PreciosPage() {
         duration: 250,
         easing: 'easeOutQuad'
       })
-      const box = node.querySelector('.floating-modal-box')
+      const box = node.querySelector('.modal-window-premium, .floating-modal-box')
       if (box) {
         animate(box, {
           scale: [0.95, 1],
@@ -165,7 +170,7 @@ export function PreciosPage() {
   }
 
   return (
-    <>
+    <div className="pr-root">
       <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
@@ -261,159 +266,264 @@ export function PreciosPage() {
           <p>No se encontraron tarifas configuradas para los filtros seleccionados.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="tarifas-cards-grid">
           {prices.map((p) => (
             <div 
               key={p.id}
-              className="price-card bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+              className="pr-card price-card"
               style={{ opacity: 0 }} /* Anime.js lo animará a 1 */
             >
-              <div>
-                <header className="flex justify-between items-start mb-4">
-                  <span className="badge text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded">
+              <div className="pr-card-body">
+                <header className="pr-card-header">
+                  <span className="pr-badge-vehicle">
                     {formatLabel(p.vehicleType)}
                   </span>
-                  <span className={`text-xs px-2 py-1 rounded font-bold ${
-                    p.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                  <span className={`pr-badge-status ${
+                    p.isActive ? 'pr-badge-status--active' : 'pr-badge-status--inactive'
                   }`}>
                     {p.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </header>
-                <h3 className="text-2xl font-black text-gray-800 mb-2 flex items-center gap-1">
+                <h3 className="pr-price">
                   {formatCOP(p.amount)}
                 </h3>
-                <h4 className="text-sm font-bold text-gray-600 mb-2 flex items-center gap-1">
-                  <Tag size={14} className="text-gray-400" /> {formatLabel(p.revisionType)}
+                <h4 className="pr-revision-type">
+                  <span className="pr-revision-icon"><Tag size={14} /></span> {formatLabel(p.revisionType)}
                 </h4>
-                <p className="text-sm text-gray-500 mb-6">{p.description}</p>
+                <p className="pr-desc">{p.description}</p>
               </div>
 
-              {isAdmin && (
-                <div className="flex gap-2 border-t border-gray-50 pt-4 mt-auto justify-end">
-                  <button 
-                    className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs"
-                    onClick={() => handleOpenEdit(p)}
-                  >
-                    <Pencil size={14} /> Editar
-                  </button>
-                  <button 
-                    className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs text-red-500 hover:bg-red-50"
-                    onClick={() => handleDelete(p.id)}
-                  >
-                    <Trash2 size={14} /> Eliminar
-                  </button>
-                </div>
-              )}
+              <div className="pr-card-footer">
+                <button 
+                  type="button"
+                  className="pr-btn-action pr-btn-action--view"
+                  onClick={() => {
+                    setDetailPrice(p)
+                    setShowDetailModal(true)
+                  }}
+                >
+                  <Eye size={13} /> Ver
+                </button>
+                {isAdmin && (
+                  <>
+                    <button 
+                      type="button"
+                      className="pr-btn-action pr-btn-action--edit"
+                      onClick={() => handleOpenEdit(p)}
+                    >
+                      <Pencil size={13} /> Editar
+                    </button>
+                    <button 
+                      type="button"
+                      className="pr-btn-action pr-btn-action--delete"
+                      onClick={() => handleDelete(p.id)}
+                    >
+                      <Trash2 size={13} /> Eliminar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
-    </article>
+      </article>
 
-    {showFormModal && (
-      <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
-          <form 
-            onSubmit={handleSubmit}
-            className="floating-modal-box max-w-md"
+      {showFormModal && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
+            <form 
+              onSubmit={handleSubmit}
+              className="modal-window-premium tarifa-modal-window"
+              style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
+            >
+              <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>
+                  {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowFormModal(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    padding: 8,
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    transition: 'background-color 0.2s',
+                    boxShadow: 'none',
+                    minHeight: 'initial'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                >
+                  <X size={18} />
+                </button>
+              </header>
+
+              <div className="floating-modal-body">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
+                  <CustomSelect
+                    options={[
+                      { value: 'LIVIANO', label: 'Liviano' },
+                      { value: 'PESADO', label: 'Pesado' },
+                      { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
+                      { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
+                    ]}
+                    value={formData.vehicleType}
+                    onChange={(val) => setFormData({ ...formData, vehicleType: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Revisión *</label>
+                  <CustomSelect
+                    options={[
+                      { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
+                      { value: 'PREVENTIVA', label: 'Preventiva' }
+                    ]}
+                    value={formData.revisionType}
+                    onChange={(val) => setFormData({ ...formData, revisionType: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Monto (COP) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    className="form-control"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción / Notas *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Revisión tecnico-mecanica vehiculo liviano"
+                    className="form-control"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    style={{ width: 'auto', minHeight: 'initial', marginTop: 0 }}
+                  />
+                  <label htmlFor="isActive" className="text-sm font-semibold text-gray-700">Tarifa Activa</label>
+                </div>
+              </div>
+
+              <footer className="floating-modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  disabled={submitting}
+                  onClick={() => setShowFormModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Guardando...' : 'Guardar Tarifa'}
+                </button>
+              </footer>
+            </form>
+          </div>,
+          document.body
+      )}
+
+      {showDetailModal && detailPrice && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
+          <div 
+            className="modal-window-premium tarifa-detalle-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
-              <h3>
-                {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
-              </h3>
+            <header className="floating-modal-header tarifa-detalle-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>Detalles de la Tarifa</h3>
               <button 
                 type="button" 
-                className="text-gray-400 hover:text-gray-600"
-                onClick={() => setShowFormModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                className="modal-close-btn"
+                onClick={() => setShowDetailModal(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
-                <CustomSelect
-                  options={[
-                    { value: 'LIVIANO', label: 'Liviano' },
-                    { value: 'PESADO', label: 'Pesado' },
-                    { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
-                    { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
-                  ]}
-                  value={formData.vehicleType}
-                  onChange={(val) => setFormData({ ...formData, vehicleType: val })}
-                />
+            <div className="tarifa-detalle-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pr-badge-vehicle">{formatLabel(detailPrice.vehicleType)}</span>
+                <span className={`pr-badge-status ${detailPrice.isActive ? 'pr-badge-status--active' : 'pr-badge-status--inactive'}`}>
+                  {detailPrice.isActive ? 'Activa' : 'Inactiva'}
+                </span>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--pr-border)', paddingBottom: '0.75rem' }}>
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Monto</span>
+                <div className="pr-price" style={{ fontSize: '2.25rem', marginTop: '4px' }}>{formatCOP(detailPrice.amount)}</div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Revisión *</label>
-                <CustomSelect
-                  options={[
-                    { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
-                    { value: 'PREVENTIVA', label: 'Preventiva' }
-                  ]}
-                  value={formData.revisionType}
-                  onChange={(val) => setFormData({ ...formData, revisionType: val })}
-                />
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Tipo de revisión</span>
+                <div className="pr-revision-type" style={{ marginTop: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="pr-revision-icon"><Tag size={16} /></span> {formatLabel(detailPrice.revisionType)}
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Monto (COP) *</label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  className="form-control"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción / Notas *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Revisión tecnico-mecanica vehiculo liviano"
-                  className="form-control"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  style={{ width: 'auto', minHeight: 'initial', marginTop: 0 }}
-                />
-                <label htmlFor="isActive" className="text-sm font-semibold text-gray-700">Tarifa Activa</label>
-              </div>
+              {detailPrice.description && (
+                <div>
+                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Descripción / Notas</span>
+                  <p style={{ marginTop: '4px', fontSize: '0.875rem', color: 'var(--pr-text-muted)', lineHeight: 1.5 }}>{detailPrice.description}</p>
+                </div>
+              )}
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="tarifa-detalle-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"
-                disabled={submitting}
-                onClick={() => setShowFormModal(false)}
+                onClick={() => setShowDetailModal(false)}
+                style={{ width: '100%', height: '44px' }}
               >
-                Cancelar
+                Cerrar
               </button>
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? 'Guardando...' : 'Guardar Tarifa'}
-              </button>
-            </footer>
-          </form>
-        </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
-    </>
+    </div>
   )
 }

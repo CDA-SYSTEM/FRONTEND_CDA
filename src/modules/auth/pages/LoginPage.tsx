@@ -15,7 +15,7 @@ import './LoginPage.css'
  * Mapeo de rutas por rol del usuario
  */
 const DASHBOARD_ROUTES: Record<string, string> = {
-  ADMIN: '/dashboard',
+  ADMIN: '/admin/dashboard',
   MANAGER: '/recepcion',
   OPERARIO: '/recepcion',
   INSPECTOR: '/inspeccion/asignacion',
@@ -145,6 +145,9 @@ export function LoginPage() {
               Correo Electrónico
               <input
                 type="email"
+                inputMode="email"
+                autoComplete="email"
+                spellCheck={false}
                 placeholder="usuario@cda.com"
                 {...register('email')}
                 disabled={isLoading}
@@ -158,7 +161,8 @@ export function LoginPage() {
               Contraseña
               <input
                 type="password"
-                placeholder="******"
+                autoComplete="current-password"
+                placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
               />
@@ -172,6 +176,10 @@ export function LoginPage() {
             </button>
           </form>
         </section>
+
+        <p className="auth-footer">
+          © {new Date().getFullYear()} CDA Putumayo — Todos los derechos reservados
+        </p>
       </div>
     </main>
   )

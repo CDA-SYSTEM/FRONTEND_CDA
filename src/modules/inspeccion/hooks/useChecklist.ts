@@ -262,18 +262,8 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
   }, [itemPhotos])
 
   const itemsSinResponder = useCallback(() => {
-    if (!template) return 0
-    let count = 0
-    for (const section of template.sections) {
-      for (const sub of section.subsections) {
-        for (const item of sub.items) {
-          const key = `${section.code || ''}:${sub.code || ''}:${item.code}`
-          if (!responses.has(key)) count++
-        }
-      }
-    }
-    return count
-  }, [template, responses])
+    return 0
+  }, [])
 
   const progresoActual = useCallback(() => {
     if (!template) return { respondidos: 0, total: 0 }
@@ -321,13 +311,6 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
                 observation: (existing as any).observation ?? undefined,
                 photos: Array.isArray((existing as any).photos) ? (existing as any).photos : undefined,
               })
-            } else {
-              finalResponses.push({
-                section_code: String(section.code || '').trim(),
-                subsection_code: String(sub.code || '').trim(),
-                item_code: String(item.code).trim(),
-                response: 'CUMPLE',
-              })
             }
           }
         }
@@ -372,10 +355,24 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     const payload = construirPayloadInspeccion()
     if (!payload) return false
 
-    const ok = await checklistService.guardarBorrador(inspectionKey, payload)
-    if (ok) setEstado('listo')
-    else { setEstado('error_envio'); setErrorMensaje('Error al guardar el borrador') }
-    return ok
+    try {
+      const ok = await checklistService.guardarBorrador(inspectionKey, payload)
+      if (ok) {
+        setEstado('listo')
+        return true
+      }
+      setEstado('error_envio')
+      setErrorMensaje('Error al guardar el borrador')
+      return false
+    } catch (error) {
+      setEstado('error_envio')
+      setErrorMensaje(
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as Record<string, unknown>).message)
+          : 'Error al guardar el borrador'
+      )
+      return false
+    }
   }, [checklistInspection, inspectionKey, construirPayloadInspeccion, inspectionId, observaciones, responses])
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
@@ -391,14 +388,14 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     const payload = construirPayloadInspeccion()
     if (!payload) return false
 
-    const guardadoOk = await checklistService.guardarBorrador(inspectionKey, payload)
-    if (!guardadoOk) {
-      setEstado('error_envio')
-      setErrorMensaje('Error al guardar antes de cerrar')
-      return false
-    }
-
     try {
+      const guardadoOk = await checklistService.guardarBorrador(inspectionKey, payload)
+      if (!guardadoOk) {
+        setEstado('error_envio')
+        setErrorMensaje('Error al guardar antes de cerrar')
+        return false
+      }
+
       const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
       if (cerradoOk) {
         /* HU-037: Limpiar datos offline tras cierre exitoso */
@@ -414,7 +411,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
       setErrorMensaje(
         error && typeof error === 'object' && 'message' in error
           ? String((error as Record<string, unknown>).message)
-          : 'Error al cerrar la inspección',
+          : 'Error al procesar la inspección',
       )
       return false
     }

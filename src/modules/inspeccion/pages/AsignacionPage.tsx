@@ -25,6 +25,7 @@ import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { AxleMeasurement, ChecklistInspection, LabradoRecord, VehicleType } from '@/modules/inspeccion/domain/checklist.types'
 import { LabradoWizard, ChassisGrid, buildAxlesForType, getLayout, inferirConfig, mergeIntoLayout } from '@/modules/inspeccion/components/LabradoWizard'
 import type { UserRole } from '@/modules/auth/domain/auth.types'
+import './AsignacionPage.css'
 
 type Tab = 'inspecciones' | 'labrado'
 
@@ -307,7 +308,7 @@ export function AsignacionPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="as-root">
       {toast && (
         <Toast
           tipo={toast.tipo}
@@ -347,18 +348,18 @@ export function AsignacionPage() {
         </div>
       </div>
 
-      <div className="panel" style={{ position: 'relative', zIndex: 10 }}>
-        <div className="filters-grid">
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>ID de inspección</span>
-            <input autoComplete="off" spellCheck={false} name="inspectionIdFiltro" value={inspectionIdFiltro} onChange={(e) => setInspectionIdFiltro(e.target.value)} placeholder="6a11dda1fae01e695e137789" />
+      <div className="as-filters-panel" style={{ position: 'relative', zIndex: 10 }}>
+        <div className="as-filters-grid">
+          <label className="as-field-label">
+            <span className="as-label-text">ID de inspección</span>
+            <input className="as-input" autoComplete="off" spellCheck={false} name="inspectionIdFiltro" value={inspectionIdFiltro} onChange={(e) => setInspectionIdFiltro(e.target.value)} placeholder="6a11dda1fae01e695e137789" />
           </label>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Placa</span>
-            <input autoComplete="off" spellCheck={false} autoCapitalize="characters" name="plateFiltro" value={plateFiltro} onChange={(e) => setPlateFiltro(e.target.value.toUpperCase())} placeholder="ABC123" />
+          <label className="as-field-label">
+            <span className="as-label-text">Placa</span>
+            <input className="as-input" autoComplete="off" spellCheck={false} autoCapitalize="characters" name="plateFiltro" value={plateFiltro} onChange={(e) => setPlateFiltro(e.target.value.toUpperCase())} placeholder="ABC123" />
           </label>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Estado</span>
+          <label className="as-field-label">
+            <span className="as-label-text">Estado</span>
             <CustomSelect
               options={[
                 { value: '', label: 'Todos' },
@@ -372,47 +373,47 @@ export function AsignacionPage() {
               placeholder="Todos"
             />
           </label>
-          <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Vehículo ID</span>
-            <input autoComplete="off" spellCheck={false} name="vehicleIdFiltro" value={vehicleIdFiltro} onChange={(e) => setVehicleIdFiltro(e.target.value)} placeholder="1" />
+          <label className="as-field-label">
+            <span className="as-label-text">Vehículo ID</span>
+            <input className="as-input" autoComplete="off" spellCheck={false} name="vehicleIdFiltro" value={vehicleIdFiltro} onChange={(e) => setVehicleIdFiltro(e.target.value)} placeholder="1" />
           </label>
-          <button onClick={limpiarFiltros} style={{ height: 42, padding: '0 14px' }}>
-            <Filter size={16} />
-            Limpiar
-          </button>
-          <button onClick={onBuscar} style={{ height: 42, padding: '0 14px' }}>
-            <Search size={16} />
-            Buscar
-          </button>
+          <div className="as-filters-actions">
+            <button onClick={limpiarFiltros} className="as-btn-filter-clear">
+              <Filter size={16} />
+              Limpiar
+            </button>
+            <button onClick={onBuscar} className="as-btn-filter-search">
+              <Search size={16} />
+              Buscar
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="panel filters-type-bar" style={{ padding: '12px 16px' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>Filtrar por tipo:</span>
-        {(['', 'MOTO', 'LIVIANO', 'PESADO'] as const).map((t) => {
-          const label = t === '' ? 'Todos' : t === 'MOTO' ? 'Motos' : t === 'LIVIANO' ? 'Livianos' : 'Pesados'
-          const icon = t === '' ? <Layers size={16} /> : t === 'MOTO' ? <Bike size={16} /> : t === 'LIVIANO' ? <Car size={16} /> : <Truck size={16}
-          />
-          const isActive = filtroTipo === t
-          return (
-            <button key={t} onClick={() => setFiltroTipo(t)} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '6px 14px', borderRadius: 999, border: isActive ? '2px solid #155DFC' : '2px solid #e2e8f0',
-              background: isActive ? '#eff6ff' : '#fff',
-              color: isActive ? '#155DFC' : '#475569',
-              fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
-              cursor: 'pointer',
-            }}>
-              {icon}
-              {label}
-              {t !== '' && (
-                <span style={{ background: isActive ? '#155DFC' : '#e2e8f0', color: isActive ? '#fff' : '#64748b', borderRadius: 999, padding: '1px 7px', fontSize: '0.7rem', fontWeight: 700 }}>
-                  {inspecciones.filter((i) => i.vehicle_type === t).length}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      <div className="as-type-panel">
+        <span className="as-type-label">Filtrar por tipo:</span>
+        <div className="as-filter-tabs">
+          {(['', 'MOTO', 'LIVIANO', 'PESADO'] as const).map((t) => {
+            const label = t === '' ? 'Todos' : t === 'MOTO' ? 'Motos' : t === 'LIVIANO' ? 'Livianos' : 'Pesados'
+            const icon = t === '' ? <Layers size={16} /> : t === 'MOTO' ? <Bike size={16} /> : t === 'LIVIANO' ? <Car size={16} /> : <Truck size={16} />
+            const isActive = filtroTipo === t
+            return (
+              <button
+                key={t}
+                onClick={() => setFiltroTipo(t)}
+                className={`as-filter-tab ${isActive ? 'as-filter-tab--active' : ''}`}
+              >
+                {icon}
+                {label}
+                {t !== '' && (
+                  <span className="as-tab-badge">
+                    {inspecciones.filter((i) => i.vehicle_type === t).length}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -503,7 +504,7 @@ export function AsignacionPage() {
               return (
                 <article
                   key={insp.id}
-                  className="panel inspection-card"
+                  className="as-inspection-card"
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                       <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -511,13 +512,14 @@ export function AsignacionPage() {
                       </div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontWeight: 700, color: '#1e293b' }}>{infoVehiculo(insp)}</span>
+                          <span className="as-id-title">{infoVehiculo(insp)}</span>
                           {(() => {
                             const tb = tipoBadge(insp.vehicle_type)
-                            return <span style={{ display: 'inline-flex', padding: '2px 8px', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700, background: tb.bg, color: tb.color }}>{tb.label}</span>
+                            const badgeClass = insp.vehicle_type === 'MOTO' ? 'as-badge--borrador' : insp.vehicle_type === 'LIVIANO' ? 'as-badge--progreso' : 'as-badge--rechazado'
+                            return <span className={`as-badge ${badgeClass}`}>{tb.label}</span>
                           })()}
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                        <div className="as-mono" style={{ fontSize: '0.82rem' }}>
                           {insp.id} {insp.inspection_number ? `· ${insp.inspection_number}` : ''}
                         </div>
                       </div>
@@ -530,20 +532,29 @@ export function AsignacionPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <UserCheck size={14} />
-                      Inspector: {nombreInspector(insp)}
+                      <span style={{ display: 'inline-flex', gap: 4 }}>
+                        Inspector: <span className="as-mono">{nombreInspector(insp)}</span>
+                      </span>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: 'fit-content', padding: '6px 12px', borderRadius: 999, background: estado.bg, color: estado.color, fontWeight: 600, fontSize: '0.82rem' }}>
+                    <span className={`as-badge ${
+                      estado.label === 'Borrador' ? 'as-badge--borrador' :
+                      estado.label === 'Pendiente' ? 'as-badge--pendiente' :
+                      estado.label === 'En progreso' ? 'as-badge--progreso' : 'as-badge--cerrada'
+                    }`} style={{ width: 'fit-content' }}>
                       {estado.label}
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: 'fit-content', padding: '6px 12px', borderRadius: 999, background: resultado.bg, color: resultado.color, fontWeight: 600, fontSize: '0.82rem' }}>
+                    <span className={`as-badge ${
+                      resultado.label === 'Aprobado' ? 'as-badge--aprobado' :
+                      resultado.label === 'Rechazado' ? 'as-badge--rechazado' : 'as-badge--sin-cierre'
+                    }`} style={{ width: 'fit-content' }}>
                       {resultado.label}
                     </span>
                   </div>
 
-                  <div className="inspection-card-actions">
+                  <div className="as-inspection-card-actions">
                     <button
                       onClick={() => {
                         if (!insp.id) {
@@ -553,7 +564,7 @@ export function AsignacionPage() {
                         const tipo = (insp.vehicle_type || 'LIVIANO').toLowerCase()
                         navigate(`/inspeccion/checklist/${tipo}/${insp.id}`)
                       }}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#0f172a', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                      className="as-btn-action as-btn-action--dark"
                     >
                       <ClipboardList size={14} />
                       Actualizar inspección
@@ -563,7 +574,7 @@ export function AsignacionPage() {
                         setSelectedInspectionId(insp.id)
                         setTab('labrado')
                       }}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, background: '#155DFC', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                      className="as-btn-action as-btn-action--primary"
                     >
                       <Wrench size={14} />
                       Ver labrado
@@ -572,6 +583,30 @@ export function AsignacionPage() {
                 </article>
               )
             })}
+
+            <div className="as-pagination-bar">
+              <span className="as-pagination-info">
+                Página {pageActual} ({inspeccionesFiltradas.length} items mostrados)
+              </span>
+              <div className="as-pagination-controls">
+                <button
+                  type="button"
+                  disabled={pageActual <= 1 || cargando}
+                  onClick={() => setPageActual((p) => Math.max(1, p - 1))}
+                  className="as-pagination-btn"
+                >
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={inspecciones.length < tamanoPagina || cargando}
+                  onClick={() => setPageActual((p) => p + 1)}
+                  className="as-pagination-btn"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
           </div>
         )
       ) : (

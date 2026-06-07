@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Plus,
   Pencil,
@@ -16,6 +17,7 @@ import type { Estado, CrearEstadoDTO } from '../domain/estado.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './EstadosPage.css'
 
 export function EstadosPage() {
   const [statuses, setStatuses] = useState<Estado[]>([])
@@ -80,7 +82,7 @@ export function EstadosPage() {
         duration: 250,
         easing: 'easeOutQuad'
       })
-      const box = node.querySelector('.floating-modal-box')
+      const box = node.querySelector('.modal-window-premium') || node.querySelector('.floating-modal-box')
       if (box) {
         animate(box, {
           scale: [0.95, 1],
@@ -161,7 +163,7 @@ export function EstadosPage() {
   ]
 
   return (
-    <>
+    <div className="estados-root">
       <article className="panel">
         <header className="flex justify-between items-center mb-6">
           <div>
@@ -239,17 +241,17 @@ export function EstadosPage() {
             <p>No se encontraron estados configurados.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="estados-cards-grid">
             {statuses.map((status) => (
               <div
                 key={status.id}
-                className="status-card bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+                className="status-card estado-premium-card"
                 style={{ opacity: 0 }}
               >
-                <div>
-                  <header className="flex justify-between items-start mb-4">
+                <div className="estado-premium-card-body">
+                  <header className="estado-premium-card-header">
                     <span
-                      className="badge text-xs font-bold px-2.5 py-1 rounded"
+                      className="estado-badge-code"
                       style={{
                         backgroundColor: `${status.color}15`,
                         color: status.color
@@ -257,42 +259,41 @@ export function EstadosPage() {
                     >
                       {status.code}
                     </span>
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                    <span className="estado-order">
                       <Hash size={12} /> Orden: {status.order ?? 'N/A'}
                     </span>
                   </header>
 
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  <div className="estado-title-row">
                     <span
+                      className="estado-color-dot"
                       style={{
-                        display: 'inline-block',
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
                         backgroundColor: status.color
                       }}
                     />
-                    {status.name}
-                  </h3>
+                    <h3 className="estado-name">
+                      {status.name}
+                    </h3>
+                  </div>
 
-                  <p className="text-sm text-gray-500 mb-6">
+                  <p className="estado-desc">
                     {status.description || 'Sin descripción disponible.'}
                   </p>
                 </div>
 
                 {isAllowed && (
-                  <div className="flex gap-2 border-t border-gray-50 pt-4 mt-auto justify-end">
+                  <div className="estado-premium-card-footer">
                     <button
-                      className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs"
+                      className="est-btn-action est-btn-action--edit"
                       onClick={() => handleOpenEdit(status)}
                     >
-                      <Pencil size={14} /> Editar
+                      <Pencil size={13} /> Editar
                     </button>
                     <button
-                      className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs text-red-500 hover:bg-red-50"
+                      className="est-btn-action est-btn-action--delete"
                       onClick={() => handleDelete(status.id)}
                     >
-                      <Trash2 size={14} /> Eliminar
+                      <Trash2 size={13} /> Eliminar
                     </button>
                   </div>
                 )}
@@ -303,28 +304,43 @@ export function EstadosPage() {
       </article>
 
       {/* Modal flotante */}
-      {showFormModal && (
-        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+      {showFormModal && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <form
             onSubmit={handleSubmit}
-            className="floating-modal-box max-w-md"
+            className="modal-window-premium max-w-md estado-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>
                 {selectedStatus ? 'Editar Estado' : 'Agregar Nuevo Estado'}
               </h3>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setShowFormModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body">
+            <div className="estado-modal-body">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Código de Estado *</label>
                 <input
@@ -353,30 +369,10 @@ export function EstadosPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
                 <textarea
                   placeholder="Descripción detallada del estado..."
-                  className="form-control"
+                  className="estado-descripcion-textarea"
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{
-                    width: '100%',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '0.7rem 0.85rem',
-                    marginTop: '0.35rem',
-                    background: 'rgba(255, 255, 255, 0.92)',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    resize: 'none',
-                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#155dfc'
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = '#cbd5e1'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
                 />
               </div>
 
@@ -408,7 +404,7 @@ export function EstadosPage() {
               </div>
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="estado-modal-footer">
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -424,10 +420,11 @@ export function EstadosPage() {
               >
                 {submitting ? 'Guardando...' : 'Guardar Estado'}
               </button>
-            </footer>
+            </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
-    </>
+    </div>
   )
 }

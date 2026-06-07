@@ -895,6 +895,130 @@ a {
   text-align: left;
 }
 
+/* ── PORTAL MODAL OVERLAY Y VENTANA CON BLUR Y RELIEVE (REFERO PREMIUM) ── */
+.modal-overlay-premium {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  backdrop-filter: blur(8px) !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem;
+}
+
+.modal-window-premium {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 24px 48px -12px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-window-premium .floating-modal-body input.form-control,
+.modal-window-premium .floating-modal-body textarea.form-control,
+.modal-window-premium .floating-modal-body select {
+  width: 100%;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 0.7rem 0.85rem !important;
+  margin-top: 0.35rem !important;
+  min-height: 44px !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  font-size: 0.9rem !important;
+  box-shadow: none !important;
+  transition:
+    background    0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color  0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow    0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.modal-window-premium .floating-modal-body input.form-control:focus,
+.modal-window-premium .floating-modal-body textarea.form-control:focus,
+.modal-window-premium .floating-modal-body select:focus {
+  background: #ffffff !important;
+  border-color: #155dfc !important;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12) !important;
+  outline: none !important;
+}
+
+.modal-window-premium .floating-modal-footer {
+  border-top: 1px solid rgba(241, 245, 249, 0.8) !important;
+  padding: 1.25rem 1.5rem !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+}
+
+/* Cancelar — botón ghost de perfil bajo */
+.modal-window-premium .floating-modal-footer .btn-secondary {
+  background: transparent !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+  height: 42px !important;
+  min-height: 0 !important;
+  padding-inline: 1.25rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  transition:
+    background    150ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color  150ms cubic-bezier(0.16, 1, 0.3, 1),
+    color         150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.modal-window-premium .floating-modal-footer .btn-secondary:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Guardar — botón primary elástico */
+.modal-window-premium .floating-modal-footer .btn-primary {
+  background: #155dfc !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  height: 42px !important;
+  min-height: 0 !important;
+  padding-inline: 1.5rem !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 4px 12px rgba(21, 93, 252, 0.2) !important;
+  transition:
+    background   150ms    cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow   150ms    cubic-bezier(0.16, 1, 0.3, 1),
+    transform    220ms    cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.modal-window-premium .floating-modal-footer .btn-primary:hover:not(:disabled) {
+  background: rgba(21, 93, 252, 0.90) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 8px 16px rgba(21, 93, 252, 0.3) !important;
+}
+
+.modal-window-premium .floating-modal-footer .btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 3px 8px rgba(21, 93, 252, 0.15) !important;
+}
+
 .floating-modal-box.max-w-md {
   max-width: 440px;
 }
@@ -1224,3 +1348,143 @@ a {
     justify-content: flex-end;
   }
 }
+
+/* ── MODAL FACTURA ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.factura-modal-window {
+  max-height: calc(100vh - 60px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  max-width: 750px !important;
+}
+
+.factura-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Scrollbar premium de 5px */
+.factura-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.factura-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.factura-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.factura-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.factura-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* ── MODAL FACTURA EDITAR ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.factura-editar-modal-window {
+  max-height: calc(100vh - 60px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  max-width: 750px !important;
+}
+
+.factura-editar-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Scrollbar premium de 5px */
+.factura-editar-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.factura-editar-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.observaciones-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.factura-observaciones-textarea {
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px;
+  min-height: 90px;
+  resize: vertical;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.factura-observaciones-textarea:focus {
+  border-color: #155dfc;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12);
+}
+
+/* ── COLA DE FACTURACIÓN BOTONES CABECERA (Refero Design) ── */
+.facturacion-actions-container {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
+
+.facturacion-actions-container .btn {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .facturacion-actions-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+}
+

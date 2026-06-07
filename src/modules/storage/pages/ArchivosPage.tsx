@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
+import './ArchivosPage.css'
 import { 
   FileImage, 
   FileText, 
@@ -129,7 +131,7 @@ export function ArchivosPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="archivos-root">
       
       {/* ── Cabecera de Módulo ── */}
       <div style={{ 
@@ -254,45 +256,21 @@ export function ArchivosPage() {
           <p style={{ fontSize: '1.05rem', margin: 0 }}>No se encontraron archivos en esta categoría</p>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '1.25rem'
-        }}>
+        <div className="archivos-media-grid">
           {filteredFiles.map((file) => {
             const isImage = file.mimetype.startsWith('image/')
             const fileUrl = getFileUrl(file)
             return (
               <div 
                 key={file.id} 
-                className="panel"
-                style={{ 
-                  background: '#fff',
-                  borderRadius: 12,
-                  border: '1px solid #f1f5f9',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: 0,
-                  margin: 0,
-                  transition: 'transform 0.2s, box-shadow 0.2s'
-                }}
+                className="archivo-premium-card"
               >
                 {/* Preview / Miniatura superior */}
-                <div style={{ 
-                  height: 160, 
-                  background: '#f8fafc', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  borderBottom: '1px solid #f1f5f9',
-                  position: 'relative'
-                }}>
+                <div className="archivo-preview-box">
                   {isImage ? (
                     <img 
                       src={fileUrl} 
                       alt={file.original_name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       loading="lazy"
                     />
                   ) : (
@@ -306,84 +284,42 @@ export function ArchivosPage() {
                 </div>
 
                 {/* Detalles e Información */}
-                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: 8, flexGrow: 1 }}>
+                <div className="archivo-info">
                   <h3 
                     title={file.original_name}
-                    style={{ 
-                      margin: 0, 
-                      fontSize: '0.9rem', 
-                      fontWeight: 600, 
-                      color: '#1e293b',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
+                    className="archivo-filename"
                   >
                     {file.original_name}
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '0.75rem', color: '#64748b' }}>
+                  <div className="archivo-meta">
                     <span>Subido: {formatFecha(file.created_at)}</span>
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#94a3b8' }}>ID: {file.id.slice(0, 8)}...</span>
+                    <span className="archivo-id">ID: {file.id.slice(0, 8)}...</span>
                   </div>
                 </div>
 
                 {/* Acciones de la Tarjeta */}
-                <div style={{ 
-                  padding: '0.75rem 1rem', 
-                  background: '#f8fafc', 
-                  borderTop: '1px solid #f1f5f9',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button
-                      onClick={() => setPreviewFile(file)}
-                      style={{
-                        padding: 6,
-                        background: '#eff6ff',
-                        color: '#2563eb',
-                        borderRadius: 6,
-                        minHeight: 'auto',
-                        boxShadow: 'none',
-                        cursor: 'pointer'
-                      }}
-                      title="Ver vista previa"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <a
-                      href={fileUrl}
-                      download={file.original_name}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        padding: 6,
-                        background: '#f0fdf4',
-                        color: '#16a34a',
-                        borderRadius: 6,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textDecoration: 'none'
-                      }}
-                      title="Descargar archivo"
-                    >
-                      <Download size={16} />
-                    </a>
-                  </div>
+                <div className="archivo-footer">
+                  <button
+                    onClick={() => setPreviewFile(file)}
+                    className="arc-btn-ghost arc-btn-ghost--view"
+                    title="Ver vista previa"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <a
+                    href={fileUrl}
+                    download={file.original_name}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="arc-btn-ghost arc-btn-ghost--download"
+                    title="Descargar archivo"
+                  >
+                    <Download size={16} />
+                  </a>
                   
                   <button
                     onClick={() => setDeletingId(file.id)}
-                    style={{
-                      padding: 6,
-                      background: '#fef2f2',
-                      color: '#dc2626',
-                      borderRadius: 6,
-                      minHeight: 'auto',
-                      boxShadow: 'none',
-                      cursor: 'pointer'
-                    }}
+                    className="arc-btn-ghost arc-btn-ghost--delete"
                     title="Eliminar archivo"
                   >
                     <Trash2 size={16} />
@@ -396,31 +332,12 @@ export function ArchivosPage() {
       )}
 
       {/* ── Modal de Vista Previa ── */}
-      {previewFile && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10000,
-          backdropFilter: 'blur(4px)',
-          padding: '1.5rem'
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: previewFile.mimetype.startsWith('image/') ? '750px' : '500px',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
+      {previewFile && createPortal(
+        <div className="modal-overlay-premium">
+          <div 
+            className="modal-window-premium"
+            style={{ maxWidth: previewFile.mimetype.startsWith('image/') ? '750px' : '500px' }}
+          >
             {/* Cabecera Modal */}
             <div style={{
               padding: '1rem 1.5rem',
@@ -521,46 +438,24 @@ export function ArchivosPage() {
                   fontWeight: 500,
                   cursor: 'pointer',
                   minHeight: 'auto',
-                  boxShadow: 'none'
+                  boxShadow: 'none',
+                  border: 'none'
                 }}
               >
                 Cerrar
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Modal de Confirmación de Eliminación ── */}
-      {deletingId && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10000,
-          backdropFilter: 'blur(4px)',
-          padding: '1.5rem'
-        }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: '400px',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '1.5rem',
-            gap: 16
-          }}>
+      {deletingId && createPortal(
+        <div className="modal-overlay-premium">
+          <div className="modal-window-premium max-w-sm" style={{ padding: '1.5rem', gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#dc2626' }}>
-              <div style={{ background: '#fef2f2', padding: 8, borderRadius: '50%' }}>
+              <div style={{ background: '#fef2f2', padding: 8, borderRadius: '50%', display: 'flex', alignItems: 'center' }}>
                 <AlertTriangle size={24} />
               </div>
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>¿Eliminar archivo?</h3>
@@ -583,7 +478,8 @@ export function ArchivosPage() {
                   fontWeight: 500,
                   cursor: 'pointer',
                   minHeight: 'auto',
-                  boxShadow: 'none'
+                  boxShadow: 'none',
+                  border: 'none'
                 }}
               >
                 Cancelar
@@ -601,6 +497,7 @@ export function ArchivosPage() {
                   cursor: 'pointer',
                   minHeight: 'auto',
                   boxShadow: 'none',
+                  border: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6
@@ -611,7 +508,8 @@ export function ArchivosPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

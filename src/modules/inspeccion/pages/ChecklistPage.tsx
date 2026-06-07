@@ -5,6 +5,7 @@ import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capa
 import {
   AlertCircle,
   AlertTriangle,
+  Bike,
   Camera as CameraIcon,
   Car,
   CheckCircle,
@@ -21,9 +22,9 @@ import {
   Settings,
   Shield,
   Trash2,
+  Truck,
   Upload,
   X,
-  XCircle,
   Zap,
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
@@ -217,12 +218,10 @@ export function ChecklistPage() {
     setObservaciones,
     errorMensaje,
     setErrorMensaje,
-    progreso,
     agregarObservacion,
     agregarFoto,
     eliminarFoto,
     obtenerFotosPorItem,
-    itemsSinResponder,
     responderItem,
     guardar,
     cerrar,
@@ -263,9 +262,8 @@ export function ChecklistPage() {
   }
 
   const handleCerrar = async (resultado: 'APROBADO' | 'RECHAZADO') => {
-    /* HU-014: No se puede enviar si hay ítems obligatorios sin respuesta */
-    if (itemsSinResponder > 0) {
-      setErrorMensaje(`No se puede cerrar: faltan ${itemsSinResponder} ítems obligatorios sin respuesta.`)
+    if (!inspectorId) {
+      setErrorMensaje('Debe seleccionar un inspector asignado antes de cerrar la inspección.')
       return
     }
     setCerrando(resultado)
@@ -382,7 +380,7 @@ export function ChecklistPage() {
             color: vehicleType === 'MOTO' ? '#92400e' : vehicleType === 'PESADO' ? '#991b1b' : '#1e40af',
             fontSize: '0.82rem', fontWeight: 600,
           }}>
-            {vehicleType === 'MOTO' ? '🏍️' : vehicleType === 'PESADO' ? '🚛' : '🚗'}
+            {vehicleType === 'MOTO' ? <Bike size={14} /> : vehicleType === 'PESADO' ? <Truck size={14} /> : <Car size={14} />}
             Tipo: {vehicleTypeLabel(vehicleType)}
           </div>
         )}
@@ -437,28 +435,7 @@ export function ChecklistPage() {
         </div>
       </div>
 
-      {/* ═══════ Barra de progreso global ═══════ */}
-      <div className="panel" style={{ padding: '12px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 500 }}>
-            Progreso: {progreso.respondidos} de {progreso.total} ítems
-          </span>
-          <span style={{ fontSize: '0.85rem', color: itemsSinResponder > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
-            {itemsSinResponder > 0 ? `${itemsSinResponder} pendientes` : '✓ Completo'}
-          </span>
-        </div>
-        <div style={{ width: '100%', height: 8, background: '#e5e7eb', borderRadius: 999, overflow: 'hidden' }}>
-          <div style={{
-            width: progreso.total > 0 ? `${(progreso.respondidos / progreso.total) * 100}%` : '0%',
-            height: '100%',
-            background: progreso.respondidos === progreso.total && progreso.total > 0
-              ? 'linear-gradient(90deg, #16a34a, #22c55e)'
-              : 'linear-gradient(90deg, #155DFC, #3b82f6)',
-            borderRadius: 999,
-            transition: 'width 0.3s ease',
-          }} />
-        </div>
-      </div>
+      {/* ═══════ Barra de progreso global — Oculta para Inspección por Excepción ═══════ */}
 
       {/* ═══════ Error ═══════ */}
       {errorMensaje && (
@@ -559,21 +536,7 @@ export function ChecklistPage() {
             Guardar Inspección
           </button>
 
-          <button
-            onClick={() => handleCerrar('RECHAZADO')}
-            disabled={cerrando !== null || estado === 'enviando'}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px',
-              background: '#dc2626', color: '#fff', border: 'none',
-              borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
-              opacity: cerrando ? 0.7 : 1,
-            }}
-          >
-            {cerrando === 'RECHAZADO'
-              ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              : <XCircle size={16} />}
-            Rechazar
-          </button>
+
         </div>
       )}
     </div>

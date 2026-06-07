@@ -20,6 +20,7 @@ import { Modal } from '@/core/components/Modal'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
+import './VehiculosPage.css'
 
 export function RegistroVehiculoPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -273,19 +274,17 @@ export function RegistroVehiculoPage() {
 
   // ── Renderizado Principal ──────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="vh-root">
       
       {/* Cabecera */}
       <div className="page-header-responsive">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ background: '#eff6ff', borderRadius: 12, padding: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Truck size={24} style={{ color: '#155DFC' }} />
+          <div className="vh-page-icon">
+            <Truck size={24} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Gestión de Vehículos
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+            <h1 className="vh-page-title">Gestión de Vehículos</h1>
+            <p className="vh-page-desc">
               Administración, búsqueda y registro de vehículos en el sistema
             </p>
           </div>
@@ -297,21 +296,7 @@ export function RegistroVehiculoPage() {
               resetFormulario()
               setIsModalOpen(true)
             }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#155DFC',
-              color: '#fff',
-              padding: '10px 16px',
-              borderRadius: 8,
-              border: 'none',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1347d4')}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#155DFC')}
+            className="vh-btn-primary"
           >
             <Plus size={18} />
             Nuevo Vehículo
@@ -320,68 +305,40 @@ export function RegistroVehiculoPage() {
       </div>
 
       {/* Buscador de vehículos */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1rem 1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          gap: 12,
-        }}
-      >
-        <Search size={18} style={{ color: '#94a3b8' }} />
+      <div className="vh-search-wrap">
+        <span className="vh-search-icon"><Search size={18} /></span>
         <input
           type="text"
+          className="vh-search-input"
           placeholder="Buscar por placa, modelo, marca, línea o cliente..."
           value={queryVehiculo}
           onChange={(e) => setQueryVehiculo(e.target.value)}
-          style={{
-            border: 'none',
-            outline: 'none',
-            fontSize: '0.95rem',
-            width: '100%',
-            background: 'transparent',
-          }}
         />
       </div>
 
       {/* Tabla / Lista de Vehículos */}
-      <article className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+      <article className="vh-table-card">
         {cargandoVehiculos ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+          <div className="vh-state">
             <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
           </div>
         ) : errorVehiculos ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
-            <AlertCircle size={24} style={{ marginBottom: 8 }} />
-            <p>{errorVehiculos}</p>
+          <div className="vh-state">
+            <div className="vh-state-icon vh-state-icon--error"><AlertCircle size={24} /></div>
+            <h3 className="vh-state-title">Error al cargar vehículos</h3>
+            <p className="vh-state-desc">{errorVehiculos}</p>
           </div>
         ) : vehiculosFiltrados.length === 0 ? (
-          <div style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-            <Truck size={48} style={{ color: '#94a3b8', marginBottom: 16, marginInline: 'auto' }} />
-            <h3 style={{ color: '#334155', margin: '0 0 8px 0' }}>No se encontraron vehículos</h3>
-            <p style={{ color: '#64748b', margin: '0 0 24px 0', fontSize: '0.9rem' }}>
+          <div className="vh-state">
+            <div className="vh-state-icon vh-state-icon--neutral"><Truck size={24} /></div>
+            <h3 className="vh-state-title">No se encontraron vehículos</h3>
+            <p className="vh-state-desc">
               {queryVehiculo.trim()
                 ? 'Intente ajustar los términos de búsqueda'
                 : 'Comience registrando el primer vehículo en el sistema'}
             </p>
             {!queryVehiculo.trim() && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '8px 16px',
-                  background: '#155DFC',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                }}
-              >
+              <button onClick={() => setIsModalOpen(true)} className="vh-btn-primary">
                 <Plus size={16} />
                 Registrar Vehículo
               </button>
@@ -389,17 +346,17 @@ export function RegistroVehiculoPage() {
           </div>
         ) : (
           <>
-            <div className="table-wrap vehicles-table-desktop">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="vh-table-scroll vehicles-table-desktop">
+              <table className="vh-table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Placa</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Tipo</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Marca / Línea</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Modelo</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Cliente</th>
-                    <th style={{ textAlign: 'left', padding: '12px 16px' }}>Certificado</th>
-                    <th style={{ textAlign: 'center', padding: '12px 16px', width: '100px' }}>Acciones</th>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Marca / Línea</th>
+                    <th>Modelo</th>
+                    <th>Cliente</th>
+                    <th>Certificado</th>
+                    <th style={{ textAlign: 'center', width: 120 }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -409,40 +366,24 @@ export function RegistroVehiculoPage() {
                     const tipo = typeof v.tipoVehiculo === 'object' ? v.tipoVehiculo?.nombre : v.tipoVehiculo
 
                     return (
-                      <tr key={v.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '14px 16px', fontWeight: 600, textTransform: 'uppercase', color: '#1e293b' }}>
-                          {v.placa}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: '#475569' }}>
-                          {tipo || '—'}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: '#475569', textTransform: 'capitalize' }}>
-                          {marca || '—'} {linea ? `/ ${linea}` : ''}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: '#475569' }}>
-                          {v.modelo || '—'}
-                        </td>
-                        <td style={{ padding: '14px 16px', color: '#475569' }}>
+                      <tr key={v.id}>
+                        <td><span className="vh-placa-cell">{v.placa}</span></td>
+                        <td>{tipo || '—'}</td>
+                        <td style={{ textTransform: 'capitalize' }}>{marca || '—'} {linea ? `/ ${linea}` : ''}</td>
+                        <td>{v.modelo || '—'}</td>
+                        <td>
                           {v.client ? (
                             <div>
-                              <div style={{ fontWeight: 500 }}>
-                                {v.client.nombre} {v.client.apellido}
-                              </div>
-                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                                {v.client.identity}
-                              </div>
+                              <div className="vh-client-name">{v.client.nombre} {v.client.apellido}</div>
+                              <div className="vh-client-id">{v.client.identity}</div>
                             </div>
                           ) : (
-                            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                              ID: {v.clienteId}
-                            </span>
+                            <span className="vh-client-id">ID: {v.clienteId}</span>
                           )}
                         </td>
-                        <td style={{ padding: '14px 16px', color: '#64748b', fontSize: '0.85rem' }}>
-                          {v.certificadoNo || '—'}
-                        </td>
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                        <td><span className="vh-cert-cell">{v.certificadoNo || '—'}</span></td>
+                        <td>
+                          <div className="vh-actions-cell">
                             <button
                               onClick={() => {
                                 const v2 = vehiculosFiltrados.find(x => x.id === v.id)
@@ -450,23 +391,10 @@ export function RegistroVehiculoPage() {
                                 setDetailVehiculo(v2)
                                 setDetailModalOpen(true)
                               }}
-                              style={{
-                                background: '#f1f5f9',
-                                color: '#475569',
-                                border: 'none',
-                                padding: '6px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'background-color 0.2s',
-                              }}
-                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
-                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+                              className="vh-action-btn vh-action-btn--view"
                               title="Ver Detalles"
                             >
-                              <Eye size={15} />
+                              <Eye size={18} />
                             </button>
                             <button
                               onClick={() => {
@@ -496,40 +424,17 @@ export function RegistroVehiculoPage() {
                                 setEditError(null)
                                 setEditModalOpen(true)
                               }}
-                              style={{
-                                background: '#eff6ff',
-                                color: '#2563eb',
-                                border: 'none',
-                                padding: '6px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
+                              className="vh-action-btn vh-action-btn--edit"
                               title="Editar Vehículo"
                             >
-                              <Pencil size={15} />
+                              <Pencil size={18} />
                             </button>
                             <button
                               onClick={() => eliminarVehiculo(v.id)}
-                              style={{
-                                background: '#fef2f2',
-                                color: '#ef4444',
-                                border: 'none',
-                                padding: '6px',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'background-color 0.2s',
-                              }}
-                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#fee2e2')}
-                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#fef2f2')}
+                              className="vh-action-btn vh-action-btn--delete"
                               title="Eliminar Vehículo"
                             >
-                              <Trash2 size={15} />
+                              <Trash2 size={18} />
                             </button>
                           </div>
                         </td>
@@ -669,44 +574,15 @@ export function RegistroVehiculoPage() {
         )}
 
         {!cargandoVehiculos && !errorVehiculos && vehiculos.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: '#fff',
-              padding: '1rem 1.5rem',
-              borderTop: '1px solid #f1f5f9',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem', color: '#64748b' }}>
+          <div className="vh-table-footer">
+            <div className="vh-footer-left">
               <span>Mostrar</span>
               <select
+                className="vh-footer-select"
                 value={limite}
                 onChange={(e) => {
                   setLimite(Number(e.target.value))
                   setPagina(0)
-                }}
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  background: '#fff',
-                  outline: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  color: '#334155',
-                  minHeight: 'auto',
-                  marginTop: 0,
-                  width: 'auto',
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  paddingRight: '24px',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 6px center',
                 }}
               >
                 <option value={5}>5</option>
@@ -717,51 +593,28 @@ export function RegistroVehiculoPage() {
               <span>por página</span>
             </div>
 
-            <div style={{ fontSize: '0.9rem', color: '#64748b' }}>
+            <span className="vh-footer-info">
               Mostrando{' '}
-              <strong>
-                {totalElementos === 0 ? 0 : pagina * limite + 1}
-              </strong>{' '}
-              a{' '}
-              <strong>
-                {Math.min((pagina + 1) * limite, totalElementos)}
-              </strong>{' '}
+              <strong>{totalElementos === 0 ? 0 : pagina * limite + 1}</strong>{' '}
+              a <strong>{Math.min((pagina + 1) * limite, totalElementos)}</strong>{' '}
               de <strong>{totalElementos}</strong> vehículos
-            </div>
+            </span>
 
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div className="vh-pagination">
               <button
                 onClick={() => setPagina((prev) => Math.max(0, prev - 1))}
                 disabled={pagina === 0}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #cbd5e1',
-                  background: pagina === 0 ? '#f1f5f9' : '#fff',
-                  color: pagina === 0 ? '#94a3b8' : '#334155',
-                  cursor: pagina === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                }}
+                className="vh-pagination-btn"
               >
                 Anterior
               </button>
-              <span style={{ display: 'flex', alignItems: 'center', padding: '0 8px', fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>
+              <span className="vh-pagination-label">
                 Página {pagina + 1} de {Math.max(1, totalPaginas)}
               </span>
               <button
                 onClick={() => setPagina((prev) => Math.min(totalPaginas - 1, prev + 1))}
                 disabled={pagina >= totalPaginas - 1}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #cbd5e1',
-                  background: pagina >= totalPaginas - 1 ? '#f1f5f9' : '#fff',
-                  color: pagina >= totalPaginas - 1 ? '#94a3b8' : '#334155',
-                  cursor: pagina >= totalPaginas - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                }}
+                className="vh-pagination-btn"
               >
                 Siguiente
               </button>
@@ -776,6 +629,7 @@ export function RegistroVehiculoPage() {
         onClose={handleCloseModal}
         title="Registro de Vehículo"
         maxWidth="800px"
+        className="vehiculo-modal-window"
       >
         {estado === 'exito' && vehiculoGuardado ? (
           <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
@@ -882,7 +736,8 @@ export function RegistroVehiculoPage() {
               </div>
             )}
 
-            <form onSubmit={onSubmit} className="form-grid">
+            <form onSubmit={onSubmit} className="vehiculo-modal-form">
+              <div className="vehiculo-modal-body">
               {/* ── Cliente ─────────────────────────────────────────────────────── */}
               <fieldset
                 style={{
@@ -1861,8 +1716,10 @@ export function RegistroVehiculoPage() {
               </fieldset>
 
 
+              </div>
+
               {/* ── Botones de envío / cancelación ── */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 16 }}>
+              <div className="vehiculo-modal-footer">
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -1913,20 +1770,22 @@ export function RegistroVehiculoPage() {
         onClose={() => !editGuardando && setEditModalOpen(false)}
         title={`Editar Vehículo${editVehiculo ? ' — ' + editVehiculo.placa : ''}`}
         maxWidth="700px"
+        className="vehiculo-modal-window"
       >
         {editVehiculo && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {editError && (
-              <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', color: '#991b1b', fontSize: '0.9rem' }}>
-                <AlertCircle size={16} /><span>{editError}</span>
-              </div>
-            )}
+          <div className="vehiculo-modal-form">
+            <div className="vehiculo-modal-body">
+              {editError && (
+                <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', color: '#991b1b', fontSize: '0.9rem', marginBottom: 12 }}>
+                  <AlertCircle size={16} /><span>{editError}</span>
+                </div>
+              )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
 
               {/* Placa */}
               <label style={labelStyle}>
-                Placa <span style={{ color: '#ef4444' }}>*</span>
+                <div>Placa <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
                 <input
                   value={editForm.placa || ''}
                   onChange={(e) => setEditForm(f => ({ ...f, placa: e.target.value.toUpperCase() }))}
@@ -2056,8 +1915,9 @@ export function RegistroVehiculoPage() {
                 />
               </label>
             </div>
+            </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+            <div className="vehiculo-modal-footer">
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}
@@ -2122,161 +1982,164 @@ export function RegistroVehiculoPage() {
         onClose={() => setDetailModalOpen(false)}
         title={`Detalles del Vehículo — Placa: ${detailVehiculo?.placa || ''}`}
         maxWidth="750px"
+        className="vehiculo-detalle-modal-window"
       >
         {detailVehiculo && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Cabecera / Placa estilo placa real */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #e2e8f0' }}>
-              <div style={{
-                background: '#fef08a',
-                border: '3px solid #1e293b',
-                borderRadius: 8,
-                padding: '6px 20px',
-                display: 'inline-flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '1px', textTransform: 'uppercase' }}>Colombia</span>
-                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#1e293b', lineHeight: 1.1, letterSpacing: '2px', textTransform: 'uppercase' }}>
-                  {detailVehiculo.placa}
-                </span>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span style={{
-                  background: '#eff6ff',
-                  color: '#2563eb',
-                  padding: '6px 12px',
-                  borderRadius: 20,
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  display: 'inline-block'
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+            <div className="vehiculo-detalle-modal-body">
+              {/* Cabecera / Placa estilo placa real */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{
+                  background: '#fef08a',
+                  border: '3px solid #1e293b',
+                  borderRadius: 8,
+                  padding: '6px 20px',
+                  display: 'inline-flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 }}>
-                  {typeof detailVehiculo.tipoVehiculo === 'object' ? detailVehiculo.tipoVehiculo?.nombre : detailVehiculo.tipoVehiculo || 'Vehículo'}
-                </span>
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                  ID Vehículo: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{detailVehiculo.id}</code>
-                </p>
-              </div>
-            </div>
-
-            {/* Dos Columnas */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-              
-              {/* Columna Especificaciones */}
-              <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
-                  Especificaciones Técnicas
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Marca:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.marca === 'object' ? detailVehiculo.marca?.nombre : detailVehiculo.marca || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Línea:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.linea === 'object' ? detailVehiculo.linea?.nombre : detailVehiculo.linea || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Modelo (Año):</span>
-                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.modelo || '—'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Clase:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.clase === 'object' ? detailVehiculo.clase?.nombre : detailVehiculo.clase || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Cilindraje:</span>
-                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.cilindraje || '—'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Color:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.color === 'object' ? detailVehiculo.color?.nombre : detailVehiculo.color || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Combustible:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.tipoCombustible === 'object' ? detailVehiculo.tipoCombustible?.nombre : detailVehiculo.tipoCombustible || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>Tipo Servicio:</span>
-                    <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
-                      {typeof detailVehiculo.tipoServicio === 'object' ? detailVehiculo.tipoServicio?.nombre : detailVehiculo.tipoServicio || '—'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 500 }}>No. Certificado:</span>
-                    <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.certificadoNo || '—'}</span>
-                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '1px', textTransform: 'uppercase' }}>Colombia</span>
+                  <span style={{ fontSize: '2rem', fontWeight: 800, color: '#1e293b', lineHeight: 1.1, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                    {detailVehiculo.placa}
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    padding: '6px 12px',
+                    borderRadius: 20,
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    display: 'inline-block'
+                  }}>
+                    {typeof detailVehiculo.tipoVehiculo === 'object' ? detailVehiculo.tipoVehiculo?.nombre : detailVehiculo.tipoVehiculo || 'Vehículo'}
+                  </span>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
+                    ID Vehículo: <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>{detailVehiculo.id}</code>
+                  </p>
                 </div>
               </div>
 
-              {/* Columna Propietario */}
-              <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
-                <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
-                  Información del Propietario
-                </h3>
-                {detailVehiculo.client ? (
+              {/* Dos Columnas */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+                
+                {/* Columna Especificaciones */}
+                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
+                    Especificaciones Técnicas
+                  </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Nombre Completo</span>
-                      <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.95rem' }}>
-                        {detailVehiculo.client.nombre} {detailVehiculo.client.apellido}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Marca:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.marca === 'object' ? detailVehiculo.marca?.nombre : detailVehiculo.marca || '—'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Identificación / Cédula</span>
-                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
-                        {detailVehiculo.client.identity}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Línea:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.linea === 'object' ? detailVehiculo.linea?.nombre : detailVehiculo.linea || '—'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Teléfono / Celular</span>
-                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
-                        {detailVehiculo.client.celular || '—'}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Modelo (Año):</span>
+                      <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.modelo || '—'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Clase:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.clase === 'object' ? detailVehiculo.clase?.nombre : detailVehiculo.clase || '—'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Correo Electrónico</span>
-                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
-                        {detailVehiculo.client.email || '—'}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Cilindraje:</span>
+                      <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.cilindraje || '—'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Color:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.color === 'object' ? detailVehiculo.color?.nombre : detailVehiculo.color || '—'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Dirección</span>
-                      <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
-                        {detailVehiculo.client.direccion || '—'}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Combustible:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.tipoCombustible === 'object' ? detailVehiculo.tipoCombustible?.nombre : detailVehiculo.tipoCombustible || '—'}
                       </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>Tipo Servicio:</span>
+                      <span style={{ color: '#334155', fontWeight: 600, textTransform: 'capitalize' }}>
+                        {typeof detailVehiculo.tipoServicio === 'object' ? detailVehiculo.tipoServicio?.nombre : detailVehiculo.tipoServicio || '—'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 500 }}>No. Certificado:</span>
+                      <span style={{ color: '#334155', fontWeight: 600 }}>{detailVehiculo.certificadoNo || '—'}</span>
                     </div>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', color: '#64748b', gap: 8 }}>
-                    <User size={32} style={{ color: '#cbd5e1' }} />
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ margin: 0, fontWeight: 500 }}>Asociado a Cliente ID</p>
-                      <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, display: 'inline-block', marginTop: 4 }}>
-                        {detailVehiculo.clienteId}
-                      </code>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
 
+                {/* Columna Propietario */}
+                <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: '#0f172a', fontWeight: 700, borderBottom: '2px solid #cbd5e1', paddingBottom: 6 }}>
+                    Información del Propietario
+                  </h3>
+                  {detailVehiculo.client ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Nombre Completo</span>
+                        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.95rem' }}>
+                          {detailVehiculo.client.nombre} {detailVehiculo.client.apellido}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Identificación / Cédula</span>
+                        <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                          {detailVehiculo.client.identity}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Teléfono / Celular</span>
+                        <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                          {detailVehiculo.client.celular || '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Correo Electrónico</span>
+                        <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                          {detailVehiculo.client.email || '—'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>Dirección</span>
+                        <span style={{ color: '#334155', fontWeight: 600, fontSize: '0.9rem' }}>
+                          {detailVehiculo.client.direccion || '—'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', color: '#64748b', gap: 8 }}>
+                      <User size={32} style={{ color: '#cbd5e1' }} />
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ margin: 0, fontWeight: 500 }}>Asociado to Cliente ID</p>
+                        <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, display: 'inline-block', marginTop: 4 }}>
+                          {detailVehiculo.clienteId}
+                        </code>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
 
             {/* Botón cerrar */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+            <div className="vehiculo-detalle-modal-footer">
               <button
                 type="button"
                 onClick={() => setDetailModalOpen(false)}

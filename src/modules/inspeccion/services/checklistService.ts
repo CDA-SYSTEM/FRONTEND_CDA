@@ -109,19 +109,19 @@ function toNumberId(value: unknown): number | undefined {
 
 function obtenerMensajeError(error: unknown, fallback: string): string {
   if (error && typeof error === 'object') {
-    const anyError = error as Record<string, unknown>
-    const response = anyError.response as Record<string, unknown> | undefined
-    const data = response?.data as Record<string, unknown> | undefined
-    const nestedError = data?.error as Record<string, unknown> | undefined
-    
-    const nestedMsg = typeof nestedError?.message === 'string' ? nestedError.message : undefined
-    const topMsg = typeof data?.message === 'string' ? data.message : undefined
-    const errorMsg = typeof anyError.message === 'string' ? anyError.message : undefined
-
-    if (nestedMsg) return nestedMsg
-    if (topMsg && topMsg !== 'Http Exception') return topMsg
-    if (errorMsg) return errorMsg
-    if (topMsg) return topMsg
+    const anyError = error as any
+    const data = anyError.response?.data
+    if (data) {
+      if (data.error && typeof data.error === 'object' && typeof data.error.message === 'string') {
+        return data.error.message
+      }
+      if (typeof data.message === 'string' && data.message !== 'Http Exception') {
+        return data.message
+      }
+    }
+    if (typeof anyError.message === 'string') {
+      return anyError.message
+    }
   }
   return fallback
 }
@@ -363,8 +363,8 @@ export const checklistService = {
         observations: payload.observations,
       })
       return true
-    } catch {
-      return false
+    } catch (error) {
+      throw new Error(obtenerMensajeError(error, 'Error al guardar el borrador'))
     }
   },
 

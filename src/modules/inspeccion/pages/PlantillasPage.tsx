@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Plus,
   Pencil,
@@ -17,6 +18,7 @@ import type { CrearChecklistTemplateDTO } from '../domain/checklistTemplate.type
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './PlantillasPage.css'
 
 export function PlantillasPage() {
   const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
@@ -86,7 +88,7 @@ export function PlantillasPage() {
         duration: 250,
         easing: 'easeOutQuad'
       })
-      const box = node.querySelector('.floating-modal-box')
+      const box = node.querySelector('.modal-window-premium') || node.querySelector('.floating-modal-box')
       if (box) {
         animate(box, {
           scale: [0.95, 1],
@@ -221,7 +223,7 @@ export function PlantillasPage() {
   })
 
   return (
-    <>
+    <div className="plantillas-root">
       <article className="panel">
         <header className="flex justify-between items-center mb-6">
           <div>
@@ -304,62 +306,69 @@ export function PlantillasPage() {
             <p>No se encontraron plantillas configuradas.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="plantillas-cards-grid">
             {filteredTemplates.map((t) => (
               <div
                 key={t.id}
-                className="template-card bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+                className="template-card plantilla-premium-card"
                 style={{ opacity: 0 }}
               >
-                <div>
-                  <header className="flex justify-between items-start mb-4">
-                    <span className="badge text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded">
-                      {t.code}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded font-bold ${
-                      t.active ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                <div className="plantilla-premium-card-body">
+                  <header className="plantilla-premium-card-header">
+                    <div className="plantilla-vehicles-left">
+                      {t.supported_vehicle_types.map((vt) => (
+                        <span key={vt} className="plantilla-badge-vehicle">
+                          {vt}
+                        </span>
+                      ))}
+                    </div>
+                    <span className={`plantilla-badge-status ${
+                      t.active ? 'plantilla-badge-status--active' : 'plantilla-badge-status--inactive'
                     }`}>
-                      {t.active ? 'Activo' : 'Inactivo'}
+                      {t.active ? 'Activa' : 'Inactiva'}
                     </span>
                   </header>
 
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">
+                  <h3 className="plantilla-name">
                     {t.name}
                   </h3>
-                  <div className="text-xs text-gray-400 mb-4 flex gap-3">
-                    <span>Versión: {t.version ?? 1}</span>
-                    <span>Secciones: {t.sections?.length || 0}</span>
-                  </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-6">
-                    {t.supported_vehicle_types.map((vt) => (
-                      <span key={vt} style={{ fontSize: '0.7rem', padding: '2px 6px', background: '#f1f5f9', borderRadius: 4, color: '#475569' }}>
-                        {vt}
-                      </span>
-                    ))}
+                  <div className="plantilla-details">
+                    <div className="plantilla-detail-row">
+                      <span className="plantilla-detail-row-label">Código</span>
+                      <span className="plantilla-detail-row-value">{t.code}</span>
+                    </div>
+                    <div className="plantilla-detail-row">
+                      <span className="plantilla-detail-row-label">Versión</span>
+                      <span className="plantilla-detail-row-value">{t.version ?? 1}</span>
+                    </div>
+                    <div className="plantilla-detail-row">
+                      <span className="plantilla-detail-row-label">Secciones</span>
+                      <span className="plantilla-detail-row-value">{t.sections?.length || 0}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2 border-t border-gray-50 pt-4 mt-auto justify-end">
+                <div className="plantilla-premium-card-footer">
                   <button
-                    className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs"
+                    className="plt-btn-action plt-btn-action--view"
                     onClick={() => setViewingTemplate(t)}
                   >
-                    <Eye size={14} /> Ver
+                    <Eye size={13} /> Ver
                   </button>
                   {isAllowed && (
                     <>
                       <button
-                        className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs"
+                        className="plt-btn-action plt-btn-action--edit"
                         onClick={() => handleOpenEdit(t)}
                       >
-                        <Pencil size={14} /> Editar
+                        <Pencil size={13} /> Editar
                       </button>
                       <button
-                        className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs text-red-500 hover:bg-red-50"
+                        className="plt-btn-action plt-btn-action--delete"
                         onClick={() => handleDelete(t.id)}
                       >
-                        <Trash2 size={14} /> Eliminar
+                        <Trash2 size={13} /> Eliminar
                       </button>
                     </>
                   )}
@@ -371,28 +380,43 @@ export function PlantillasPage() {
       </article>
 
       {/* Modal Formulario */}
-      {showFormModal && (
-        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+      {showFormModal && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <form
             onSubmit={handleSubmit}
-            className="floating-modal-box max-w-lg"
+            className="modal-window-premium max-w-lg plantilla-crear-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>
                 {selectedTemplate ? 'Editar Plantilla' : 'Crear Nueva Plantilla'}
               </h3>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setShowFormModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body">
+            <div className="plantilla-crear-modal-body">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre de la Plantilla *</label>
                 <input
@@ -435,19 +459,9 @@ export function PlantillasPage() {
                 <textarea
                   required
                   rows={8}
-                  className="form-control"
+                  className="plantilla-crear-json-textarea"
                   value={sectionsJSON}
                   onChange={(e) => setSectionsJSON(e.target.value)}
-                  style={{
-                    width: '100%',
-                    fontFamily: 'monospace',
-                    fontSize: '0.8rem',
-                    padding: '10px',
-                    borderRadius: 12,
-                    border: '1px solid #cbd5e1',
-                    background: '#f8fafc',
-                    resize: 'vertical'
-                  }}
                 />
               </div>
 
@@ -463,7 +477,7 @@ export function PlantillasPage() {
               </div>
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="plantilla-crear-modal-footer">
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -479,31 +493,50 @@ export function PlantillasPage() {
               >
                 {submitting ? 'Guardando...' : 'Guardar Plantilla'}
               </button>
-            </footer>
+            </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Visualizador de Plantilla */}
-      {viewingTemplate && (
-        <div className="floating-modal-backdrop">
-          <div className="floating-modal-box max-w-lg" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-            <header className="floating-modal-header">
+      {viewingTemplate && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
+          <div 
+            className="modal-window-premium max-w-lg plantilla-detalle-modal-window"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
+          >
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3>{viewingTemplate.name}</h3>
                 <span className="text-xs text-gray-400">{viewingTemplate.code} — Versión {viewingTemplate.version ?? 1}</span>
               </div>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setViewingTemplate(null)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body" style={{ textAlign: 'left' }}>
+            <div className="plantilla-detalle-modal-body">
               {viewingTemplate.sections?.map((section) => (
                 <div key={section.id || section.code} style={{ marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                   <h4 style={{ margin: '0 0 8px 0', color: '#155DFC', fontSize: '1rem', fontWeight: 700 }}>
@@ -528,18 +561,20 @@ export function PlantillasPage() {
               ))}
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="plantilla-detalle-modal-footer">
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setViewingTemplate(null)}
+                style={{ width: '100%' }}
               >
                 Cerrar
               </button>
-            </footer>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </>
+    </div>
   )
 }

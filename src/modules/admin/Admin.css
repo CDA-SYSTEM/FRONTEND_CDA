@@ -706,13 +706,35 @@
     max-height: 320px;
   }
 }
+@media (max-width: 768px) {
+  .content {
+    padding: 16px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
 
-@media (max-width: 600px) {
+  .admin-page {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-header h1 {
+    font-size: 1.35rem;
+  }
+
   .admin-tabs {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .admin-tabs::-webkit-scrollbar {
@@ -720,20 +742,54 @@
   }
 
   .admin-tab {
-    font-size: 0.8rem;
-    padding: 0.45rem 0.7rem;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.75rem;
   }
 
   .admin-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.6rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .admin-kpi-card {
     padding: 0.85rem;
+    min-width: 0 !important;
+    overflow: hidden;
   }
 
   .admin-kpi-value {
-    font-size: 1.3rem;
+    font-size: 1.2rem !important; /* Smaller text size for numbers on mobile to prevent clipping */
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  /* Prevent chart component expansion */
+  .admin-chart-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-chart-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-chart-grid > * {
+    min-width: 0 !important;
+  }
+
+  .admin-welcome {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-kpi-grid {
+    grid-template-columns: 1fr !important; /* Stacks cards vertically on narrow phones to avoid width overflow */
   }
 }

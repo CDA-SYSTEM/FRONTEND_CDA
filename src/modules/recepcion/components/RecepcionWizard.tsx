@@ -63,195 +63,159 @@ export function RecepcionWizard({ onCancelar }: Props) {
   const pasoActual = INDICE_PASO[wizard.paso]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Cabecera */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fff',
-          padding: '1.5rem',
-          borderRadius: 12,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Nueva Recepción
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-              Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica
-            </p>
-        </div>
-        <button
-          onClick={onCancelar}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            background: '#f1f5f9',
-            color: '#475569',
-            border: '1px solid #e2e8f0',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontSize: '0.85rem',
-          }}
-        >
-          <X size={16} />
-          Cancelar
-        </button>
-      </div>
-
-      {/* Barra de progreso */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0,
-          background: '#fff',
-          borderRadius: 12,
-          padding: '12px 20px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-        }}
-      >
-        {PASOS.map((p, i) => (
-          <div
-            key={p.key}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              flex: 1,
-            }}
+    <div className="recepcion-wizard-container">
+      <div className="recepcion-sticky-header">
+        {/* Cabecera */}
+        <div className="recepcion-wizard-header-card">
+          <div className="recepcion-wizard-header-text">
+            <h1>Nueva Recepción</h1>
+            <p>Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica</p>
+          </div>
+          <button
+            onClick={onCancelar}
+            className="recepcion-wizard-cancel-btn"
           >
+            <X size={16} />
+            <span>Cancelar</span>
+          </button>
+        </div>
+
+        {/* Barra de progreso */}
+        <div className="recepcion-wizard-progress-bar">
+          {PASOS.map((p, i) => (
             <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                background: i <= pasoActual ? '#2563eb' : '#e2e8f0',
-                color: i <= pasoActual ? '#fff' : '#94a3b8',
-                flexShrink: 0,
-              }}
+              key={p.key}
+              className="recepcion-wizard-step"
             >
-              {i < pasoActual ? (
-                <CheckCircle2 size={16} />
-              ) : (
-                i + 1
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  background: i <= pasoActual ? '#2563eb' : '#e2e8f0',
+                  color: i <= pasoActual ? '#fff' : '#94a3b8',
+                  flexShrink: 0,
+                }}
+              >
+                {i < pasoActual ? (
+                  <CheckCircle2 size={16} />
+                ) : (
+                  i + 1
+                )}
+              </div>
+              <span
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: i === pasoActual ? 600 : 400,
+                  color: i <= pasoActual ? '#1e293b' : '#94a3b8',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {p.label}
+              </span>
+              {i < PASOS.length - 1 && (
+                <ChevronRight size={16} color="#cbd5e1" style={{ marginLeft: 'auto' }} />
               )}
             </div>
-            <span
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: i === pasoActual ? 600 : 400,
-                color: i <= pasoActual ? '#1e293b' : '#94a3b8',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {p.label}
-            </span>
-            {i < PASOS.length - 1 && (
-              <ChevronRight size={16} color="#cbd5e1" style={{ marginLeft: 'auto' }} />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Contenido según paso */}
-      {wizard.cargandoCatalogos ? (
-        <article className="panel" style={{ textAlign: 'center', padding: 40 }}>
-          <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
-          <p style={{ marginTop: 12, color: '#6b7280' }}>Cargando...</p>
-        </article>
-      ) : wizard.errorCatalogo ? (
-        <article className="panel">
-          <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', color: '#991b1b' }}>
-            <AlertCircle size={18} />
-            <span>{wizard.errorCatalogo}</span>
-          </div>
-        </article>
-      ) : wizard.paso === 'cliente' ? (
-        <PasoCliente
-          buscador={buscador}
-          onSeleccionar={wizard.seleccionarCliente}
-          onNuevoCliente={() => setClienteNuevoModal(true)}
-          clienteNuevoModal={clienteNuevoModal}
-          onCloseModal={() => setClienteNuevoModal(false)}
-            onClienteCreado={(c: ClientePersonaNatural) => {
-            setClienteNuevoModal(false)
-            wizard.seleccionarCliente(c)
-          }}
-        />
-      ) : wizard.paso === 'vehiculo' ? (
-        <PasoVehiculo
-          vehiculos={wizard.vehiculos}
-          cargando={wizard.cargandoVehiculos}
-          onSeleccionar={wizard.seleccionarVehiculo}
-          onSaltar={wizard.irADetalleSinVehiculo}
-          cliente={wizard.cliente}
-          onVolver={wizard.volver}
-          onVehiculoCreado={wizard.recargarVehiculos}
-        />
-      ) : wizard.paso === 'detalle' ? (
-        <PasoDetalle
-          mileage={wizard.mileage}
-          setMileage={wizard.setMileage}
-          revisionType={wizard.revisionType}
-          setRevisionType={wizard.setRevisionType}
-          customerType={wizard.customerType}
-          setCustomerType={wizard.setCustomerType}
-          tiposRevision={wizard.tiposRevision}
-          tiposCliente={wizard.tiposCliente}
-          usuarioAsignadoId={wizard.usuarioAsignadoId}
-          setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
-          usuariosAsignables={wizard.usuariosAsignables}
-          cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
-          errorUsuariosAsignables={wizard.errorUsuariosAsignables}
-          onSiguiente={wizard.irACondiciones}
-          onVolver={wizard.volver}
-        />
-      ) : wizard.paso === 'condiciones' ? (
-        <PasoCondiciones
-          observations={wizard.observations}
-          setObservations={wizard.setObservations}
-          photoFile={wizard.photoFile}
-          setPhotoFile={wizard.setPhotoFile}
-          signatureBlob={wizard.signatureBlob}
-          setSignatureBlob={wizard.setSignatureBlob}
-          confirmacionAcuerdo={wizard.confirmacionAcuerdo}
-          setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
-            tires={wizard.tires}
-            setTires={wizard.setTires}
-          estadoEnvio={wizard.estadoEnvio}
-          errorEnvio={wizard.errorEnvio}
-          tintedWindows={wizard.tintedWindows}
-          setTintedWindows={wizard.setTintedWindows}
-          armoredVehicle={wizard.armoredVehicle}
-          setArmoredVehicle={wizard.setArmoredVehicle}
-          brakeFluidSightGlass={wizard.brakeFluidSightGlass}
-          setBrakeFluidSightGlass={wizard.setBrakeFluidSightGlass}
-          onSubmit={wizard.enviar}
-          onVolver={wizard.volver}
-        />
-      ) : wizard.paso === 'confirmacion' && wizard.ordenCreada ? (
-        <PasoConfirmacion
-          orden={wizard.ordenCreada}
-          cliente={wizard.cliente}
-          vehiculo={wizard.vehiculo}
-          observations={wizard.observations}
-          tieneFoto={!!wizard.photoFile}
-          tieneFirma={!!wizard.signatureBlob}
-          onNuevaOrden={wizard.reset}
-          onSalir={onCancelar}
-        />
-      ) : null}
+      <div className="recepcion-step-content-scroll">
+        {wizard.cargandoCatalogos ? (
+          <article className="panel" style={{ textAlign: 'center', padding: 40 }}>
+            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
+            <p style={{ marginTop: 12, color: '#6b7280' }}>Cargando...</p>
+          </article>
+        ) : wizard.errorCatalogo ? (
+          <article className="panel">
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', color: '#991b1b' }}>
+              <AlertCircle size={18} />
+              <span>{wizard.errorCatalogo}</span>
+            </div>
+          </article>
+        ) : wizard.paso === 'cliente' ? (
+          <PasoCliente
+            buscador={buscador}
+            onSeleccionar={wizard.seleccionarCliente}
+            onNuevoCliente={() => setClienteNuevoModal(true)}
+            clienteNuevoModal={clienteNuevoModal}
+            onCloseModal={() => setClienteNuevoModal(false)}
+              onClienteCreado={(c: ClientePersonaNatural) => {
+              setClienteNuevoModal(false)
+              wizard.seleccionarCliente(c)
+            }}
+          />
+        ) : wizard.paso === 'vehiculo' ? (
+          <PasoVehiculo
+            vehiculos={wizard.vehiculos}
+            cargando={wizard.cargandoVehiculos}
+            onSeleccionar={wizard.seleccionarVehiculo}
+            onSaltar={wizard.irADetalleSinVehiculo}
+            cliente={wizard.cliente}
+            onVolver={wizard.volver}
+            onVehiculoCreado={wizard.recargarVehiculos}
+          />
+        ) : wizard.paso === 'detalle' ? (
+          <PasoDetalle
+            mileage={wizard.mileage}
+            setMileage={wizard.setMileage}
+            revisionType={wizard.revisionType}
+            setRevisionType={wizard.setRevisionType}
+            customerType={wizard.customerType}
+            setCustomerType={wizard.setCustomerType}
+            tiposRevision={wizard.tiposRevision}
+            tiposCliente={wizard.tiposCliente}
+            usuarioAsignadoId={wizard.usuarioAsignadoId}
+            setUsuarioAsignadoId={wizard.setUsuarioAsignadoId}
+            usuariosAsignables={wizard.usuariosAsignables}
+            cargandoUsuariosAsignables={wizard.cargandoUsuariosAsignables}
+            errorUsuariosAsignables={wizard.errorUsuariosAsignables}
+            onSiguiente={wizard.irACondiciones}
+            onVolver={wizard.volver}
+          />
+        ) : wizard.paso === 'condiciones' ? (
+          <PasoCondiciones
+            observations={wizard.observations}
+            setObservations={wizard.setObservations}
+            photoFile={wizard.photoFile}
+            setPhotoFile={wizard.setPhotoFile}
+            signatureBlob={wizard.signatureBlob}
+            setSignatureBlob={wizard.setSignatureBlob}
+            confirmacionAcuerdo={wizard.confirmacionAcuerdo}
+            setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
+              tires={wizard.tires}
+              setTires={wizard.setTires}
+            estadoEnvio={wizard.estadoEnvio}
+            errorEnvio={wizard.errorEnvio}
+            tintedWindows={wizard.tintedWindows}
+            setTintedWindows={wizard.setTintedWindows}
+            armoredVehicle={wizard.armoredVehicle}
+            setArmoredVehicle={wizard.setArmoredVehicle}
+            brakeFluidSightGlass={wizard.brakeFluidSightGlass}
+            setBrakeFluidSightGlass={wizard.setBrakeFluidSightGlass}
+            onSubmit={wizard.enviar}
+            onVolver={wizard.volver}
+          />
+        ) : wizard.paso === 'confirmacion' && wizard.ordenCreada ? (
+          <PasoConfirmacion
+            orden={wizard.ordenCreada}
+            cliente={wizard.cliente}
+            vehiculo={wizard.vehiculo}
+            observations={wizard.observations}
+            tieneFoto={!!wizard.photoFile}
+            tieneFirma={!!wizard.signatureBlob}
+            onNuevaOrden={wizard.reset}
+            onSalir={onCancelar}
+          />
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -367,55 +331,105 @@ function PasoCliente({
       )}
 
       {buscador.resultados.length > 0 ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style={{ padding: '12px 16px' }}>Documento</th>
-                <th style={{ padding: '12px 16px' }}>Nombre</th>
-                <th style={{ padding: '12px 16px' }}>Celular</th>
-                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {buscador.resultados.map((c: ClientePersonaNatural) => (
-                <tr key={c.id}>
-                  <td style={{ padding: '12px 16px', fontWeight: 500 }}>{c.identity}</td>
-                  <td style={{ padding: '12px 16px' }}>{c.nombre} {c.apellido}</td>
-                  <td style={{ padding: '12px 16px' }}>{c.celular}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <button
-                      onClick={() => onSeleccionar(c)}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: '0.8rem',
-                        background: '#e0e7ff',
-                        color: '#4f46e5',
-                        border: 'none',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                      }}
-                    >
-                      Seleccionar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : buscador.query.length >= 3 && !buscador.cargando ? (
+        <>
+          {/* Vista de Tabla para Escritorio */}
+          <div className="recepcion-desktop-table-wrapper">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 16px' }}>Documento</th>
+                    <th style={{ padding: '12px 16px' }}>Nombre</th>
+                    <th style={{ padding: '12px 16px' }}>Celular</th>
+                    <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {buscador.resultados.map((c: ClientePersonaNatural) => (
+                    <tr key={c.id}>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>{c.identity}</td>
+                      <td style={{ padding: '12px 16px' }}>{c.nombre} {c.apellido}</td>
+                      <td style={{ padding: '12px 16px' }}>{c.celular}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          onClick={() => onSeleccionar(c)}
+                          style={{
+                            padding: '6px 14px',
+                            fontSize: '0.8rem',
+                            background: '#e0e7ff',
+                            color: '#4f46e5',
+                            border: 'none',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Seleccionar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Vista de Tarjetas para Móvil */}
+          <div className="recepcion-mobile-clients-cards">
+            {buscador.resultados.map((c: ClientePersonaNatural) => (
+              <div key={c.id} className="cliente-select-responsive-card">
+                <div className="cliente-card-header">
+                  <span className="cliente-card-identity">{c.identity}</span>
+                  <span className="cliente-card-name">{c.nombre} {c.apellido}</span>
+                </div>
+                <div className="cliente-card-body">
+                  {c.celular && (
+                    <div className="cliente-card-row">
+                      <span className="cliente-card-label">Celular:</span>
+                      <span className="cliente-card-value">{c.celular}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="cliente-card-footer">
+                  <button
+                    onClick={() => onSeleccionar(c)}
+                    className="btn-seleccionar-client-mobile"
+                  >
+                    Seleccionar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="table-pagination-wrapper">
+            <button
+              type="button"
+              className="recepcion-pagination-text-btn"
+              disabled={buscador.pagina === 0}
+              onClick={() => buscador.setPagina(buscador.pagina - 1)}
+            >
+              Anterior
+            </button>
+            <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 500 }}>
+              Página {buscador.pagina + 1} de {buscador.totalPages}
+            </span>
+            <button
+              type="button"
+              className="recepcion-pagination-text-btn"
+              disabled={buscador.pagina >= buscador.totalPages - 1}
+              onClick={() => buscador.setPagina(buscador.pagina + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
+        </>
+      ) : !buscador.cargando ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <User size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>No se encontraron clientes. Puede registrar uno nuevo.</p>
+          <p>No se encontraron clientes. Puede registrar uno nuevo o cambiar la búsqueda.</p>
         </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
-          <Search size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>Escriba al menos 3 caracteres para buscar</p>
-        </div>
-      )}
+      ) : null}
 
       {/* Modal de Registro de Cliente */}
       <Modal
@@ -423,6 +437,7 @@ function PasoCliente({
         onClose={onCloseModal}
         title="Registro de Cliente"
         maxWidth="800px"
+        className="cliente-registro-window"
       >
         {estado === 'cargando' ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
@@ -430,247 +445,255 @@ function PasoCliente({
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando tipos de documentos...</span>
           </div>
         ) : (
-          <>
-            <p style={{ color: '#6b7280', marginBottom: 20 }}>
-              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
-            </p>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden', margin: 0 }}>
+            <div className="cliente-registro-body">
+              <p style={{ color: '#6b7280', marginBottom: 20 }}>
+                Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+              </p>
 
-        {errorServidor && (
-          <div
-            role="alert"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: 8,
-              padding: '10px 14px',
-              marginBottom: 16,
-              color: '#991b1b',
-              fontSize: '0.9rem',
-            }}
-          >
-            <AlertCircle size={16} />
-            <span>{errorServidor}</span>
-          </div>
-        )}
-
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Nombre y Apellido */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Nombre <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder="Ej: Juan Carlos"
-                {...register('nombre')}
-                disabled={enviando}
-                style={{
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-              />
-              {errors.nombre && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.nombre.message}</span>
+              {errorServidor && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorServidor}</span>
+                </div>
               )}
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Apellido <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder="Ej: Pérez Gómez"
-                {...register('apellido')}
-                disabled={enviando}
-                style={{
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-              />
-              {errors.apellido && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.apellido.message}</span>
+              {/* Nombre y Apellido */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Nombre <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder="Ej: Juan Carlos"
+                    {...register('nombre')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
+                  {errors.nombre && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.nombre.message}</span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Apellido <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder="Ej: Pérez Gómez"
+                    {...register('apellido')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                  />
+                  {errors.apellido && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.apellido.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tipo de documento e Identity */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <CustomSelect
+                    options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
+                    value={String(documentTypeId || '')}
+                    onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                  />
+                  {errors.documentTypeId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+                      {errors.documentTypeId.message}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Número de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <input
+                    placeholder={placeholderIdentity}
+                    {...register('identity')}
+                    disabled={enviando}
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      padding: '10px 14px',
+                      fontSize: '0.95rem',
+                      outline: 'none',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                  {errors.identity && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.identity.message}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Tipo de persona */}
+              {tiposPersona.length > 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                    Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                  </span>
+                  <CustomSelect
+                    options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
+                    value={String(personTypeId || '')}
+                    onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+                  />
+                  {errors.personTypeId && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
+                  )}
+                </div>
               )}
-            </div>
-          </div>
 
-          {/* Tipo de documento e Identity */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <CustomSelect
-                options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
-                value={String(documentTypeId || '')}
-                onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
-              />
-              {errors.documentTypeId && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
-                  {errors.documentTypeId.message}
+              {/* Celular */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Celular <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
-              )}
+                <input
+                  type="tel"
+                  placeholder="Ej: 3001234567"
+                  maxLength={10}
+                  {...register('celular')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.celular && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.celular.message}</span>
+                )}
+              </div>
+
+              {/* Correo (opcional) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Correo electrónico{' '}
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
+                    (opcional)
+                  </span>
+                </span>
+                <input
+                  type="email"
+                  placeholder="Ej: juan@correo.com"
+                  {...register('email')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.email && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.email.message}</span>
+                )}
+              </div>
+
+              {/* Dirección (opcional) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Dirección{' '}
+                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
+                    (opcional)
+                  </span>
+                </span>
+                <input
+                  placeholder="Ej: Cra 5 # 12-34, Mocoa"
+                  {...register('direccion')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.direccion && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
+                )}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Número de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <input
-                placeholder={placeholderIdentity}
-                {...register('identity')}
+            <div className="cliente-registro-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={enviando}
+                onClick={onCloseModal}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
                 disabled={enviando}
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '12px 24px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  padding: '10px 14px',
-                  fontSize: '0.95rem',
-                  outline: 'none',
-                  textTransform: 'uppercase',
+                  background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
+                  transition: 'opacity 0.2s',
+                  opacity: enviando ? 0.7 : 1,
                 }}
-              />
-              {errors.identity && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.identity.message}</span>
-              )}
+              >
+                {enviando && (
+                  <Loader2
+                    size={18}
+                    style={{ animation: 'spin 1s linear infinite' }}
+                  />
+                )}
+                {enviando ? 'Guardando...' : 'Guardar Cliente'}
+              </button>
             </div>
-          </div>
-
-          {/* Tipo de persona */}
-          {tiposPersona.length > 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-              </span>
-              <CustomSelect
-                options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
-                value={String(personTypeId || '')}
-                onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
-              />
-              {errors.personTypeId && (
-                <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
-              )}
-            </div>
-          )}
-
-          {/* Celular */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Celular <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
-            </span>
-            <input
-              type="tel"
-              placeholder="Ej: 3001234567"
-              maxLength={10}
-              {...register('celular')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.celular && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.celular.message}</span>
-            )}
-          </div>
-
-          {/* Correo (opcional) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Correo electrónico{' '}
-              <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                (opcional)
-              </span>
-            </span>
-            <input
-              type="email"
-              placeholder="Ej: juan@correo.com"
-              {...register('email')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.email && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.email.message}</span>
-            )}
-          </div>
-
-          {/* Dirección (opcional) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Dirección{' '}
-              <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                (opcional)
-              </span>
-            </span>
-            <input
-              placeholder="Ej: Cra 5 # 12-34, Mocoa"
-              {...register('direccion')}
-              disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-              }}
-            />
-            {errors.direccion && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
-            )}
-          </div>
-
-          {/* Botón de envío */}
-          <button
-            type="submit"
-            disabled={enviando}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              marginTop: '1rem',
-              padding: '12px 24px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
-              color: '#fff',
-              cursor: 'pointer',
-              border: 'none',
-              boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
-              transition: 'opacity 0.2s',
-              opacity: enviando ? 0.7 : 1,
-              width: '100%',
-            }}
-          >
-            {enviando && (
-              <Loader2
-                size={18}
-                style={{ animation: 'spin 1s linear infinite' }}
-              />
-            )}
-            {enviando ? 'Guardando...' : 'Guardar cliente'}
-          </button>
-        </form>
-        </>
+          </form>
         )}
       </Modal>
     </article>
@@ -878,33 +901,22 @@ function PasoVehiculo({
 
   return (
     <article className="panel">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
+      {/* Cabecera: flecha volver + título + botón Nuevo Vehículo */}
+      <div className="vehiculo-panel-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+          <button onClick={onVolver} style={{ padding: 6, background: '#e2e8f0', color: '#475569', borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0 }}>
             <ArrowLeft size={18} />
           </button>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Seleccionar Vehículo</h2>
-            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               Cliente: <strong>{clienteNombre}</strong>
             </p>
           </div>
         </div>
         <button
           onClick={() => setVehiculoNuevoModal(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '8px 14px',
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 500,
-            fontSize: '0.85rem',
-          }}
+          className="vehiculo-nuevo-btn"
         >
           <Plus size={16} />
           Nuevo Vehículo
@@ -916,50 +928,92 @@ function PasoVehiculo({
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
         </div>
       ) : vehiculos.length > 0 ? (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th style={{ padding: '12px 16px' }}>Placa</th>
-                <th style={{ padding: '12px 16px' }}>Marca</th>
-                <th style={{ padding: '12px 16px' }}>Línea</th>
-                <th style={{ padding: '12px 16px' }}>Modelo</th>
-                <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehiculos.map((v) => (
-                <tr key={v.id}>
-                  <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {typeof v.marca === 'object' && v.marca ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '') : String(v.marca ?? '')}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>
-                    {typeof v.linea === 'object' && v.linea ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '') : String(v.linea ?? '')}
-                  </td>
-                  <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
-                  <td style={{ padding: '12px 16px' }}>
+        <>
+          {/* Vista tabla — solo escritorio */}
+          <div className="recepcion-vehiculos-desktop-table">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 16px' }}>Placa</th>
+                    <th style={{ padding: '12px 16px' }}>Marca</th>
+                    <th style={{ padding: '12px 16px' }}>Línea</th>
+                    <th style={{ padding: '12px 16px' }}>Modelo</th>
+                    <th style={{ padding: '12px 16px', width: 100 }}>Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehiculos.map((v) => (
+                    <tr key={v.id}>
+                      <td style={{ padding: '12px 16px', fontWeight: 600, textTransform: 'uppercase' }}>{v.placa}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {typeof v.marca === 'object' && v.marca ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '') : String(v.marca ?? '')}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {typeof v.linea === 'object' && v.linea ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '') : String(v.linea ?? '')}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <button
+                          onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                          style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}
+                        >
+                          Seleccionar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Vista tarjetas — solo móvil */}
+          <div className="recepcion-mobile-vehicles-cards">
+            {vehiculos.map((v) => {
+              const marcaNombre = typeof v.marca === 'object' && v.marca
+                ? String((v.marca as { nombre?: string }).nombre ?? (v.marca as { name?: string }).name ?? '')
+                : String(v.marca ?? '')
+              const lineaNombre = typeof v.linea === 'object' && v.linea
+                ? String((v.linea as { nombre?: string }).nombre ?? (v.linea as { name?: string }).name ?? '')
+                : String(v.linea ?? '')
+              return (
+                <div key={v.id} className="vehiculo-select-responsive-card">
+                  {/* Placa como badge destacado */}
+                  <div className="vehiculo-card-placa-badge">{v.placa}</div>
+                  <div className="vehiculo-card-body">
+                    {marcaNombre && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Marca:</span>
+                        <span className="vehiculo-card-value">{marcaNombre}</span>
+                      </div>
+                    )}
+                    {lineaNombre && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Línea:</span>
+                        <span className="vehiculo-card-value">{lineaNombre}</span>
+                      </div>
+                    )}
+                    {v.modelo && (
+                      <div className="vehiculo-card-row">
+                        <span className="vehiculo-card-label">Modelo:</span>
+                        <span className="vehiculo-card-value">{v.modelo}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="vehiculo-card-footer">
                     <button
                       onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
-                      style={{
-                        padding: '6px 14px',
-                        fontSize: '0.8rem',
-                        background: '#e0e7ff',
-                        color: '#4f46e5',
-                        border: 'none',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                      }}
+                      className="vehiculo-select-card-btn"
                     >
                       Seleccionar
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <Car size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
@@ -970,16 +1024,8 @@ function PasoVehiculo({
       <div style={{ marginTop: 16, textAlign: 'center' }}>
         <button
           onClick={onSaltar}
-          style={{
-            padding: '8px 20px',
-            background: 'transparent',
-            color: '#2563eb',
-            border: '1px solid #2563eb',
-            borderRadius: 8,
-            cursor: 'pointer',
-            fontWeight: 500,
-            fontSize: '0.85rem',
-          }}
+          className="btn-registrar-luego-mobile"
+          style={{ padding: '8px 20px', background: 'transparent', color: '#2563eb', border: '1px solid #2563eb', borderRadius: 8, cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
         >
           Registrar vehiculo después
         </button>
@@ -991,6 +1037,7 @@ function PasoVehiculo({
         onClose={handleCloseModal}
         title="Registro de Vehículo"
         maxWidth="800px"
+        className="vehiculo-registro-window"
       >
         {estado === 'cargando' ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12 }}>
@@ -998,56 +1045,57 @@ function PasoVehiculo({
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando datos de catálogos de vehículos...</span>
           </div>
         ) : (
-          <div>
-            <p style={{ color: '#6b7280', marginBottom: 16 }}>
-              Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
-            </p>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden', margin: 0 }}>
+            <div className="vehiculo-registro-body">
+              <p style={{ color: '#6b7280', marginBottom: 16 }}>
+                Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.
+              </p>
 
-            {/* Error de catálogos */}
-            {errorCatalogo && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '10px 14px',
-                  marginBottom: 16,
-                  color: '#991b1b',
-                  fontSize: '0.9rem',
-                }}
-              >
-                <AlertCircle size={16} />
-                <span>{errorCatalogo}</span>
-              </div>
-            )}
+              {/* Error de catálogos */}
+              {errorCatalogo && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorCatalogo}</span>
+                </div>
+              )}
 
-            {/* Error global del servidor */}
-            {errorServidor && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 8,
-                  padding: '10px 14px',
-                  marginBottom: 16,
-                  color: '#991b1b',
-                  fontSize: '0.9rem',
-                }}
-              >
-                <AlertCircle size={16} />
-                <span>{errorServidor}</span>
-              </div>
-            )}
+              {/* Error global del servidor */}
+              {errorServidor && (
+                <div
+                  role="alert"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    color: '#991b1b',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{errorServidor}</span>
+                </div>
+              )}
 
-            <form onSubmit={onSubmit} className="form-grid">
+              <div className="form-grid">
               {/* Cliente Info (Solo lectura) */}
               <div
                 style={{
@@ -1890,60 +1938,62 @@ function PasoVehiculo({
               </fieldset>
 
               {/* Botones de envío / cancelación */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20, width: '100%' }}>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '11px 20px',
-                    background: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    fontSize: '0.92rem',
-                    fontWeight: 600,
-                    transition: 'background-color 0.2s',
-                  }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={enviando}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    padding: '11px 22px',
-                    fontSize: '0.92rem',
-                    fontWeight: 600,
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    border: 'none',
-                    boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
-                    transition: 'opacity 0.2s',
-                    opacity: enviando ? 0.7 : 1,
-                  }}
-                >
-                  {enviando && (
-                    <Loader2
-                      size={16}
-                      style={{ animation: 'spin 1s linear infinite' }}
-                    />
-                  )}
-                  {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
-                  {enviando ? 'Guardando...' : 'Registrar vehículo'}
-                </button>
-              </div>
-            </form>
-          </div>
+              </div> {/* Cierre de form-grid */}
+            </div> {/* Cierre de vehiculo-registro-body */}
+
+            <div className="vehiculo-registro-footer">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '11px 20px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={enviando}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '11px 22px',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
+                  transition: 'opacity 0.2s',
+                  opacity: enviando ? 0.7 : 1,
+                }}
+              >
+                {enviando && (
+                  <Loader2
+                    size={16}
+                    style={{ animation: 'spin 1s linear infinite' }}
+                  />
+                )}
+                {esMotocicleta ? <Bike size={18} /> : <Truck size={18} />}
+                {enviando ? 'Guardando...' : 'Registrar vehículo'}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
     </article>
@@ -1996,62 +2046,70 @@ function PasoDetalle({
       </div>
 
       <div className="form-grid">
-        <label>
-          Kilometraje actual (km)
-          <input
-            type="number"
-            placeholder="Ej: 50000"
-            value={mileage}
-            onChange={(e) => setMileage(e.target.value)}
-            min={0}
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Kilometraje actual (km)
+            <input
+              type="number"
+              placeholder="Ej: 50000"
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+              min={0}
+            />
+          </label>
+        </div>
 
-        <label>
-          Tipo de revisión <span style={{ color: '#ef4444' }}>*</span>
-          <CustomSelect
-            options={tiposRevision.map((t) => ({ value: String(t.id), label: t.nombre }))}
-            value={String(revisionType)}
-            onChange={(val) => setRevisionType(val)}
-            placeholder="Seleccione..."
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Tipo de revisión <span className="asterisk">*</span>
+            <CustomSelect
+              options={tiposRevision.map((t) => ({ value: String(t.id), label: t.nombre }))}
+              value={String(revisionType)}
+              onChange={(val) => setRevisionType(val)}
+              placeholder="Seleccione..."
+            />
+          </label>
+        </div>
 
-        <label>
-          Tipo de cliente <span style={{ color: '#ef4444' }}>*</span>
-          <CustomSelect
-            options={tiposCliente.map((t) => ({ value: String(t.id), label: t.nombre }))}
-            value={String(customerType)}
-            onChange={(val) => setCustomerType(val)}
-            placeholder="Seleccione..."
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Tipo de cliente <span className="asterisk">*</span>
+            <CustomSelect
+              options={tiposCliente.map((t) => ({ value: String(t.id), label: t.nombre }))}
+              value={String(customerType)}
+              onChange={(val) => setCustomerType(val)}
+              placeholder="Seleccione..."
+            />
+          </label>
+        </div>
 
         <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 12 }}>
           <div style={{ padding: '10px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', fontSize: '0.85rem' }}>
             La recepción asigna personal con rol <strong>Operario</strong>. La lista de usuarios está filtrada automáticamente.
           </div>
 
-          <label>
-            <span style={{ fontWeight: 500 }}>Operario a asignar <span style={{ color: '#ef4444' }}>*</span></span>
-            <CustomSelect
-              options={usuariosAsignables.map((u) => ({ value: String(u.id), label: labelPersonal(u) }))}
-              value={String(usuarioAsignadoId)}
-              onChange={(val) => setUsuarioAsignadoId(val)}
-              placeholder="Seleccione operario..."
-              disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
-            />
-            {cargandoUsuariosAsignables && (
-              <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
-                Cargando operarios disponibles...
-              </span>
-            )}
-            {errorUsuariosAsignables && (
-              <span style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem', display: 'block' }}>
-                {errorUsuariosAsignables}
-              </span>
-            )}
-          </label>
+          <div className="recepcion-field-group">
+            <label>
+              Operario a asignar <span className="asterisk">*</span>
+              <CustomSelect
+                options={usuariosAsignables.map((u) => ({ value: String(u.id), label: labelPersonal(u) }))}
+                value={String(usuarioAsignadoId)}
+                onChange={(val) => setUsuarioAsignadoId(val)}
+                placeholder="Seleccione operario..."
+                disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
+              />
+              {cargandoUsuariosAsignables && (
+                <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
+                  Cargando operarios disponibles...
+                </span>
+              )}
+              {errorUsuariosAsignables && (
+                <span style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem', display: 'block' }}>
+                  {errorUsuariosAsignables}
+                </span>
+              )}
+            </label>
+          </div>
         </div>
 
         <div style={{ marginTop: 8 }}>
@@ -2172,7 +2230,7 @@ function PasoCondiciones({
 
       <div className="form-grid">
         {/* Condiciones del vehículo */}
-        <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <div className="recepcion-condiciones-selects-grid">
           <label>
             <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
             <CustomSelect
@@ -2228,7 +2286,7 @@ function PasoCondiciones({
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+          <div className="recepcion-llantas-grid">
             {tires.map((tire, index) => {
               const invalida = !Number.isFinite(tire.tire_pressure) || tire.tire_pressure <= 0
               return (
@@ -2285,92 +2343,95 @@ function PasoCondiciones({
         </section>
 
         {/* Observaciones */}
-        <label style={{ gridColumn: '1 / -1' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <FileText size={16} color="#64748b" />
-            <span style={{ fontWeight: 500 }}>Observaciones del estado del vehículo</span>
-          </div>
-          <textarea
-            placeholder="Describa el estado visual del vehículo al ingreso (combustible, daños previos, accesorios, etc.)"
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-            rows={4}
-            style={{ width: '100%', resize: 'vertical', minHeight: 80 }}
-            disabled={estadoEnvio === 'enviando'}
-          />
-        </label>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
+          <label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <FileText size={16} color="#64748b" />
+              <span style={{ fontWeight: 500 }}>Observaciones del estado del vehículo</span>
+            </div>
+            <textarea
+              placeholder="Describa el estado visual del vehículo al ingreso (combustible, daños previos, accesorios, etc.)"
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              rows={4}
+              disabled={estadoEnvio === 'enviando'}
+            />
+          </label>
+        </div>
 
         {/* Foto de ingreso */}
-        <label style={{ gridColumn: '1 / -1' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <Camera size={16} color="#64748b" />
-            <span style={{ fontWeight: 500 }}>Foto del estado de ingreso</span>
-            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(opcional — JPG, PNG, HEIC, máx 5 MB)</span>
-          </div>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
+          <label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Camera size={16} color="#64748b" />
+              <span style={{ fontWeight: 500 }}>Foto del estado de ingreso</span>
+              <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(opcional — JPG, PNG, HEIC, máx 5 MB)</span>
+            </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={estadoEnvio === 'enviando'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                background: '#f1f5f9',
-                color: '#475569',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-              }}
-            >
-              <Image size={16} />
-              {photoFile ? 'Cambiar foto' : 'Seleccionar archivo'}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/heic"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-            {photoFile && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 6,
-                    overflow: 'hidden',
-                    border: '1px solid #e2e8f0',
-                    flexShrink: 0,
-                  }}
-                >
-                  <img
-                    src={URL.createObjectURL(photoFile)}
-                    alt="Vista previa"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={estadoEnvio === 'enviando'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <Image size={16} />
+                {photoFile ? 'Cambiar foto' : 'Seleccionar archivo'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/heic"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              {photoFile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      border: '1px solid #e2e8f0',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={URL.createObjectURL(photoFile)}
+                      alt="Vista previa"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    {photoFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPhotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                    style={{ fontSize: '0.8rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                  >
+                    X
+                  </button>
                 </div>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                  {photoFile.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { setPhotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                  style={{ fontSize: '0.8rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
-                >
-                  X
-                </button>
-              </div>
-            )}
-          </div>
-        </label>
+              )}
+            </div>
+          </label>
+        </div>
 
         {/* Firma digital */}
-        <div style={{ gridColumn: '1 / -1' }}>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
           <SignaturePad
             onSave={(blob) => setSignatureBlob(blob)}
             height={140}
@@ -2378,23 +2439,25 @@ function PasoCondiciones({
         </div>
 
         {/* Confirmación de acuerdo */}
-        <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={confirmacionAcuerdo}
-            onChange={(e) => setConfirmacionAcuerdo(e.target.checked)}
-            disabled={estadoEnvio === 'enviando'}
-            style={{ width: 18, height: 18, cursor: 'pointer' }}
-          />
-          <div>
-            <span style={{ fontWeight: 500, color: '#92400e', fontSize: '0.9rem' }}>
-              Confirmo que las condiciones de ingreso registradas reflejan el estado real del vehículo al momento de la recepción
-            </span>
-            <span style={{ color: '#a16207', fontSize: '0.8rem', display: 'block', marginTop: 2 }}>
-              Esta confirmación tiene validez como acuerdo entre el operario y el cliente
-            </span>
-          </div>
-        </label>
+        <div className="recepcion-disclaimer-box">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', margin: 0, padding: 0 }}>
+            <input
+              type="checkbox"
+              checked={confirmacionAcuerdo}
+              onChange={(e) => setConfirmacionAcuerdo(e.target.checked)}
+              disabled={estadoEnvio === 'enviando'}
+              style={{ width: 18, height: 18, cursor: 'pointer' }}
+            />
+            <div>
+              <span style={{ fontWeight: 500, color: '#92400e', fontSize: '0.9rem' }}>
+                Confirmo que las condiciones de ingreso registradas reflejan el estado real del vehículo al momento de la recepción
+              </span>
+              <span style={{ color: '#a16207', fontSize: '0.8rem', display: 'block', marginTop: 2 }}>
+                Esta confirmación tiene validez como acuerdo entre el operario y el cliente
+              </span>
+            </div>
+          </label>
+        </div>
 
         <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
           <div style={{ display: 'grid', gap: 2 }}>
@@ -2473,26 +2536,26 @@ function PasoConfirmacion({ orden, cliente, vehiculo, observations, tieneFoto, t
       })
 
   return (
-    <article className="panel" style={{ textAlign: 'center', padding: '32px 24px' }}>
+    <article className="panel" style={{ textAlign: 'center', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
+          gap: 10,
+          padding: '12px 24px',
+          borderRadius: 999,
           background: '#dcfce7',
-          color: '#16a34a',
+          color: '#15803d',
           marginBottom: 16,
+          alignSelf: 'center',
+          fontWeight: 700,
+          fontSize: '1.2rem',
+          boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)',
         }}
       >
-        <CheckCircle2 size={36} strokeWidth={2} />
+        <CheckCircle2 size={24} strokeWidth={2.5} style={{ color: '#16a34a', flexShrink: 0 }} />
+        <span>Recepción Registrada</span>
       </div>
-
-      <h2 style={{ margin: '0 0 4px', color: '#15803d' }}>
-        Recepción Registrada
-      </h2>
       <p style={{ color: '#6b7280', marginBottom: 24 }}>
         El vehículo ha sido registrado para revisión técnico-mecánica.
       </p>

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   PreciosPage.css — Tarifas y Precios Módulo UI Premium
+   TarifasPage.css — Tarifas y Precios Módulo UI Premium
    Refero design reference: Linear-style pricing grid, unified surface,
    monospace typography, alfa-opacity badges, ghost/minimalist actions.
    ═══════════════════════════════════════════════════════════════ */
@@ -50,12 +50,13 @@
   border: none;
 }
 
-/* ── GRID DE TARIFAS ────────────────────────────────────────── */
-.pr-grid {
+/* ── GRID DE TARIFAS — ESTIRADO PREMIUM CON AUTO-FIT ────────── */
+.tarifas-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
-  width: 100%;
+  width: 100% !important;
+  max-width: none !important;
 }
 
 /* ── PRICING CARD ───────────────────────────────────────────── */
@@ -213,6 +214,19 @@
   background: var(--pr-accent-tint);
   border-color: rgba(21, 93, 252, 0.2);
   color: var(--pr-accent);
+}
+
+/* Ver — perfil bajo neutral sutil */
+.pr-btn-action--view {
+  background: transparent;
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-muted);
+}
+
+.pr-btn-action--view:hover {
+  background: #f1f5f9;
+  border-color: var(--pr-border-strong);
+  color: var(--pr-text);
 }
 
 /* Eliminar — perfil bajo rojo sutil */

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   DollarSign,
   Plus,
@@ -8,7 +9,8 @@ import {
   Loader2,
   X,
   AlertCircle,
-  Tag
+  Tag,
+  Eye
 } from 'lucide-react'
 import { animate, stagger } from 'animejs'
 import { precioService } from '../services/precioService'
@@ -16,7 +18,7 @@ import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
-import './PreciosPage.css'
+import './TarifasPage.css'
 
 export function PreciosPage() {
   const [prices, setPrices] = useState<Precio[]>([])
@@ -29,7 +31,9 @@ export function PreciosPage() {
 
   // Modales
   const [showFormModal, setShowFormModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedPrice, setSelectedPrice] = useState<Precio | null>(null)
+  const [detailPrice, setDetailPrice] = useState<Precio | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Datos para nuevo/editar precio
@@ -262,7 +266,7 @@ export function PreciosPage() {
           <p>No se encontraron tarifas configuradas para los filtros seleccionados.</p>
         </div>
       ) : (
-        <div className="pr-grid">
+        <div className="tarifas-cards-grid">
           {prices.map((p) => (
             <div 
               key={p.id}
@@ -289,35 +293,47 @@ export function PreciosPage() {
                 <p className="pr-desc">{p.description}</p>
               </div>
 
-              {isAdmin && (
-                <div className="pr-card-footer">
-                  <button 
-                    type="button"
-                    className="pr-btn-action pr-btn-action--edit"
-                    onClick={() => handleOpenEdit(p)}
-                  >
-                    <Pencil size={13} /> Editar
-                  </button>
-                  <button 
-                    type="button"
-                    className="pr-btn-action pr-btn-action--delete"
-                    onClick={() => handleDelete(p.id)}
-                  >
-                    <Trash2 size={13} /> Eliminar
-                  </button>
-                </div>
-              )}
+              <div className="pr-card-footer">
+                <button 
+                  type="button"
+                  className="pr-btn-action pr-btn-action--view"
+                  onClick={() => {
+                    setDetailPrice(p)
+                    setShowDetailModal(true)
+                  }}
+                >
+                  <Eye size={13} /> Ver
+                </button>
+                {isAdmin && (
+                  <>
+                    <button 
+                      type="button"
+                      className="pr-btn-action pr-btn-action--edit"
+                      onClick={() => handleOpenEdit(p)}
+                    >
+                      <Pencil size={13} /> Editar
+                    </button>
+                    <button 
+                      type="button"
+                      className="pr-btn-action pr-btn-action--delete"
+                      onClick={() => handleDelete(p.id)}
+                    >
+                      <Trash2 size={13} /> Eliminar
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
       )}
       </article>
 
-      {showFormModal && (
-        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+      {showFormModal && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
             <form 
               onSubmit={handleSubmit}
-              className="floating-modal-box max-w-md"
+              className="modal-window-premium"
               style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
             >
               <header className="floating-modal-header">
@@ -415,7 +431,69 @@ export function PreciosPage() {
                 </button>
               </footer>
             </form>
+          </div>,
+          document.body
+      )}
+
+      {showDetailModal && detailPrice && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
+          <div 
+            className="modal-window-premium"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
+          >
+            <header className="floating-modal-header">
+              <h3>Detalles de la Tarifa</h3>
+              <button 
+                type="button" 
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setShowDetailModal(false)}
+                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+              >
+                <X size={24} />
+              </button>
+            </header>
+
+            <div className="floating-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBlock: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="pr-badge-vehicle">{formatLabel(detailPrice.vehicleType)}</span>
+                <span className={`pr-badge-status ${detailPrice.isActive ? 'pr-badge-status--active' : 'pr-badge-status--inactive'}`}>
+                  {detailPrice.isActive ? 'Activa' : 'Inactiva'}
+                </span>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--pr-border)', paddingBottom: '0.75rem' }}>
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Monto</span>
+                <div className="pr-price" style={{ fontSize: '2.25rem', marginTop: '4px' }}>{formatCOP(detailPrice.amount)}</div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Tipo de revisión</span>
+                <div className="pr-revision-type" style={{ marginTop: '4px', fontSize: '0.9rem' }}>
+                  <span className="pr-revision-icon"><Tag size={16} /></span> {formatLabel(detailPrice.revisionType)}
+                </div>
+              </div>
+
+              {detailPrice.description && (
+                <div>
+                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Descripción / Notas</span>
+                  <p style={{ marginTop: '4px', fontSize: '0.875rem', color: 'var(--pr-text-muted)', lineHeight: 1.5 }}>{detailPrice.description}</p>
+                </div>
+              )}
+            </div>
+
+            <footer className="floating-modal-footer">
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={() => setShowDetailModal(false)}
+                style={{ width: '100%', height: '44px' }}
+              >
+                Cerrar
+              </button>
+            </footer>
           </div>
+        </div>,
+        document.body
       )}
     </div>
   )

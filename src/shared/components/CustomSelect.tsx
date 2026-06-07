@@ -54,8 +54,8 @@ export function CustomSelect({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: disabled ? '#f1f5f9' : 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #cbd5e1',
+          background: disabled ? '#f1f5f9' : '#f8fafc',
+          border: '1px solid #e2e8f0',
           borderRadius: '12px',
           padding: '0.7rem 0.85rem',
           minHeight: '44px',
@@ -65,17 +65,19 @@ export function CustomSelect({
           textAlign: 'left',
           boxShadow: 'none',
           marginTop: '0.35rem',
-          transition: 'border-color 0.2s, box-shadow 0.2s',
+          transition: 'background 0.22s, border-color 0.22s, box-shadow 0.22s',
           opacity: disabled ? 0.7 : 1,
         }}
         onFocus={(e) => {
           if (!disabled) {
+            e.currentTarget.style.background = '#ffffff'
             e.currentTarget.style.borderColor = '#155dfc'
-            e.currentTarget.style.boxShadow = '0 0 0 4px rgba(21, 93, 252, 0.12)'
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(21, 93, 252, 0.12)'
           }
         }}
         onBlur={(e) => {
-          e.currentTarget.style.borderColor = '#cbd5e1'
+          e.currentTarget.style.background = '#f8fafc'
+          e.currentTarget.style.borderColor = '#e2e8f0'
           e.currentTarget.style.boxShadow = 'none'
         }}
       >

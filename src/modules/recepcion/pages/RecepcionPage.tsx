@@ -77,7 +77,7 @@ interface BadgeInfo {
 
 function estadoBadge(insp: InspectionSummary | InspectionDetail, backendStatuses?: Estado[]): BadgeInfo {
   // Intentar buscar el estado en los cargados del backend
-  const statusId = insp.status_id || (insp as any).status?.id
+  const statusId = (insp as any).statusId || insp.status_id || (insp as any).status?.id
   const matched = backendStatuses?.find((s) => s.id === statusId)
   if (matched) {
     return {
@@ -191,7 +191,9 @@ export function RecepcionPage() {
       if (detail) {
         setEditMileage(detail.mileage || '')
         setEditObservations(detail.observations || '')
-        if (detail.status_id) {
+        if ((detail as any).statusId) {
+          setEditStatusId(String((detail as any).statusId))
+        } else if (detail.status_id) {
           setEditStatusId(String(detail.status_id))
         } else if ((detail as any).status?.id) {
           setEditStatusId(String((detail as any).status.id))
@@ -229,7 +231,7 @@ export function RecepcionPage() {
       // Actualizar estado si fue seleccionado uno válido
       if (editStatusId) {
         const detail = await inspeccionService.obtenerDetalle(editInspectionId)
-        const oldStatusId = detail?.status_id || (detail as any)?.status?.id
+        const oldStatusId = (detail as any)?.statusId || detail?.status_id || (detail as any)?.status?.id
         if (String(oldStatusId) !== String(editStatusId)) {
           // LLamada a endpoint PATCH /api/v1/inspections/{id}/status
           const { ordenServicioService } = await import('../services/ordenServicioService')
@@ -263,7 +265,7 @@ export function RecepcionPage() {
     if (statusFilter === 'recepcion' && labelLower === 'en recepción') return matchesSearch
     
     // O si el filtro coincide exactamente con el ID del estado o el código
-    const statusId = insp.status_id || (insp as any).status?.id
+    const statusId = (insp as any).statusId || insp.status_id || (insp as any).status?.id
     const matchedStatus = statuses.find((s) => s.id === statusId)
     if (matchedStatus && (statusFilter === matchedStatus.id || statusFilter === matchedStatus.code.toLowerCase())) {
       return matchesSearch

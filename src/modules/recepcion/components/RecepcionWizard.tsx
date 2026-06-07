@@ -980,7 +980,7 @@ function PasoVehiculo({
               return (
                 <div key={v.id} className="vehiculo-select-responsive-card">
                   {/* Placa como badge destacado */}
-                  <div className="vehiculo-card-placa">{v.placa}</div>
+                  <div className="vehiculo-card-placa-badge">{v.placa}</div>
                   <div className="vehiculo-card-body">
                     {marcaNombre && (
                       <div className="vehiculo-card-row">
@@ -1004,7 +1004,7 @@ function PasoVehiculo({
                   <div className="vehiculo-card-footer">
                     <button
                       onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
-                      className="btn-seleccionar-vehiculo-mobile"
+                      className="vehiculo-select-card-btn"
                     >
                       Seleccionar
                     </button>

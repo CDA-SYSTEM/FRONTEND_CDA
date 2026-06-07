@@ -1639,9 +1639,10 @@
 
   /* Mostrar tarjetas, ocultar tabla */
   .recepcion-mobile-vehicles-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    padding: 8px 12px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -1650,14 +1651,14 @@
 
   /* Tarjeta individual de vehículo */
   .vehiculo-select-responsive-card {
-    background: #ffffff;
-    border: 1px solid var(--rc-border, #e8ecf0);
-    border-radius: 12px;
-    padding: 12px 14px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -1666,44 +1667,52 @@
   }
 
   /* Badge de placa */
-  .vehiculo-card-placa {
+  .vehiculo-card-placa-badge {
     font-family: ui-monospace, 'Cascadia Code', monospace;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 4px 10px;
-    background: #f1f5f9;
-    border-radius: 6px;
+    padding: 4px 10px !important;
+    background: #f1f5f9 !important;
+    border-radius: 6px !important;
     align-self: flex-start;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1 !important;
   }
 
   .vehiculo-card-body {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    border-top: 1px solid var(--rc-border, #e8ecf0);
-    padding-top: 8px;
-  }
-
-  .vehiculo-card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85rem;
     gap: 8px;
   }
 
+  .vehiculo-card-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .vehiculo-card-row:not(:last-child) {
+    border-bottom: 1px dashed #f1f5f9 !important;
+    padding-bottom: 8px !important;
+  }
+
   .vehiculo-card-label {
-    color: var(--rc-text-muted, #64748b);
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
     flex-shrink: 0;
   }
 
   .vehiculo-card-value {
-    color: var(--rc-text, #0f172a);
-    font-weight: 500;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
     text-align: right;
     min-width: 0;
     overflow: hidden;
@@ -1711,19 +1720,21 @@
   }
 
   .vehiculo-card-footer {
-    margin-top: 2px;
+    margin-top: 4px;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .btn-seleccionar-vehiculo-mobile {
+  .vehiculo-select-card-btn {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    padding: 9px 16px;
+    padding: 10px 16px !important;
     font-size: 0.875rem;
-    background: rgba(79, 70, 229, 0.1);
-    color: #4f46e5;
-    border: 1px solid rgba(79, 70, 229, 0.2);
-    border-radius: 8px;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
     cursor: pointer;
     font-weight: 600;
     display: flex;
@@ -1733,8 +1744,8 @@
     transition: background 120ms ease;
   }
 
-  .btn-seleccionar-vehiculo-mobile:hover {
-    background: rgba(79, 70, 229, 0.16);
+  .vehiculo-select-card-btn:hover {
+    background: #1d4ed8 !important;
   }
 
   .btn-registrar-luego-mobile {

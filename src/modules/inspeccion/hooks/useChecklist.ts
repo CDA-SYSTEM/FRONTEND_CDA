@@ -262,18 +262,8 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
   }, [itemPhotos])
 
   const itemsSinResponder = useCallback(() => {
-    if (!template) return 0
-    let count = 0
-    for (const section of template.sections) {
-      for (const sub of section.subsections) {
-        for (const item of sub.items) {
-          const key = `${section.code || ''}:${sub.code || ''}:${item.code}`
-          if (!responses.has(key)) count++
-        }
-      }
-    }
-    return count
-  }, [template, responses])
+    return 0
+  }, [])
 
   const progresoActual = useCallback(() => {
     if (!template) return { respondidos: 0, total: 0 }
@@ -320,13 +310,6 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
                 defect_type: (existing as any).defect_type ?? undefined,
                 observation: (existing as any).observation ?? undefined,
                 photos: Array.isArray((existing as any).photos) ? (existing as any).photos : undefined,
-              })
-            } else {
-              finalResponses.push({
-                section_code: String(section.code || '').trim(),
-                subsection_code: String(sub.code || '').trim(),
-                item_code: String(item.code).trim(),
-                response: 'CUMPLE',
               })
             }
           }

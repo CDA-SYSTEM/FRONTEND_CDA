@@ -275,7 +275,7 @@ export function FacturacionPage() {
           />
           <p className="text-gray-500 text-sm" style={{ marginTop: '4px' }}>Gestione las facturas del sistema y asócielas con inspecciones de recepción.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="facturacion-actions-container">
           <button 
             className="btn btn-secondary flex items-center gap-2"
             onClick={() => setShowGenerateModal(true)}

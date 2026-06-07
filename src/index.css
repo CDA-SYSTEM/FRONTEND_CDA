@@ -1465,3 +1465,26 @@ a {
   border-color: #155dfc;
   box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12);
 }
+
+/* ── COLA DE FACTURACIÓN BOTONES CABECERA (Refero Design) ── */
+.facturacion-actions-container {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
+
+.facturacion-actions-container .btn {
+  margin-right: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .facturacion-actions-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+}
+

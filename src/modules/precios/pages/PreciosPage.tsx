@@ -159,7 +159,9 @@ export function PreciosPage() {
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(val)
-    const formatLabel = (txt: string) => {
+  }
+
+  const formatLabel = (txt: string) => {
     return txt.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
   }
 
@@ -410,6 +412,7 @@ export function PreciosPage() {
                   disabled={submitting}
                 >
                   {submitting ? 'Guardando...' : 'Guardar Tarifa'}
+                </button>
               </footer>
             </form>
           </div>

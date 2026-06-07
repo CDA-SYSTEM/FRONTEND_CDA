@@ -100,7 +100,7 @@ export function ClienteBuscador({
               </thead>
               <tbody>
                 {resultados.map((c) => {
-                  const isActive = (c as Record<string, unknown>).active !== false
+                  const isActive = (c as any).active !== false
                   return (
                     <tr key={c.id}>
                       <td>
@@ -133,7 +133,7 @@ export function ClienteBuscador({
           {/* Vista mobile cards */}
           <div className="clients-cards-mobile">
             {resultados.map((c) => {
-              const isActive = (c as Record<string, unknown>).active !== false
+              const isActive = (c as any).active !== false
               return (
                 <div key={c.id} className="client-card">
                   <div className="client-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

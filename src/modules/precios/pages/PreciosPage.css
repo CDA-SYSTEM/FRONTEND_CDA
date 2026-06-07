@@ -1,0 +1,229 @@
+/* ═══════════════════════════════════════════════════════════════
+   PreciosPage.css — Tarifas y Precios Módulo UI Premium
+   Refero design reference: Linear-style pricing grid, unified surface,
+   monospace typography, alfa-opacity badges, ghost/minimalist actions.
+   ═══════════════════════════════════════════════════════════════ */
+
+.pr-root {
+  --pr-bg:              #f8fafc;
+  --pr-surface:         #ffffff;
+  --pr-border:          #e2e8f0;
+  --pr-border-strong:   #cbd5e1;
+  --pr-text:            #0f172a;
+  --pr-text-muted:      #64748b;
+  --pr-text-subtle:     #94a3b8;
+  --pr-accent:          #155dfc;
+  --pr-accent-tint:     rgba(21, 93, 252, 0.06);
+  --pr-accent-hover:    rgba(21, 93, 252, 0.12);
+  
+  --pr-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 4px 16px rgba(15, 23, 42, 0.05),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --pr-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --pr-radius-card:     16px;
+  --pr-radius-btn:      8px;
+  --pr-radius-badge:    6px;
+
+  /* Motion */
+  --pr-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --pr-ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pr-dur-fast:        160ms;
+  --pr-dur-default:     220ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Header card style if wrapped */
+.pr-root .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+/* ── GRID DE TARIFAS ────────────────────────────────────────── */
+.pr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* ── PRICING CARD ───────────────────────────────────────────── */
+.pr-card {
+  background: var(--pr-surface);
+  border: 1px solid var(--pr-border);
+  border-radius: var(--pr-radius-card);
+  box-shadow: var(--pr-shadow-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 250px;
+  transition:
+    box-shadow var(--pr-dur-default) var(--pr-ease-out),
+    border-color var(--pr-dur-default) var(--pr-ease-out),
+    transform var(--pr-dur-default) var(--pr-ease-out);
+}
+
+.pr-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--pr-border-strong);
+  box-shadow: var(--pr-shadow-hover);
+}
+
+.pr-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pr-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Badges con opacidad alfa */
+.pr-badge-vehicle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--pr-radius-badge);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(21, 93, 252, 0.08);
+  color: var(--pr-accent);
+}
+
+.pr-badge-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--pr-radius-badge);
+  letter-spacing: 0.02em;
+}
+
+.pr-badge-status--active {
+  background: rgba(34, 197, 94, 0.08);
+  color: #16a34a;
+}
+
+.pr-badge-status--inactive {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+/* Precio destacado en monospace */
+.pr-price {
+  font-family: ui-monospace, 'SF Mono', Cascadia, Menlo, monospace;
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  color: var(--pr-text);
+  letter-spacing: -0.05em;
+  margin: 0.25rem 0 0 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Tipo de revisión */
+.pr-revision-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pr-text-muted);
+}
+
+.pr-revision-icon {
+  color: var(--pr-text-subtle);
+  display: flex;
+  align-items: center;
+}
+
+/* Descripción */
+.pr-desc {
+  font-size: 0.875rem;
+  color: var(--pr-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  min-height: 42px; /* Alineación vertical */
+}
+
+/* ── BOTONES ACCIÓN MINIMALISTAS EN EL PIE ────────────────────── */
+.pr-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid rgba(241, 245, 249, 0.8);
+  padding-top: 1rem;
+  margin-top: 1.25rem;
+}
+
+.pr-btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px !important;
+  height: 34px !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  border-radius: var(--pr-radius-btn);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition:
+    background    var(--pr-dur-fast) var(--pr-ease-out),
+    border-color  var(--pr-dur-fast) var(--pr-ease-out),
+    color         var(--pr-dur-fast) var(--pr-ease-out),
+    transform     90ms              var(--pr-ease-out);
+}
+
+.pr-btn-action:active {
+  transform: scale(0.95);
+}
+
+.pr-btn-action svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.25px;
+}
+
+/* Editar — perfil bajo azul sutil */
+.pr-btn-action--edit {
+  background: transparent;
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-muted);
+}
+
+.pr-btn-action--edit:hover {
+  background: var(--pr-accent-tint);
+  border-color: rgba(21, 93, 252, 0.2);
+  color: var(--pr-accent);
+}
+
+/* Eliminar — perfil bajo rojo sutil */
+.pr-btn-action--delete {
+  background: transparent;
+  border: 1px solid var(--pr-border);
+  color: var(--pr-text-muted);
+}
+
+.pr-btn-action--delete:hover {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}

@@ -16,6 +16,7 @@ import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './PreciosPage.css'
 
 export function PreciosPage() {
   const [prices, setPrices] = useState<Precio[]>([])
@@ -158,14 +159,12 @@ export function PreciosPage() {
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(val)
-  }
-
-  const formatLabel = (txt: string) => {
+    const formatLabel = (txt: string) => {
     return txt.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
   }
 
   return (
-    <>
+    <div className="pr-root">
       <article className="panel">
       <header className="flex justify-between items-center mb-6">
         <div>
@@ -261,46 +260,48 @@ export function PreciosPage() {
           <p>No se encontraron tarifas configuradas para los filtros seleccionados.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="pr-grid">
           {prices.map((p) => (
             <div 
               key={p.id}
-              className="price-card bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col justify-between"
+              className="pr-card price-card"
               style={{ opacity: 0 }} /* Anime.js lo animará a 1 */
             >
-              <div>
-                <header className="flex justify-between items-start mb-4">
-                  <span className="badge text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded">
+              <div className="pr-card-body">
+                <header className="pr-card-header">
+                  <span className="pr-badge-vehicle">
                     {formatLabel(p.vehicleType)}
                   </span>
-                  <span className={`text-xs px-2 py-1 rounded font-bold ${
-                    p.isActive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                  <span className={`pr-badge-status ${
+                    p.isActive ? 'pr-badge-status--active' : 'pr-badge-status--inactive'
                   }`}>
                     {p.isActive ? 'Activo' : 'Inactivo'}
                   </span>
                 </header>
-                <h3 className="text-2xl font-black text-gray-800 mb-2 flex items-center gap-1">
+                <h3 className="pr-price">
                   {formatCOP(p.amount)}
                 </h3>
-                <h4 className="text-sm font-bold text-gray-600 mb-2 flex items-center gap-1">
-                  <Tag size={14} className="text-gray-400" /> {formatLabel(p.revisionType)}
+                <h4 className="pr-revision-type">
+                  <span className="pr-revision-icon"><Tag size={14} /></span> {formatLabel(p.revisionType)}
                 </h4>
-                <p className="text-sm text-gray-500 mb-6">{p.description}</p>
+                <p className="pr-desc">{p.description}</p>
               </div>
 
               {isAdmin && (
-                <div className="flex gap-2 border-t border-gray-50 pt-4 mt-auto justify-end">
+                <div className="pr-card-footer">
                   <button 
-                    className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs"
+                    type="button"
+                    className="pr-btn-action pr-btn-action--edit"
                     onClick={() => handleOpenEdit(p)}
                   >
-                    <Pencil size={14} /> Editar
+                    <Pencil size={13} /> Editar
                   </button>
                   <button 
-                    className="btn btn-secondary flex items-center gap-1 py-1 px-3 text-xs text-red-500 hover:bg-red-50"
+                    type="button"
+                    className="pr-btn-action pr-btn-action--delete"
                     onClick={() => handleDelete(p.id)}
                   >
-                    <Trash2 size={14} /> Eliminar
+                    <Trash2 size={13} /> Eliminar
                   </button>
                 </div>
               )}
@@ -308,112 +309,111 @@ export function PreciosPage() {
           ))}
         </div>
       )}
-    </article>
+      </article>
 
-    {showFormModal && (
-      <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
-          <form 
-            onSubmit={handleSubmit}
-            className="floating-modal-box max-w-md"
-            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
-          >
-            <header className="floating-modal-header">
-              <h3>
-                {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
-              </h3>
-              <button 
-                type="button" 
-                className="text-gray-400 hover:text-gray-600"
-                onClick={() => setShowFormModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
-              >
-                <X size={24} />
-              </button>
-            </header>
+      {showFormModal && (
+        <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
+            <form 
+              onSubmit={handleSubmit}
+              className="floating-modal-box max-w-md"
+              style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
+            >
+              <header className="floating-modal-header">
+                <h3>
+                  {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
+                </h3>
+                <button 
+                  type="button" 
+                  className="text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowFormModal(false)}
+                  style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                >
+                  <X size={24} />
+                </button>
+              </header>
 
-            <div className="floating-modal-body">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
-                <CustomSelect
-                  options={[
-                    { value: 'LIVIANO', label: 'Liviano' },
-                    { value: 'PESADO', label: 'Pesado' },
-                    { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
-                    { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
-                  ]}
-                  value={formData.vehicleType}
-                  onChange={(val) => setFormData({ ...formData, vehicleType: val })}
-                />
+              <div className="floating-modal-body">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Vehículo *</label>
+                  <CustomSelect
+                    options={[
+                      { value: 'LIVIANO', label: 'Liviano' },
+                      { value: 'PESADO', label: 'Pesado' },
+                      { value: 'MOTOCICLETA_2_TIEMPOS', label: 'Moto 2 Tiempos' },
+                      { value: 'MOTOCICLETA_4_TIEMPOS', label: 'Moto 4 Tiempos' }
+                    ]}
+                    value={formData.vehicleType}
+                    onChange={(val) => setFormData({ ...formData, vehicleType: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Revisión *</label>
+                  <CustomSelect
+                    options={[
+                      { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
+                      { value: 'PREVENTIVA', label: 'Preventiva' }
+                    ]}
+                    value={formData.revisionType}
+                    onChange={(val) => setFormData({ ...formData, revisionType: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Monto (COP) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    className="form-control"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción / Notas *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Revisión tecnico-mecanica vehiculo liviano"
+                    className="form-control"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    style={{ width: 'auto', minHeight: 'initial', marginTop: 0 }}
+                  />
+                  <label htmlFor="isActive" className="text-sm font-semibold text-gray-700">Tarifa Activa</label>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Revisión *</label>
-                <CustomSelect
-                  options={[
-                    { value: 'TECNICO_MECANICA', label: 'Técnico Mecánica' },
-                    { value: 'PREVENTIVA', label: 'Preventiva' }
-                  ]}
-                  value={formData.revisionType}
-                  onChange={(val) => setFormData({ ...formData, revisionType: val })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Monto (COP) *</label>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  className="form-control"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción / Notas *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Revisión tecnico-mecanica vehiculo liviano"
-                  className="form-control"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  style={{ width: 'auto', minHeight: 'initial', marginTop: 0 }}
-                />
-                <label htmlFor="isActive" className="text-sm font-semibold text-gray-700">Tarifa Activa</label>
-              </div>
-            </div>
-
-            <footer className="floating-modal-footer">
-              <button 
-                type="button" 
-                className="btn btn-secondary"
-                disabled={submitting}
-                onClick={() => setShowFormModal(false)}
-              >
-                Cancelar
-              </button>
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? 'Guardando...' : 'Guardar Tarifa'}
-              </button>
-            </footer>
-          </form>
-        </div>
+              <footer className="floating-modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  disabled={submitting}
+                  onClick={() => setShowFormModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Guardando...' : 'Guardar Tarifa'}
+              </footer>
+            </form>
+          </div>
       )}
-    </>
+    </div>
   )
 }

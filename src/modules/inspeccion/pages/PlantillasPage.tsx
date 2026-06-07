@@ -498,25 +498,40 @@ export function PlantillasPage() {
       {viewingTemplate && createPortal(
         <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <div 
-            className="modal-window-premium max-w-lg"
-            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)', maxHeight: '80vh' }}
+            className="modal-window-premium max-w-lg plantilla-detalle-modal-window"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3>{viewingTemplate.name}</h3>
                 <span className="text-xs text-gray-400">{viewingTemplate.code} — Versión {viewingTemplate.version ?? 1}</span>
               </div>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setViewingTemplate(null)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body" style={{ textAlign: 'left', overflowY: 'auto' }}>
+            <div className="plantilla-detalle-modal-body">
               {viewingTemplate.sections?.map((section) => (
                 <div key={section.id || section.code} style={{ marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                   <h4 style={{ margin: '0 0 8px 0', color: '#155DFC', fontSize: '1rem', fontWeight: 700 }}>
@@ -541,7 +556,7 @@ export function PlantillasPage() {
               ))}
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="plantilla-detalle-modal-footer">
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -550,7 +565,7 @@ export function PlantillasPage() {
               >
                 Cerrar
               </button>
-            </footer>
+            </div>
           </div>
         </div>,
         document.body

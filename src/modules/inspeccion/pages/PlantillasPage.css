@@ -219,7 +219,8 @@
   color: #155dfc;
 }
 
-/* Eliminar — perfil bajo rojo sutil */
+
+/* Ver — perfil bajo rojo sutil */
 .plt-btn-action--delete {
   background: transparent;
   border: 1px solid var(--plt-border);
@@ -231,3 +232,52 @@
   border-color: rgba(239, 68, 68, 0.2);
   color: #ef4444;
 }
+
+/* ── MODAL DETALLE DE PLANTILLA ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.plantilla-detalle-modal-window {
+  max-height: calc(100vh - 80px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+.plantilla-detalle-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  text-align: left;
+}
+
+/* Scrollbar premium */
+.plantilla-detalle-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.plantilla-detalle-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+

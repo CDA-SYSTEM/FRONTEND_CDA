@@ -336,17 +336,31 @@ export function PreciosPage() {
               className="modal-window-premium tarifa-modal-window"
               style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
             >
-              <header className="floating-modal-header">
+              <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>
                   {selectedPrice ? 'Editar Tarifa' : 'Agregar Nueva Tarifa'}
                 </h3>
-                <button 
-                  type="button" 
-                  className="text-gray-400 hover:text-gray-600"
+                <button
+                  type="button"
                   onClick={() => setShowFormModal(false)}
-                  style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    padding: 8,
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    transition: 'background-color 0.2s',
+                    boxShadow: 'none',
+                    minHeight: 'initial'
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
                 >
-                  <X size={24} />
+                  <X size={18} />
                 </button>
               </header>
 

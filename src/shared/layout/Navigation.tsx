@@ -134,7 +134,7 @@ export function Navigation() {
             <div className="mobile-nav-sheet-header">
               <h3>Más opciones</h3>
               <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-sheet-close" aria-label="Cerrar">
-                <X size={20} color="#ffffff" strokeWidth={2.5} />
+                <span style={{ fontSize: '1.6rem', color: '#ffffff', lineHeight: 1, display: 'block', transform: 'translateY(-1px)' }}>&times;</span>
               </button>
             </div>
             <ul className="mobile-nav-sheet-list">

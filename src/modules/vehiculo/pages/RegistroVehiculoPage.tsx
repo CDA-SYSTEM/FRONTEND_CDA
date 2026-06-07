@@ -1785,7 +1785,7 @@ export function RegistroVehiculoPage() {
 
               {/* Placa */}
               <label style={labelStyle}>
-                <div>Placa <span style={{ color: '#ef4444' }}>*</span></div>
+                <div>Placa <strong style={{ color: '#ef4444', fontWeight: 'normal' }}>*</strong></div>
                 <input
                   value={editForm.placa || ''}
                   onChange={(e) => setEditForm(f => ({ ...f, placa: e.target.value.toUpperCase() }))}

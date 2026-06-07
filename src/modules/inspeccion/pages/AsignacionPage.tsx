@@ -377,14 +377,16 @@ export function AsignacionPage() {
             <span className="as-label-text">Vehículo ID</span>
             <input className="as-input" autoComplete="off" spellCheck={false} name="vehicleIdFiltro" value={vehicleIdFiltro} onChange={(e) => setVehicleIdFiltro(e.target.value)} placeholder="1" />
           </label>
-          <button onClick={limpiarFiltros} className="as-btn-filter-clear">
-            <Filter size={16} />
-            Limpiar
-          </button>
-          <button onClick={onBuscar} className="as-btn-filter-search">
-            <Search size={16} />
-            Buscar
-          </button>
+          <div className="as-filters-actions">
+            <button onClick={limpiarFiltros} className="as-btn-filter-clear">
+              <Filter size={16} />
+              Limpiar
+            </button>
+            <button onClick={onBuscar} className="as-btn-filter-search">
+              <Search size={16} />
+              Buscar
+            </button>
+          </div>
         </div>
       </div>
 

@@ -70,8 +70,14 @@
 
 @media (min-width: 1024px) {
   .as-filters-grid {
-    grid-template-columns: 1.2fr 1fr 1fr 1fr auto auto;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
   }
+}
+
+.as-filters-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 /* Inputs & Labels */
@@ -495,5 +501,56 @@
 .as-pagination-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  /* Buttons: Limpiar/Buscar side by side */
+  .as-filters-actions {
+    display: flex !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .as-filters-actions .as-btn-filter-clear,
+  .as-filters-actions .as-btn-filter-search {
+    flex: 1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Carousel: Horizontal scroll for vehicle types */
+  .as-filter-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 4px 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+  }
+  
+  .as-filter-tabs::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+
+  .as-filter-tab {
+    flex-shrink: 0 !important;
+  }
+
+  /* Form Labels */
+  .as-field-label {
+    gap: 0 !important;
+  }
+
+  .as-label-text {
+    color: #64748b !important;
+    margin-bottom: 6px !important;
+    display: block !important;
+  }
 }
 

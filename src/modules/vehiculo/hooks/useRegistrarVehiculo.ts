@@ -85,6 +85,12 @@ export function useRegistrarVehiculo() {
   }, [pagina, limite, debouncedSearch])
 
   useEffect(() => {
+    if (searchTerm === '') {
+      setDebouncedSearch('')
+      setPagina(0)
+      return
+    }
+
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm)
       setPagina(0)

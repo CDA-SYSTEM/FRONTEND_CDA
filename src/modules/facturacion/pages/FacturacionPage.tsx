@@ -899,11 +899,12 @@ export function FacturacionPage() {
               </div>
 
               {/* Observaciones */}
-              <div style={{ marginTop: '1.5rem' }}>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones / Notas Adicionales</label>
+              <div className="observaciones-form-group" style={{ marginTop: '1.5rem' }}>
+                <label className="block text-xs font-semibold text-gray-600">Observaciones / Notas Adicionales</label>
                 <textarea
-                  className="form-control"
+                  className="factura-observaciones-textarea"
                   rows={2}
+                  placeholder="Ej: Ninguna de momento..."
                   value={newInvoice.observations}
                   onChange={(e) => setNewInvoice({ ...newInvoice, observations: e.target.value })}
                 />

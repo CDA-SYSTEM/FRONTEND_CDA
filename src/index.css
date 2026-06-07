@@ -1439,3 +1439,29 @@ a {
   align-items: center;
   gap: 12px;
 }
+
+.observaciones-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.factura-observaciones-textarea {
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px;
+  min-height: 90px;
+  resize: vertical;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.factura-observaciones-textarea:focus {
+  border-color: #155dfc;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12);
+}

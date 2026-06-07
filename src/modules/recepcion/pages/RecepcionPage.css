@@ -368,15 +368,16 @@
 /* ══════════════════════════════════════════════════════════════
    4. TABLA DE DATOS — premium limpio estilo Linear
    ══════════════════════════════════════════════════════════════ */
-.recepcion-table-scroll {
+.recepcion-table-scroll-wrapper {
   width: 100% !important;
+  max-width: 100% !important;
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
 }
 
 .recepcion-table {
   width: 100%;
-  min-width: 900px !important;
+  min-width: 1100px !important;
   border-collapse: collapse;
   font-size: 0.875rem;
 }

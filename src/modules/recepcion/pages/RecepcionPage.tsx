@@ -418,7 +418,7 @@ export function RecepcionPage() {
 
         {/* Table */}
         {!cargando && !error && filteredInspecciones.length > 0 && (
-          <div className="recepcion-table-scroll">
+          <div className="recepcion-table-scroll-wrapper">
             <div className="receptions-table-desktop">
               <table className="recepcion-table">
               <thead>

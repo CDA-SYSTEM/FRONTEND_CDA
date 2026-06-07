@@ -2270,7 +2270,7 @@ function PasoCondiciones({
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12 }}>
+          <div className="recepcion-llantas-grid">
             {tires.map((tire, index) => {
               const invalida = !Number.isFinite(tire.tire_pressure) || tire.tire_pressure <= 0
               return (
@@ -2327,92 +2327,95 @@ function PasoCondiciones({
         </section>
 
         {/* Observaciones */}
-        <label style={{ gridColumn: '1 / -1' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-            <FileText size={16} color="#64748b" />
-            <span style={{ fontWeight: 500 }}>Observaciones del estado del vehículo</span>
-          </div>
-          <textarea
-            placeholder="Describa el estado visual del vehículo al ingreso (combustible, daños previos, accesorios, etc.)"
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-            rows={4}
-            style={{ width: '100%', resize: 'vertical', minHeight: 80 }}
-            disabled={estadoEnvio === 'enviando'}
-          />
-        </label>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
+          <label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <FileText size={16} color="#64748b" />
+              <span style={{ fontWeight: 500 }}>Observaciones del estado del vehículo</span>
+            </div>
+            <textarea
+              placeholder="Describa el estado visual del vehículo al ingreso (combustible, daños previos, accesorios, etc.)"
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              rows={4}
+              disabled={estadoEnvio === 'enviando'}
+            />
+          </label>
+        </div>
 
         {/* Foto de ingreso */}
-        <label style={{ gridColumn: '1 / -1' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <Camera size={16} color="#64748b" />
-            <span style={{ fontWeight: 500 }}>Foto del estado de ingreso</span>
-            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(opcional — JPG, PNG, HEIC, máx 5 MB)</span>
-          </div>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
+          <label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <Camera size={16} color="#64748b" />
+              <span style={{ fontWeight: 500 }}>Foto del estado de ingreso</span>
+              <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>(opcional — JPG, PNG, HEIC, máx 5 MB)</span>
+            </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={estadoEnvio === 'enviando'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                background: '#f1f5f9',
-                color: '#475569',
-                border: '1px solid #e2e8f0',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-              }}
-            >
-              <Image size={16} />
-              {photoFile ? 'Cambiar foto' : 'Seleccionar archivo'}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/heic"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
-            {photoFile && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 6,
-                    overflow: 'hidden',
-                    border: '1px solid #e2e8f0',
-                    flexShrink: 0,
-                  }}
-                >
-                  <img
-                    src={URL.createObjectURL(photoFile)}
-                    alt="Vista previa"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={estadoEnvio === 'enviando'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <Image size={16} />
+                {photoFile ? 'Cambiar foto' : 'Seleccionar archivo'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/heic"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              {photoFile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 6,
+                      overflow: 'hidden',
+                      border: '1px solid #e2e8f0',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <img
+                      src={URL.createObjectURL(photoFile)}
+                      alt="Vista previa"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    {photoFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setPhotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                    style={{ fontSize: '0.8rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                  >
+                    X
+                  </button>
                 </div>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                  {photoFile.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { setPhotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                  style={{ fontSize: '0.8rem', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
-                >
-                  X
-                </button>
-              </div>
-            )}
-          </div>
-        </label>
+              )}
+            </div>
+          </label>
+        </div>
 
         {/* Firma digital */}
-        <div style={{ gridColumn: '1 / -1' }}>
+        <div style={{ gridColumn: '1 / -1' }} className="recepcion-field-group">
           <SignaturePad
             onSave={(blob) => setSignatureBlob(blob)}
             height={140}
@@ -2420,23 +2423,25 @@ function PasoCondiciones({
         </div>
 
         {/* Confirmación de acuerdo */}
-        <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={confirmacionAcuerdo}
-            onChange={(e) => setConfirmacionAcuerdo(e.target.checked)}
-            disabled={estadoEnvio === 'enviando'}
-            style={{ width: 18, height: 18, cursor: 'pointer' }}
-          />
-          <div>
-            <span style={{ fontWeight: 500, color: '#92400e', fontSize: '0.9rem' }}>
-              Confirmo que las condiciones de ingreso registradas reflejan el estado real del vehículo al momento de la recepción
-            </span>
-            <span style={{ color: '#a16207', fontSize: '0.8rem', display: 'block', marginTop: 2 }}>
-              Esta confirmación tiene validez como acuerdo entre el operario y el cliente
-            </span>
-          </div>
-        </label>
+        <div className="recepcion-disclaimer-box">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', margin: 0, padding: 0 }}>
+            <input
+              type="checkbox"
+              checked={confirmacionAcuerdo}
+              onChange={(e) => setConfirmacionAcuerdo(e.target.checked)}
+              disabled={estadoEnvio === 'enviando'}
+              style={{ width: 18, height: 18, cursor: 'pointer' }}
+            />
+            <div>
+              <span style={{ fontWeight: 500, color: '#92400e', fontSize: '0.9rem' }}>
+                Confirmo que las condiciones de ingreso registradas reflejan el estado real del vehículo al momento de la recepción
+              </span>
+              <span style={{ color: '#a16207', fontSize: '0.8rem', display: 'block', marginTop: 2 }}>
+                Esta confirmación tiene validez como acuerdo entre el operario y el cliente
+              </span>
+            </div>
+          </label>
+        </div>
 
         <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', padding: '12px 16px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
           <div style={{ display: 'grid', gap: 2 }}>

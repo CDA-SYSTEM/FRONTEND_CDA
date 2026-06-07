@@ -2030,62 +2030,70 @@ function PasoDetalle({
       </div>
 
       <div className="form-grid">
-        <label>
-          Kilometraje actual (km)
-          <input
-            type="number"
-            placeholder="Ej: 50000"
-            value={mileage}
-            onChange={(e) => setMileage(e.target.value)}
-            min={0}
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Kilometraje actual (km)
+            <input
+              type="number"
+              placeholder="Ej: 50000"
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+              min={0}
+            />
+          </label>
+        </div>
 
-        <label>
-          Tipo de revisión <span style={{ color: '#ef4444' }}>*</span>
-          <CustomSelect
-            options={tiposRevision.map((t) => ({ value: String(t.id), label: t.nombre }))}
-            value={String(revisionType)}
-            onChange={(val) => setRevisionType(val)}
-            placeholder="Seleccione..."
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Tipo de revisión <span className="asterisk">*</span>
+            <CustomSelect
+              options={tiposRevision.map((t) => ({ value: String(t.id), label: t.nombre }))}
+              value={String(revisionType)}
+              onChange={(val) => setRevisionType(val)}
+              placeholder="Seleccione..."
+            />
+          </label>
+        </div>
 
-        <label>
-          Tipo de cliente <span style={{ color: '#ef4444' }}>*</span>
-          <CustomSelect
-            options={tiposCliente.map((t) => ({ value: String(t.id), label: t.nombre }))}
-            value={String(customerType)}
-            onChange={(val) => setCustomerType(val)}
-            placeholder="Seleccione..."
-          />
-        </label>
+        <div className="recepcion-field-group">
+          <label>
+            Tipo de cliente <span className="asterisk">*</span>
+            <CustomSelect
+              options={tiposCliente.map((t) => ({ value: String(t.id), label: t.nombre }))}
+              value={String(customerType)}
+              onChange={(val) => setCustomerType(val)}
+              placeholder="Seleccione..."
+            />
+          </label>
+        </div>
 
         <div style={{ gridColumn: '1 / -1', display: 'grid', gap: 12 }}>
           <div style={{ padding: '10px 12px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', fontSize: '0.85rem' }}>
             La recepción asigna personal con rol <strong>Operario</strong>. La lista de usuarios está filtrada automáticamente.
           </div>
 
-          <label>
-            <span style={{ fontWeight: 500 }}>Operario a asignar <span style={{ color: '#ef4444' }}>*</span></span>
-            <CustomSelect
-              options={usuariosAsignables.map((u) => ({ value: String(u.id), label: labelPersonal(u) }))}
-              value={String(usuarioAsignadoId)}
-              onChange={(val) => setUsuarioAsignadoId(val)}
-              placeholder="Seleccione operario..."
-              disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
-            />
-            {cargandoUsuariosAsignables && (
-              <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
-                Cargando operarios disponibles...
-              </span>
-            )}
-            {errorUsuariosAsignables && (
-              <span style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem', display: 'block' }}>
-                {errorUsuariosAsignables}
-              </span>
-            )}
-          </label>
+          <div className="recepcion-field-group">
+            <label>
+              Operario a asignar <span className="asterisk">*</span>
+              <CustomSelect
+                options={usuariosAsignables.map((u) => ({ value: String(u.id), label: labelPersonal(u) }))}
+                value={String(usuarioAsignadoId)}
+                onChange={(val) => setUsuarioAsignadoId(val)}
+                placeholder="Seleccione operario..."
+                disabled={cargandoUsuariosAsignables || usuariosAsignables.length === 0}
+              />
+              {cargandoUsuariosAsignables && (
+                <span style={{ marginTop: 4, color: '#64748b', fontSize: '0.8rem', display: 'block' }}>
+                  Cargando operarios disponibles...
+                </span>
+              )}
+              {errorUsuariosAsignables && (
+                <span style={{ marginTop: 4, color: '#dc2626', fontSize: '0.8rem', display: 'block' }}>
+                  {errorUsuariosAsignables}
+                </span>
+              )}
+            </label>
+          </div>
         </div>
 
         <div style={{ marginTop: 8 }}>

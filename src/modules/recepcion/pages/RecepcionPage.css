@@ -1068,6 +1068,32 @@
   flex-shrink: 0;
 }
 
+/* ── PASO 3 DETALLE - REFRACTORIZACIÓN ELÁSTICA (Refero Design) ── */
+.recepcion-field-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recepcion-field-group label {
+  display: block;
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.recepcion-field-group label .asterisk {
+  display: inline !important;
+  color: #ef4444 !important;
+  font-size: 0.95rem !important;
+  margin-left: 4px;
+}
+
+.recepcion-field-group input[type="number"] {
+  max-width: 280px;
+}
+
 
 
 

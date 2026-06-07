@@ -16,7 +16,6 @@ import {
 } from 'lucide-react'
 import { trackerService } from '@/modules/tracker/services/trackerService'
 import type { TrackerDashboardData, TrackerCliente, TrackerVehiculo, TrackerPlanilla } from '@/modules/tracker/domain/tracker.types'
-import './TrackerPage.css'
 
 type NodeType = 'client' | 'vehicle' | 'planilla'
 
@@ -297,7 +296,7 @@ export function TrackerPage() {
   }
 
   return (
-    <div className="tracker-workspace-container">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '100%' }}>
       {/* ── Cabecera de Página ── */}
       <div className="page-header-responsive">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -470,10 +469,16 @@ export function TrackerPage() {
                 
                 {/* SVG Canvas Box */}
                 <div 
-                  className="tracker-graph-canvas-wrapper"
                   style={{
                     gridColumn: isMobile ? 'span 1' : (selectedNode ? 'span 2' : 'span 3'),
+                    background: '#fafafa',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 16,
+                    height: isMobile ? '450px' : '600px',
+                    position: 'relative',
+                    overflow: 'hidden',
                     cursor: isDragging ? 'grabbing' : 'grab',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
                   }}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
@@ -601,7 +606,6 @@ export function TrackerPage() {
                                 fill: '#1e293b',
                                 fontSize: '0.8rem',
                                 fontWeight: (isSelected || isSearchMatch) ? 700 : 500,
-                                fontFamily: (n.type === 'vehicle' || n.type === 'planilla') ? 'ui-monospace, SF Mono, Cascadia Mono, Menlo, Monaco, Consolas, monospace' : 'inherit',
                                 userSelect: 'none',
                                 textShadow: '0 1px 2px rgba(255,255,255,0.8)'
                               }}
@@ -875,7 +879,7 @@ export function TrackerPage() {
           )}
 
           {/* ── Sección de Estadísticas y Analítica ── */}
-          <div className="tracker-analytics-dashboard-row">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.25rem' }}>
             
             {/* Gráfico de Distribución por Marca */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>

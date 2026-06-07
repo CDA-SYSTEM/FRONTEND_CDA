@@ -1,7 +1,9 @@
+import { createPortal } from 'react-dom'
 import { CheckCircle2, XCircle, Key } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
 import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './UsuariosPage.css'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -57,7 +59,7 @@ export function UsuariosPage() {
   const isLoading = tab === 'usuarios' ? (loading && usuarios.length === 0) : (loadingCuentas && cuentas.length === 0)
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="usuarios-workspace">
       {/* Cabecera */}
       <div className="users-header">
         <div>
@@ -70,42 +72,16 @@ export function UsuariosPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre/correo/documento"
-            style={{
-              padding: '8px',
-              borderRadius: '6px',
-              minWidth: '200px',
-              flex: '1 1 auto',
-              marginTop: 0,
-              minHeight: 'auto',
-            }}
           />
           <button
             onClick={handleBuscar}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              background: '#fff',
-              color: '#334155',
-              boxShadow: 'none',
-            }}
+            className="btn-filter-action"
           >
             Buscar
           </button>
           <button
             onClick={handleLimpiarBusqueda}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              background: '#fff',
-              color: '#334155',
-              boxShadow: 'none',
-            }}
+            className="btn-filter-action"
           >
             Limpiar
           </button>
@@ -120,16 +96,7 @@ export function UsuariosPage() {
           )}
           <button
             onClick={() => setMostrarModal(true)}
-            style={{
-              padding: '8px 16px',
-              background: '#2563eb',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              minHeight: 'auto',
-              boxShadow: 'none',
-            }}
+            className="btn-create-user"
           >
             + Nuevo Usuario
           </button>
@@ -164,36 +131,16 @@ export function UsuariosPage() {
         </p>
       )}
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #cbd5e1', paddingBottom: '10px', marginBottom: '20px' }}>
+      <div className="users-tabs-bar">
         <button
           onClick={() => setTab('usuarios')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: tab === 'usuarios' ? '#2563eb' : 'transparent',
-            color: tab === 'usuarios' ? '#fff' : '#64748b',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: tab === 'usuarios' ? 'bold' : 'normal',
-            boxShadow: 'none',
-            minHeight: 'auto',
-          }}
+          className={`users-tab-btn ${tab === 'usuarios' ? 'users-tab-btn--active' : ''}`}
         >
           Personal (Usuarios)
         </button>
         <button
           onClick={() => setTab('cuentas')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            background: tab === 'cuentas' ? '#2563eb' : 'transparent',
-            color: tab === 'cuentas' ? '#fff' : '#64748b',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: tab === 'cuentas' ? 'bold' : 'normal',
-            boxShadow: 'none',
-            minHeight: 'auto',
-          }}
+          className={`users-tab-btn ${tab === 'cuentas' ? 'users-tab-btn--active' : ''}`}
         >
           Cuentas de Acceso (Auth)
         </button>
@@ -204,7 +151,7 @@ export function UsuariosPage() {
       ) : tab === 'usuarios' ? (
         <>
           {/* Tabla de Usuarios */}
-          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
+          <div className="usuarios-table-container">
             <table style={{ width: '100%' }}>
               <thead>
                 <tr>
@@ -232,26 +179,17 @@ export function UsuariosPage() {
                       />
                     </td>
                     <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {user.isActive ? (
-                          <>
-                            <CheckCircle2 size={16} color="#16a34a" />
-                            <span style={{ color: '#166534' }}>Activo</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle size={16} color="#dc2626" />
-                            <span style={{ color: '#991b1b' }}>Inactivo</span>
-                          </>
-                        )}
-                      </span>
+                      {user.isActive ? (
+                        <span className="status-badge-premium status-badge-premium--active">
+                          <CheckCircle2 size={14} />
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="status-badge-premium status-badge-premium--inactive">
+                          <XCircle size={14} />
+                          Inactivo
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -268,35 +206,14 @@ export function UsuariosPage() {
                         </button>
                         <button
                           onClick={() => setResetUserId(user.id)}
-                          style={{
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
+                          className="usr-btn-action usr-btn-action--key"
                         >
-                          <Key size={14} />
+                          <Key size={13} />
                           Restablecer Clave
                         </button>
                         <button
                           onClick={() => handleEliminarUsuario(user.id)}
-                          style={{
-                            background: '#ef4444',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
+                          className="usr-btn-action usr-btn-action--delete"
                         >
                           Eliminar
                         </button>
@@ -332,26 +249,17 @@ export function UsuariosPage() {
 
                 <div className="user-card-row">
                   <span className="user-card-label">Estado:</span>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {user.isActive ? (
-                      <>
-                        <CheckCircle2 size={16} color="#16a34a" />
-                        <span style={{ color: '#166534' }}>Activo</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={16} color="#dc2626" />
-                        <span style={{ color: '#991b1b' }}>Inactivo</span>
-                      </>
-                    )}
-                  </span>
+                  {user.isActive ? (
+                    <span className="status-badge-premium status-badge-premium--active">
+                      <CheckCircle2 size={14} />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="status-badge-premium status-badge-premium--inactive">
+                      <XCircle size={14} />
+                      Inactivo
+                    </span>
+                  )}
                 </div>
 
                 <div className="user-card-actions">
@@ -411,7 +319,7 @@ export function UsuariosPage() {
       ) : (
         <>
           {/* Tabla de Cuentas */}
-          <div className="table-wrap users-table-desktop" style={{ marginTop: '20px' }}>
+          <div className="usuarios-table-container">
             <table style={{ width: '100%' }}>
               <thead>
                 <tr>
@@ -425,7 +333,7 @@ export function UsuariosPage() {
               <tbody>
                 {cuentas.map((cuenta) => (
                   <tr key={cuenta.id}>
-                    <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{cuenta.id.substring(0, 8)}...</td>
+                    <td className="usuarios-id-monospace">{cuenta.id.substring(0, 8)}...</td>
                     <td>{cuenta.email}</td>
                     <td>
                       {cuenta.role === 'superadmin' ? (
@@ -441,72 +349,37 @@ export function UsuariosPage() {
                       )}
                     </td>
                     <td>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {cuenta.isActive ? (
-                          <>
-                            <CheckCircle2 size={16} color="#16a34a" />
-                            <span style={{ color: '#166534' }}>Activa</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle size={16} color="#dc2626" />
-                            <span style={{ color: '#991b1b' }}>Inactiva</span>
-                          </>
-                        )}
-                      </span>
+                      {cuenta.isActive ? (
+                        <span className="status-badge-premium status-badge-premium--active">
+                          <CheckCircle2 size={14} />
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="status-badge-premium status-badge-premium--inactive">
+                          <XCircle size={14} />
+                          Inactivo
+                        </span>
+                      )}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div className="usr-actions-cell">
                         <button
                           onClick={() => handleToggleEstado(cuenta)}
-                          style={{
-                            padding: '4px 10px',
-                            minHeight: 'auto',
-                            borderRadius: '4px',
-                            boxShadow: 'none',
-                          }}
+                          className="usr-btn-action usr-btn-action--toggle"
                         >
                           {cuenta.isActive ? 'Desactivar' : 'Activar'}
                         </button>
                         <button
                           onClick={() => setResetUserId(cuenta.id)}
-                          style={{
-                            background: '#f1f5f9',
-                            color: '#334155',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: '4px',
-                            padding: '4px 10px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            minHeight: 'auto',
-                            boxShadow: 'none',
-                          }}
+                          className="usr-btn-action usr-btn-action--key"
                         >
-                          <Key size={14} />
+                          <Key size={13} />
                           Restablecer Clave
                         </button>
                         {cuenta.role !== 'superadmin' && (
                           <button
                             onClick={() => handleEliminarUsuario(cuenta.id)}
-                            style={{
-                              background: '#ef4444',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '4px',
-                              padding: '4px 10px',
-                              cursor: 'pointer',
-                              minHeight: 'auto',
-                              boxShadow: 'none',
-                            }}
+                            className="usr-btn-action usr-btn-action--delete"
                           >
                             Eliminar
                           </button>
@@ -543,26 +416,17 @@ export function UsuariosPage() {
 
                 <div className="user-card-row">
                   <span className="user-card-label">Estado:</span>
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {cuenta.isActive ? (
-                      <>
-                        <CheckCircle2 size={16} color="#16a34a" />
-                        <span style={{ color: '#166534' }}>Activa</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle size={16} color="#dc2626" />
-                        <span style={{ color: '#991b1b' }}>Inactiva</span>
-                      </>
-                    )}
-                  </span>
+                  {cuenta.isActive ? (
+                    <span className="status-badge-premium status-badge-premium--active">
+                      <CheckCircle2 size={14} />
+                      Activo
+                    </span>
+                  ) : (
+                    <span className="status-badge-premium status-badge-premium--inactive">
+                      <XCircle size={14} />
+                      Inactivo
+                    </span>
+                  )}
                 </div>
 
                 <div className="user-card-actions">
@@ -622,34 +486,11 @@ export function UsuariosPage() {
           </div>
         </>
       )}
+
       {/* Modal crear usuario */}
-      {mostrarModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '450px',
-              boxSizing: 'border-box',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
+      {mostrarModal && createPortal(
+        <div className="modal-overlay-premium">
+          <div className="modal-window-premium" style={{ width: '90%', maxWidth: '450px', padding: '24px' }}>
             <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
             <form
               onSubmit={handleCrearUsuario}
@@ -831,37 +672,14 @@ export function UsuariosPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal restablecer contraseña */}
-      {resetUserId && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '400px',
-              boxSizing: 'border-box',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
+      {resetUserId && createPortal(
+        <div className="modal-overlay-premium">
+          <div className="modal-window-premium" style={{ width: '90%', maxWidth: '400px', padding: '24px' }}>
             <h3 style={{ marginTop: 0 }}>Restablecer Contraseña</h3>
             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 16 }}>
               Defina la nueva contraseña temporal para la cuenta de este usuario.
@@ -924,7 +742,8 @@ export function UsuariosPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

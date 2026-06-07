@@ -1393,3 +1393,49 @@ a {
   justify-content: flex-end;
   align-items: center;
 }
+
+/* ── MODAL FACTURA EDITAR ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.factura-editar-modal-window {
+  max-height: calc(100vh - 60px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  max-width: 750px !important;
+}
+
+.factura-editar-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Scrollbar premium de 5px */
+.factura-editar-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.factura-editar-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.factura-editar-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}

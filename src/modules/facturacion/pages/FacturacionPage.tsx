@@ -733,7 +733,7 @@ export function FacturacionPage() {
         <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
           <form 
             onSubmit={handleSaveInvoice}
-            className="floating-modal-box"
+            className="floating-modal-box factura-editar-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">
@@ -751,7 +751,7 @@ export function FacturacionPage() {
               </button>
             </header>
             
-            <div className="floating-modal-body">
+            <div className="factura-editar-modal-body">
               {/* Cliente */}
               <div>
                 <h4 className="text-sm font-bold text-gray-800 mb-3" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px', fontWeight: 'bold' }}>Datos del Cliente</h4>
@@ -910,7 +910,7 @@ export function FacturacionPage() {
               </div>
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="factura-editar-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"
@@ -929,7 +929,7 @@ export function FacturacionPage() {
               >
                 {submitting ? 'Guardando...' : (editingInvoiceId ? 'Actualizar Factura' : 'Emitir Factura')}
               </button>
-            </footer>
+            </div>
           </form>
         </div>
       )}

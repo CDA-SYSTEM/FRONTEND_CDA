@@ -5,6 +5,7 @@ import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capa
 import {
   AlertCircle,
   AlertTriangle,
+  Bike,
   Camera as CameraIcon,
   Car,
   CheckCircle,
@@ -21,6 +22,7 @@ import {
   Settings,
   Shield,
   Trash2,
+  Truck,
   Upload,
   X,
   XCircle,
@@ -379,7 +381,7 @@ export function ChecklistPage() {
             color: vehicleType === 'MOTO' ? '#92400e' : vehicleType === 'PESADO' ? '#991b1b' : '#1e40af',
             fontSize: '0.82rem', fontWeight: 600,
           }}>
-            {vehicleType === 'MOTO' ? '🏍️' : vehicleType === 'PESADO' ? '🚛' : '🚗'}
+            {vehicleType === 'MOTO' ? <Bike size={14} /> : vehicleType === 'PESADO' ? <Truck size={14} /> : <Car size={14} />}
             Tipo: {vehicleTypeLabel(vehicleType)}
           </div>
         )}

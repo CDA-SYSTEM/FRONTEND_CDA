@@ -380,6 +380,7 @@
   min-width: 1100px !important;
   border-collapse: collapse;
   font-size: 0.875rem;
+  table-layout: fixed !important;
 }
 
 /* Encabezados de columna */
@@ -407,6 +408,7 @@
 .recepcion-table thead th:last-child {
   text-align: right;
   padding-right: 20px;
+  width: 150px !important; /* Asegurar espacio para los 3 iconos en el header */
 }
 
 /* Filas del cuerpo */
@@ -428,6 +430,8 @@
   color: var(--rc-text-muted);
   white-space: nowrap;
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .recepcion-table tbody td:first-child {
@@ -436,6 +440,16 @@
 
 .recepcion-table tbody td:last-child {
   padding-right: 20px;
+  width: 150px !important; /* Fijar tamaño compacto en las acciones */
+}
+
+/* Celda de Cliente con truncado premium */
+.recepcion-client-cell {
+  display: block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── ID de inspección — mono espaciado ────────────────────────── */

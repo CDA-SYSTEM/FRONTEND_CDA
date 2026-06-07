@@ -444,7 +444,11 @@ export function RecepcionPage() {
                           {infoVehiculo(insp)}
                         </span>
                       </td>
-                      <td>{infoCliente(insp)}</td>
+                      <td>
+                        <span className="recepcion-client-cell" title={infoCliente(insp)}>
+                          {infoCliente(insp)}
+                        </span>
+                      </td>
                       <td>
                         <span className="recepcion-type-cell">
                           <Wrench size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />

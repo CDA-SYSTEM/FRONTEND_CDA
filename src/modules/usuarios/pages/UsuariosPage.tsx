@@ -4,6 +4,7 @@ import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
 import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import './UsuariosPage.css'
+import './UsuariosModal.css'
 
 const ROLES: { label: string; value: RolUsuarioForm }[] = [
   { label: 'Administrador', value: 'admin' },
@@ -489,16 +490,16 @@ export function UsuariosPage() {
 
       {/* Modal crear usuario */}
       {mostrarModal && createPortal(
-        <div className="modal-overlay-premium">
-          <div className="modal-window-premium" style={{ width: '90%', maxWidth: '450px', padding: '24px' }}>
+        <div className="user-modal-overlay">
+          <div className="user-modal-window">
             <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
             <form
               onSubmit={handleCrearUsuario}
-              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+              className="user-form-grid"
             >
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-row-doc">
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Tipo Doc.
                   </label>
                   <CustomSelect
@@ -511,8 +512,8 @@ export function UsuariosPage() {
                     onChange={(val) => handleFormChange({ target: { name: 'identificationType', value: val } })}
                   />
                 </div>
-                <div style={{ flex: 2 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Número
                   </label>
                   <input
@@ -521,22 +522,14 @@ export function UsuariosPage() {
                     required
                     value={formData.identificationNumber}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-row-2">
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Nombres
                   </label>
                   <input
@@ -545,19 +538,11 @@ export function UsuariosPage() {
                     required
                     value={formData.firstName}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+                <div className="user-form-group">
+                  <label className="user-form-label">
                     Apellidos
                   </label>
                   <input
@@ -566,21 +551,13 @@ export function UsuariosPage() {
                     required
                     value={formData.lastName}
                     onChange={handleFormChange}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      outline: 'none',
-                      fontSize: '0.95rem',
-                      boxSizing: 'border-box',
-                    }}
+                    className="user-form-input"
                   />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Teléfono
                 </label>
                 <input
@@ -589,20 +566,12 @@ export function UsuariosPage() {
                   required
                   value={formData.phoneNumber}
                   onChange={handleFormChange}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    outline: 'none',
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box',
-                  }}
+                  className="user-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Correo Electrónico
                 </label>
                 <input
@@ -611,20 +580,12 @@ export function UsuariosPage() {
                   required
                   value={formData.email}
                   onChange={handleFormChange}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    outline: 'none',
-                    fontSize: '0.95rem',
-                    boxSizing: 'border-box',
-                  }}
+                  className="user-form-input"
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>
+              <div className="user-form-group">
+                <label className="user-form-label">
                   Rol
                 </label>
                 <CustomSelect
@@ -639,33 +600,17 @@ export function UsuariosPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <div className="user-modal-footer">
                 <button
                   type="button"
                   onClick={() => setMostrarModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: '6px',
-                    border: '1px solid #ccc',
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-premium-cancel-ghost"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#10b981',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-premium-save"
                 >
                   Guardar
                 </button>

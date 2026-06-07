@@ -437,3 +437,63 @@
   background: var(--as-accent-hover);
   box-shadow: 0 6px 16px rgba(21, 93, 252, 0.28);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   4. CONTROL DE PAGINACIÓN — Barra Premium
+   ══════════════════════════════════════════════════════════════ */
+.as-pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--as-surface);
+  border: 1px solid var(--as-border);
+  border-radius: var(--as-radius-card);
+  box-shadow: var(--as-shadow-card);
+  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.as-pagination-info {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--as-text-muted);
+}
+
+.as-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.as-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--as-radius-btn);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid var(--as-border);
+  color: var(--as-text-muted);
+  transition:
+    background var(--as-dur-fast) var(--as-ease-out),
+    border-color var(--as-dur-fast) var(--as-ease-out),
+    color var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: var(--as-border-strong);
+  color: var(--as-text);
+}
+
+.as-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+

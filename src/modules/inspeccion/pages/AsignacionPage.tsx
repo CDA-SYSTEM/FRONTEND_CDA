@@ -581,6 +581,30 @@ export function AsignacionPage() {
                 </article>
               )
             })}
+
+            <div className="as-pagination-bar">
+              <span className="as-pagination-info">
+                Página {pageActual} ({inspeccionesFiltradas.length} items mostrados)
+              </span>
+              <div className="as-pagination-controls">
+                <button
+                  type="button"
+                  disabled={pageActual <= 1 || cargando}
+                  onClick={() => setPageActual((p) => Math.max(1, p - 1))}
+                  className="as-pagination-btn"
+                >
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={inspecciones.length < tamanoPagina || cargando}
+                  onClick={() => setPageActual((p) => p + 1)}
+                  className="as-pagination-btn"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
           </div>
         )
       ) : (

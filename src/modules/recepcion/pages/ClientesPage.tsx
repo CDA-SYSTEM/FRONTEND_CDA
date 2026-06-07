@@ -190,159 +190,190 @@ export function ClientesPage() {
         </div>
       )}
 
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {/* ── Nombre y Apellido ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="cl-field">
-            <span className="cl-field-label">
-              Nombre <span className="cl-field-required">*</span>
-            </span>
-            <input
-              className="cl-input"
-              placeholder="Ej: Juan Carlos"
-              {...register('nombre')}
-              disabled={enviando}
-            />
-            {errors.nombre && (
-              <span className="cl-field-error">{errors.nombre.message}</span>
-            )}
-          </div>
+      <form onSubmit={onSubmit} className="cliente-modal-form">
+        <div className="cliente-modal-body">
+          <p style={{ color: '#6b7280', marginBottom: 20 }}>
+            Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son
+            obligatorios.
+          </p>
 
-          <div className="cl-field">
-            <span className="cl-field-label">
-              Apellido <span className="cl-field-required">*</span>
-            </span>
-            <input
-              className="cl-input"
-              placeholder="Ej: Pérez Gómez"
-              {...register('apellido')}
-              disabled={enviando}
-            />
-            {errors.apellido && (
-              <span className="cl-field-error">{errors.apellido.message}</span>
-            )}
-          </div>
-        </div>
+          {/* Error global del servidor */}
+          {errorServidor && (
+            <div
+              role="alert"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 8,
+                padding: '10px 14px',
+                marginBottom: 16,
+                color: '#991b1b',
+                fontSize: '0.9rem',
+              }}
+            >
+              <AlertCircle size={16} />
+              <span>{errorServidor}</span>
+            </div>
+          )}
 
-        {/* ── Tipo de documento e Identity ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div className="cl-field">
-            <span className="cl-field-label">
-              Tipo de documento <span className="cl-field-required">*</span>
-            </span>
-            <CustomSelect
-              options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
-              value={String(documentTypeId || '')}
-              onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
-            />
-            {errors.documentTypeId && (
-              <span className="cl-field-error">
-                {errors.documentTypeId.message}
+          {/* ── Nombre y Apellido ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="cl-field">
+              <span className="cl-field-label">
+                Nombre <span className="cl-field-required">*</span>
               </span>
-            )}
+              <input
+                className="cl-input"
+                placeholder="Ej: Juan Carlos"
+                {...register('nombre')}
+                disabled={enviando}
+              />
+              {errors.nombre && (
+                <span className="cl-field-error">{errors.nombre.message}</span>
+              )}
+            </div>
+
+            <div className="cl-field">
+              <span className="cl-field-label">
+                Apellido <span className="cl-field-required">*</span>
+              </span>
+              <input
+                className="cl-input"
+                placeholder="Ej: Pérez Gómez"
+                {...register('apellido')}
+                disabled={enviando}
+              />
+              {errors.apellido && (
+                <span className="cl-field-error">{errors.apellido.message}</span>
+              )}
+            </div>
           </div>
 
+          {/* ── Tipo de documento e Identity ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="cl-field">
+              <span className="cl-field-label">
+                Tipo de documento <span className="cl-field-required">*</span>
+              </span>
+              <CustomSelect
+                options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
+                value={String(documentTypeId || '')}
+                onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+              />
+              {errors.documentTypeId && (
+                <span className="cl-field-error">
+                  {errors.documentTypeId.message}
+                </span>
+              )}
+            </div>
+
+            <div className="cl-field">
+              <span className="cl-field-label">
+                Número de documento <span className="cl-field-required">*</span>
+              </span>
+              <input
+                className="cl-input"
+                placeholder={placeholderIdentity}
+                {...register('identity')}
+                disabled={enviando}
+                style={{ textTransform: 'uppercase' }}
+              />
+              {errors.identity && (
+                <span className="cl-field-error">{errors.identity.message}</span>
+              )}
+            </div>
+          </div>
+
+          {/* ── Tipo de persona (oculto si solo hay uno) ── */}
+          {tiposPersona.length > 1 && (
+            <div className="cl-field">
+              <span className="cl-field-label">
+                Tipo de persona <span className="cl-field-required">*</span>
+              </span>
+              <CustomSelect
+                options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
+                value={String(personTypeId || '')}
+                onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+              />
+              {errors.personTypeId && (
+                <span className="cl-field-error">{errors.personTypeId.message}</span>
+              )}
+            </div>
+          )}
+
+          {/* ── Celular ── */}
           <div className="cl-field">
             <span className="cl-field-label">
-              Número de documento <span className="cl-field-required">*</span>
+              Celular <span className="cl-field-required">*</span>
             </span>
             <input
               className="cl-input"
-              placeholder={placeholderIdentity}
-              {...register('identity')}
+              type="tel"
+              placeholder="Ej: 3001234567"
+              maxLength={10}
+              {...register('celular')}
               disabled={enviando}
-              style={{ textTransform: 'uppercase' }}
             />
-            {errors.identity && (
-              <span className="cl-field-error">{errors.identity.message}</span>
+            {errors.celular && (
+              <span className="cl-field-error">{errors.celular.message}</span>
             )}
           </div>
-        </div>
 
-        {/* ── Tipo de persona (oculto si solo hay uno) ── */}
-        {tiposPersona.length > 1 && (
+          {/* ── Correo (opcional) ── */}
           <div className="cl-field">
             <span className="cl-field-label">
-              Tipo de persona <span className="cl-field-required">*</span>
+              Correo electrónico
+              <span className="cl-field-optional">(opcional)</span>
             </span>
-            <CustomSelect
-              options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
-              value={String(personTypeId || '')}
-              onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
+            <input
+              className="cl-input"
+              type="email"
+              placeholder="Ej: juan@correo.com"
+              {...register('email')}
+              disabled={enviando}
             />
-            {errors.personTypeId && (
-              <span className="cl-field-error">{errors.personTypeId.message}</span>
+            {errors.email && (
+              <span className="cl-field-error">{errors.email.message}</span>
             )}
           </div>
-        )}
 
-        {/* ── Celular ── */}
-        <div className="cl-field">
-          <span className="cl-field-label">
-            Celular <span className="cl-field-required">*</span>
-          </span>
-          <input
-            className="cl-input"
-            type="tel"
-            placeholder="Ej: 3001234567"
-            maxLength={10}
-            {...register('celular')}
-            disabled={enviando}
-          />
-          {errors.celular && (
-            <span className="cl-field-error">{errors.celular.message}</span>
-          )}
-        </div>
-
-        {/* ── Correo (opcional) ── */}
-        <div className="cl-field">
-          <span className="cl-field-label">
-            Correo electrónico
-            <span className="cl-field-optional">(opcional)</span>
-          </span>
-          <input
-            className="cl-input"
-            type="email"
-            placeholder="Ej: juan@correo.com"
-            {...register('email')}
-            disabled={enviando}
-          />
-          {errors.email && (
-            <span className="cl-field-error">{errors.email.message}</span>
-          )}
-        </div>
-
-        {/* ── Dirección (opcional) ── */}
-        <div className="cl-field">
-          <span className="cl-field-label">
-            Dirección
-            <span className="cl-field-optional">(opcional)</span>
-          </span>
-          <input
-            className="cl-input"
-            placeholder="Ej: Cra 5 # 12-34, Mocoa"
-            {...register('direccion')}
-            disabled={enviando}
-          />
-          {errors.direccion && (
-            <span className="cl-field-error">{errors.direccion.message}</span>
-          )}
+          {/* ── Dirección (opcional) ── */}
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Dirección
+              <span className="cl-field-optional">(opcional)</span>
+            </span>
+            <input
+              className="cl-input"
+              placeholder="Ej: Cra 5 # 12-34, Mocoa"
+              {...register('direccion')}
+              disabled={enviando}
+            />
+            {errors.direccion && (
+              <span className="cl-field-error">{errors.direccion.message}</span>
+            )}
+          </div>
         </div>
 
         {/* ── Botón de envío ── */}
-        <button
-          type="submit"
-          className="cl-btn-submit"
-          disabled={enviando}
-        >
-          {enviando && (
-            <Loader2
-              size={18}
-              style={{ animation: 'spin 1s linear infinite' }}
-            />
-          )}
-          {enviando ? 'Guardando...' : 'Guardar cliente'}
-        </button>
+        <div className="cliente-modal-footer">
+          <button
+            type="submit"
+            className="cl-btn-submit"
+            disabled={enviando}
+          >
+            {enviando && (
+              <Loader2
+                size={18}
+                style={{ animation: 'spin 1s linear infinite' }}
+              />
+            )}
+            {enviando ? 'Guardando...' : 'Guardar cliente'}
+          </button>
+        </div>
       </form>
       </Modal>
     </div>

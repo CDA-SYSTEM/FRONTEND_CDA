@@ -708,6 +708,57 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
+   9. MODAL ALINEACIÓN — fixed height y scroll
+   ══════════════════════════════════════════════════════════════ */
+
+/* Formulario principal del modal */
+.cliente-modal-form {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: calc(100vh - 160px) !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
+/* Cuerpo deslizable intermedio */
+.cliente-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding-right: 6px; /* Evitar solape con scrollbar */
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Scrollbar ultra-fino para el cuerpo del modal */
+.cliente-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cliente-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cliente-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.cliente-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+/* Footer fijo abajo */
+.cliente-modal-footer {
+  border-top: 1px solid var(--cl-border);
+  padding-top: 12px;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* ══════════════════════════════════════════════════════════════
    8. ACCESIBILIDAD
    ══════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {

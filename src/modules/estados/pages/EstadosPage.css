@@ -259,7 +259,7 @@
   font-family: inherit !important;
   font-size: 14px !important;
   outline: none !important;
-  resize: vertical !important;
+  resize: none !important;
   background: #ffffff !important;
   box-sizing: border-box;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;

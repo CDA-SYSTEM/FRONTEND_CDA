@@ -25,7 +25,6 @@ import {
   Truck,
   Upload,
   X,
-  XCircle,
   Zap,
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
@@ -537,21 +536,7 @@ export function ChecklistPage() {
             Guardar Inspección
           </button>
 
-          <button
-            onClick={() => handleCerrar('RECHAZADO')}
-            disabled={cerrando !== null || estado === 'enviando'}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px',
-              background: '#dc2626', color: '#fff', border: 'none',
-              borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
-              opacity: cerrando ? 0.7 : 1,
-            }}
-          >
-            {cerrando === 'RECHAZADO'
-              ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              : <XCircle size={16} />}
-            Rechazar
-          </button>
+
         </div>
       )}
     </div>

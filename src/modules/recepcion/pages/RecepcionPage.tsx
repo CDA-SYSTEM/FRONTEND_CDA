@@ -987,17 +987,7 @@ export function RecepcionPage() {
           zIndex: 9999,
           padding: '1rem',
         }}>
-          <form onSubmit={handleGuardarEdicion} style={{
-            background: '#fff',
-            borderRadius: 16,
-            width: '100%',
-            maxWidth: 500,
-            maxHeight: '90vh',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}>
+          <form onSubmit={handleGuardarEdicion} className="recepcion-modal-edit-form">
             {/* Cabecera Modal */}
             <div style={{
               padding: '1.25rem 1.5rem',
@@ -1030,7 +1020,7 @@ export function RecepcionPage() {
             </div>
 
             {/* Contenido Formulario */}
-            <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="recepcion-modal-edit-body">
               
               {/* Kilometraje */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

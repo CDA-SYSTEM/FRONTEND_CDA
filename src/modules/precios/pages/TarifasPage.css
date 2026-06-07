@@ -250,3 +250,54 @@
   transform: translate(-50%, -50%) !important;
   z-index: 9999 !important;
 }
+
+/* ── MODAL TARIFA DETALLE ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.tarifa-detalle-modal-window {
+  max-height: calc(100vh - 80px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+  width: 100%;
+  max-width: 440px !important;
+}
+
+.tarifa-detalle-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Scrollbar premium */
+.tarifa-detalle-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.tarifa-detalle-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tarifa-detalle-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.tarifa-detalle-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.tarifa-detalle-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}

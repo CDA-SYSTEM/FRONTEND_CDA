@@ -452,22 +452,37 @@ export function PreciosPage() {
       {showDetailModal && detailPrice && createPortal(
         <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <div 
-            className="modal-window-premium tarifa-modal-window"
+            className="modal-window-premium tarifa-detalle-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
-            <header className="floating-modal-header">
+            <header className="floating-modal-header tarifa-detalle-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3>Detalles de la Tarifa</h3>
               <button 
                 type="button" 
-                className="text-gray-400 hover:text-gray-600"
+                className="modal-close-btn"
                 onClick={() => setShowDetailModal(false)}
-                style={{ background: 'transparent', boxShadow: 'none', minHeight: 'initial', padding: '4px' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </header>
 
-            <div className="floating-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBlock: '1.25rem' }}>
+            <div className="tarifa-detalle-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="pr-badge-vehicle">{formatLabel(detailPrice.vehicleType)}</span>
                 <span className={`pr-badge-status ${detailPrice.isActive ? 'pr-badge-status--active' : 'pr-badge-status--inactive'}`}>
@@ -482,7 +497,7 @@ export function PreciosPage() {
 
               <div>
                 <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pr-text-subtle)', fontWeight: 600 }}>Tipo de revisión</span>
-                <div className="pr-revision-type" style={{ marginTop: '4px', fontSize: '0.9rem' }}>
+                <div className="pr-revision-type" style={{ marginTop: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className="pr-revision-icon"><Tag size={16} /></span> {formatLabel(detailPrice.revisionType)}
                 </div>
               </div>
@@ -495,7 +510,7 @@ export function PreciosPage() {
               )}
             </div>
 
-            <footer className="floating-modal-footer">
+            <div className="tarifa-detalle-modal-footer">
               <button 
                 type="button" 
                 className="btn btn-secondary"
@@ -504,7 +519,7 @@ export function PreciosPage() {
               >
                 Cerrar
               </button>
-            </footer>
+            </div>
           </div>
         </div>,
         document.body

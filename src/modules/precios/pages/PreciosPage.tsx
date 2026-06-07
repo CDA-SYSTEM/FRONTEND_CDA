@@ -87,7 +87,7 @@ export function PreciosPage() {
         duration: 250,
         easing: 'easeOutQuad'
       })
-      const box = node.querySelector('.floating-modal-box')
+      const box = node.querySelector('.modal-window-premium, .floating-modal-box')
       if (box) {
         animate(box, {
           scale: [0.95, 1],
@@ -333,7 +333,7 @@ export function PreciosPage() {
         <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
             <form 
               onSubmit={handleSubmit}
-              className="modal-window-premium"
+              className="modal-window-premium tarifa-modal-window"
               style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
             >
               <header className="floating-modal-header">
@@ -438,7 +438,7 @@ export function PreciosPage() {
       {showDetailModal && detailPrice && createPortal(
         <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
           <div 
-            className="modal-window-premium"
+            className="modal-window-premium tarifa-modal-window"
             style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
           >
             <header className="floating-modal-header">

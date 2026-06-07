@@ -557,7 +557,7 @@ export function FacturacionPage() {
     {/* Modal de Detalle */}
     {selectedInvoice && (
       <div ref={modalBackdropRef} className="floating-modal-backdrop" style={{ opacity: 0 }}>
-          <div className="floating-modal-box" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
+          <div className="floating-modal-box factura-modal-window" style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}>
             <header className="floating-modal-header">
               <h3 className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FileSpreadsheet className="text-primary" /> Factura {selectedInvoice.invoice_number}
@@ -570,7 +570,7 @@ export function FacturacionPage() {
                 <X size={24} />
               </button>
             </header>
-            <div className="floating-modal-body">
+            <div className="factura-modal-body">
               {/* Información del Cliente */}
               <div className="form-row-2">
                 <div>
@@ -653,14 +653,14 @@ export function FacturacionPage() {
                 </div>
               )}
             </div>
-            <footer className="floating-modal-footer">
+            <div className="factura-modal-footer">
               <button 
                 className="btn btn-secondary"
                 onClick={() => setSelectedInvoice(null)}
               >
                 Cerrar
               </button>
-            </footer>
+            </div>
           </div>
         </div>
       )}

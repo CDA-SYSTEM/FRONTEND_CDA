@@ -1120,6 +1120,21 @@
   border-radius: 8px;
 }
 
+@media (max-width: 768px) {
+  .recepcion-mobile-clients-cards,
+  .cliente-select-responsive-card {
+    box-sizing: border-box !important;
+  }
+  .recepcion-mobile-clients-cards {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .cliente-select-responsive-card button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 
 
 

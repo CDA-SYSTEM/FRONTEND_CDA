@@ -394,7 +394,7 @@ export function RegistroVehiculoPage() {
                               className="vh-action-btn vh-action-btn--view"
                               title="Ver Detalles"
                             >
-                              <Eye size={15} />
+                              <Eye size={18} />
                             </button>
                             <button
                               onClick={() => {
@@ -427,14 +427,14 @@ export function RegistroVehiculoPage() {
                               className="vh-action-btn vh-action-btn--edit"
                               title="Editar Vehículo"
                             >
-                              <Pencil size={15} />
+                              <Pencil size={18} />
                             </button>
                             <button
                               onClick={() => eliminarVehiculo(v.id)}
                               className="vh-action-btn vh-action-btn--delete"
                               title="Eliminar Vehículo"
                             >
-                              <Trash2 size={15} />
+                              <Trash2 size={18} />
                             </button>
                           </div>
                         </td>

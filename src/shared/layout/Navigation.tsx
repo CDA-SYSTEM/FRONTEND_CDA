@@ -133,8 +133,8 @@ export function Navigation() {
           <div className="mobile-nav-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-nav-sheet-header">
               <h3>Más opciones</h3>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-sheet-close">
-                <X size={20} />
+              <button onClick={() => setIsMobileMenuOpen(false)} className="mobile-nav-sheet-close" aria-label="Cerrar">
+                <X size={20} color="#ffffff" strokeWidth={2.5} />
               </button>
             </div>
             <ul className="mobile-nav-sheet-list">

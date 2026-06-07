@@ -29,6 +29,7 @@
     inset 0 1px 0 0 rgba(255, 255, 255, 0.8) !important;
   width: 90%;
   max-width: 450px;
+  max-height: calc(100vh - 40px) !important;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -41,6 +42,26 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto !important;
+  padding-right: 4px; /* Evitar que el scrollbar tape inputs */
+}
+
+/* Custom scrollbar para formulario interno */
+.user-form-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-form-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.user-form-grid::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2);
+  border-radius: 3px;
+}
+
+.user-form-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
 }
 
 .user-form-row-2 {

@@ -1770,16 +1770,18 @@ export function RegistroVehiculoPage() {
         onClose={() => !editGuardando && setEditModalOpen(false)}
         title={`Editar Vehículo${editVehiculo ? ' — ' + editVehiculo.placa : ''}`}
         maxWidth="700px"
+        className="vehiculo-modal-window"
       >
         {editVehiculo && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {editError && (
-              <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', color: '#991b1b', fontSize: '0.9rem' }}>
-                <AlertCircle size={16} /><span>{editError}</span>
-              </div>
-            )}
+          <div className="vehiculo-modal-form">
+            <div className="vehiculo-modal-body">
+              {editError && (
+                <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', color: '#991b1b', fontSize: '0.9rem', marginBottom: 12 }}>
+                  <AlertCircle size={16} /><span>{editError}</span>
+                </div>
+              )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
 
               {/* Placa */}
               <label style={labelStyle}>
@@ -1913,8 +1915,9 @@ export function RegistroVehiculoPage() {
                 />
               </label>
             </div>
+            </div>
 
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+            <div className="vehiculo-modal-footer">
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}

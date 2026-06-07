@@ -568,5 +568,12 @@
   .as-filters-grid .as-field-label button {
     box-sizing: border-box !important;
   }
+
+  /* Reset layout wrapper horizontal padding for perfect centering */
+  .content,
+  .as-root {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 

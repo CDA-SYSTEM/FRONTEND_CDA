@@ -151,9 +151,10 @@ export const ordenServicioService = {
     return extractItem(response.data) as OrdenServicioResponse
   },
 
-  async obtenerVehiculosCliente(clienteId: number | string): Promise<{ id: number | string; placa: string; marca?: string; linea?: string; modelo?: string }[]> {
+  async obtenerVehiculosCliente(clienteId: number | string, placa?: string): Promise<{ id: number | string; placa: string; marca?: string; linea?: string; modelo?: string }[]> {
     try {
-      const response = await apiClient.get(`/api/v1/vehiculo/cliente/${clienteId}`)
+      const url = placa ? `/api/v1/vehiculo/cliente/${clienteId}?placa=${encodeURIComponent(placa)}` : `/api/v1/vehiculo/cliente/${clienteId}`
+      const response = await apiClient.get(url)
       return extractArray(response.data).map((v) => {
         const raw = v as Record<string, unknown>
         return {

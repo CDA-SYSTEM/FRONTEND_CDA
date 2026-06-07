@@ -707,7 +707,7 @@ function PasoCliente({
   onSaltar: () => void
   cliente: any
   onVolver: () => void
-  onVehiculoCreado: () => Promise<void>
+  onVehiculoCreado: (placa?: string) => Promise<void> | void
 }
 
 function PasoVehiculo({
@@ -720,6 +720,14 @@ function PasoVehiculo({
   onVehiculoCreado,
 }: PasoVehiculoProps) {
   const [vehiculoNuevoModal, setVehiculoNuevoModal] = useState(false)
+  const [searchPlaca, setSearchPlaca] = useState('')
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      onVehiculoCreado(searchPlaca)
+    }, 300)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchPlaca, onVehiculoCreado])
 
   const {
     form,
@@ -923,7 +931,28 @@ function PasoVehiculo({
         </button>
       </div>
 
-      {cargando ? (
+      {/* Buscador de placa */}
+      {(vehiculos.length > 0 || searchPlaca !== '') && (
+        <div className="vehiculo-search-wrapper" style={{ position: 'relative', marginBottom: 16 }}>
+          <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+            {cargando ? (
+              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Search size={18} />
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Filtrar por placa..."
+            value={searchPlaca}
+            onChange={(e) => setSearchPlaca(e.target.value)}
+            className="vehiculo-search-input"
+            style={{ paddingLeft: 42, height: 46, fontSize: '0.95rem', width: '100%', textTransform: 'uppercase' }}
+          />
+        </div>
+      )}
+
+      {cargando && vehiculos.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
         </div>
@@ -1017,7 +1046,11 @@ function PasoVehiculo({
       ) : (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <Car size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>Este cliente no tiene vehículos registrados.</p>
+          <p>
+            {searchPlaca !== ''
+              ? 'No se encontraron vehículos que coincidan con la placa.'
+              : 'Este cliente no tiene vehículos registrados.'}
+          </p>
         </div>
       )}
 

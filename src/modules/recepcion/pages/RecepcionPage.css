@@ -1753,6 +1753,19 @@
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
+
+  .vehiculo-search-wrapper {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .vehiculo-search-input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
 }
 
 

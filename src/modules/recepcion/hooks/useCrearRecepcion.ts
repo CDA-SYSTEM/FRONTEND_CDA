@@ -152,11 +152,11 @@ export function useCrearRecepcion() {
     }
   }, [])
 
-  const recargarVehiculos = useCallback(async () => {
+  const recargarVehiculos = useCallback(async (placa?: string) => {
     if (!cliente) return
     setCargandoVehiculos(true)
     try {
-      const v = await ordenServicioService.obtenerVehiculosCliente(cliente.id)
+      const v = await ordenServicioService.obtenerVehiculosCliente(cliente.id, placa)
       setVehiculos(v as Vehiculo[])
     } catch {
       setVehiculos([])

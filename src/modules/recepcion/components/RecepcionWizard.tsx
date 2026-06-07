@@ -452,7 +452,7 @@ function PasoCliente({
             <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Cargando tipos de documentos...</span>
           </div>
         ) : (
-          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', margin: 0 }}>
+          <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden', margin: 0 }}>
             <div className="cliente-registro-body">
               <p style={{ color: '#6b7280', marginBottom: 20 }}>
                 Los campos marcados con <span style={{ color: '#ef4444' }}>*</span> son obligatorios.

@@ -52,12 +52,22 @@ export function useRegistrarVehiculo() {
   const [limite, setLimite] = useState(10)
   const [totalElementos, setTotalElementos] = useState(0)
   const [totalPaginas, setTotalPaginas] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setPagina(0)
+    }, 400)
+    return () => clearTimeout(handler)
+  }, [searchTerm])
 
   const cargarVehiculos = useCallback(async () => {
     setCargandoVehiculos(true)
     setErrorVehiculos(null)
     try {
-      const data = await vehiculoService.listarVehiculos(pagina, limite)
+      const data = await vehiculoService.listarVehiculos(pagina, limite, debouncedSearch)
       setVehiculos(data.content)
       setTotalElementos(data.totalElements)
       setTotalPaginas(data.totalPages)
@@ -67,7 +77,7 @@ export function useRegistrarVehiculo() {
     } finally {
       setCargandoVehiculos(false)
     }
-  }, [pagina, limite])
+  }, [pagina, limite, debouncedSearch])
 
   const eliminarVehiculo = useCallback(async (id: string | number) => {
     if (!window.confirm('¿Seguro que desea eliminar este vehículo?')) return
@@ -291,5 +301,7 @@ export function useRegistrarVehiculo() {
     setLimite,
     totalElementos,
     totalPaginas,
+    searchTerm,
+    setSearchTerm,
   }
 }

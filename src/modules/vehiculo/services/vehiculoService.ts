@@ -54,13 +54,13 @@ export const vehiculoService = {
     }
   },
 
-  async listarVehiculos(page = 0, size = 20): Promise<{
+  async listarVehiculos(page = 0, size = 20, placa?: string): Promise<{
     content: VehiculoResponse[]
     totalElements: number
     totalPages: number
   }> {
     const response = await apiClient.get('/api/v1/vehiculo', {
-      params: { page, size },
+      params: { page, size, placa: placa || undefined },
     })
     const body = response.data as Record<string, any>
     const data = body?.data

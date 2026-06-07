@@ -381,6 +381,23 @@
   border-collapse: collapse;
   font-size: 0.875rem;
   table-layout: fixed !important;
+  background: var(--rc-surface);
+}
+
+/* Anular estilos globales de index.css (thead azul, zebra, bordes en celdas) */
+.recepcion-root .recepcion-table th,
+.recepcion-root .recepcion-table td {
+  border-bottom: none;
+}
+
+.recepcion-root .recepcion-table tbody tr:nth-child(even) {
+  background: transparent;
+}
+
+.recepcion-root .recepcion-table thead th {
+  background: #fafbfc;
+  color: var(--rc-text-subtle);
+  font-weight: 600;
 }
 
 /* Encabezados de columna */
@@ -405,13 +422,11 @@
   padding-left: 20px;
 }
 
-.recepcion-table thead th:last-child {
+.recepcion-table thead th.recepcion-actions-header-cell {
   text-align: right;
   padding-right: 20px;
-  width: 150px !important; /* Asegurar espacio para los 3 iconos en el header */
-  position: static !important;
-  background: #fafbfc !important;
-  box-shadow: none !important;
+  width: 150px;
+  background: #fafbfc;
 }
 
 /* Filas del cuerpo */
@@ -428,10 +443,6 @@
   background: #f8fafc;
 }
 
-.recepcion-table tbody tr:hover td {
-  background: #f8fafc !important;
-}
-
 .recepcion-table tbody td {
   padding: 13px 14px;
   color: var(--rc-text-muted);
@@ -439,18 +450,18 @@
   vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: transparent;
 }
 
 .recepcion-table tbody td:first-child {
   padding-left: 20px;
 }
 
-.recepcion-table tbody td:last-child {
+.recepcion-table tbody td.recepcion-actions-body-cell {
   padding-right: 20px;
-  width: 150px !important; /* Fijar tamaño compacto en las acciones */
-  position: static !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  width: 150px;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Celda de Cliente con truncado premium */

@@ -423,9 +423,14 @@ export function RecepcionPage() {
               <table className="recepcion-table">
               <thead>
                 <tr>
-                  {['#', 'Placa', 'Cliente', 'Tipo de revisión', 'Kilometraje', 'Fecha', 'Estado', 'Acciones'].map((col) => (
-                    <th key={col}>{col}</th>
-                  ))}
+                  <th>#</th>
+                  <th>Placa</th>
+                  <th>Cliente</th>
+                  <th>Tipo de revisión</th>
+                  <th>Kilometraje</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th className="recepcion-actions-header-cell">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -472,7 +477,7 @@ export function RecepcionPage() {
                           {badge.label}
                         </span>
                       </td>
-                      <td>
+                      <td className="recepcion-actions-body-cell">
                         <div className="recepcion-actions-cell">
                           <button
                             className="recepcion-action-btn recepcion-action-btn--view"

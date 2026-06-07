@@ -25,6 +25,7 @@ import { estadoService } from '@/modules/estados/services/estadoService'
 import type { Estado } from '@/modules/estados/domain/estado.types'
 import type { InspectionSummary, InspectionDetail } from '@/modules/inspeccion/domain/inspeccion.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import './RecepcionPage.css'
 
 /* ── Helpers para datos enriquecidos ──────────────────────────────────────── */
 
@@ -99,7 +100,7 @@ export function RecepcionPage() {
   const [statuses, setStatuses] = useState<Estado[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+
 
   // Filtros y Paginación
   const [searchTerm, setSearchTerm] = useState('')
@@ -314,213 +315,104 @@ export function RecepcionPage() {
 
   /* ── Vista de tabla (dashboard) ─────────────────────────────────────────── */
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="recepcion-root">
 
       {/* ── Cabecera ── */}
       <div className="page-header-responsive">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{
-            background: '#eff6ff',
-            borderRadius: 12,
-            padding: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Car size={24} style={{ color: '#155DFC' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="recepcion-page-icon">
+            <Car size={22} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Recepción de Vehículos
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
+            <h1 className="recepcion-page-title">Recepción de Vehículos</h1>
+            <p className="recepcion-page-desc">
               Registro de ingreso de vehículos para revisión técnico-mecánica
             </p>
           </div>
         </div>
         <div className="page-header-responsive-actions">
           <button
+            className="recepcion-btn-refresh"
             onClick={cargarDatos}
             disabled={cargando}
             title="Refrescar"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#f1f5f9',
-              color: '#475569',
-              padding: 10,
-              borderRadius: 8,
-              border: '1px solid #e2e8f0',
-              cursor: cargando ? 'not-allowed' : 'pointer',
-              opacity: cargando ? 0.6 : 1,
-            }}
           >
-            <RefreshCw size={18} style={cargando ? { animation: 'spin 1s linear infinite' } : undefined} />
+            <RefreshCw size={17} className={cargando ? 'recepcion-spin' : undefined} />
           </button>
           <button
+            className="recepcion-btn-primary"
             onClick={() => setModo('wizard')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              background: '#155DFC',
-              color: '#fff',
-              padding: '10px 16px',
-              borderRadius: 8,
-              border: 'none',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1347d4')}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#155DFC')}
           >
-            <Plus size={18} />
+            <Plus size={16} />
             Nueva Recepción
           </button>
         </div>
       </div>
 
       {/* ── Controles de Filtros y Búsqueda ── */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        background: '#fff',
-        padding: '1.25rem',
-        borderRadius: 12,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        alignItems: 'center',
-      }}>
+      <div className="recepcion-filter-bar">
         {/* Barra de Búsqueda */}
-        <div style={{ position: 'relative', flex: '1 1 300px' }}>
-          <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+        <div className="recepcion-search-wrapper">
+          <span className="recepcion-search-icon"><Search size={16} /></span>
           <input
+            className="recepcion-search-input"
             type="text"
             placeholder="Buscar por placa o nombre de cliente..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '10px 12px 10px 40px',
-              borderRadius: 8,
-              border: '1px solid #cbd5e1',
-              fontSize: '0.875rem',
-              outline: 'none',
-              transition: 'border-color 0.2s',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = '#155DFC')}
-            onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
           />
         </div>
 
-        {/* Filtro de Estado */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {/* Filtro de Estado — pill tabs unificados */}
+        <div className="recepcion-filter-tabs">
           {[
             { value: 'todos', label: 'Todos' },
             { value: 'recepcion', label: 'En recepción' },
             { value: 'inspeccion', label: 'En inspección' },
-          ].map((opt) => {
-            const isSelected = statusFilter === opt.value
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setStatusFilter(opt.value)}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: 20,
-                  border: 'none',
-                  background: isSelected ? '#155DFC' : '#f1f5f9',
-                  color: isSelected ? '#fff' : '#475569',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {opt.label}
-              </button>
-            )
-          })}
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              className={`recepcion-filter-tab${
+                statusFilter === opt.value ? ' recepcion-filter-tab--active' : ''
+              }`}
+              onClick={() => setStatusFilter(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* ── Contenido Principal ── */}
-      <div style={{
-        background: '#fff',
-        borderRadius: 12,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        overflow: 'hidden',
-      }}>
+      <div className="recepcion-table-card">
 
         {/* Loading */}
         {cargando && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 60, gap: 12 }}>
-            <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
-            <p style={{ color: '#64748b', margin: 0 }}>Cargando recepciones...</p>
+          <div className="recepcion-loading">
+            <Loader2 size={30} className="recepcion-spin" style={{ color: '#155DFC' }} />
+            <p style={{ margin: 0 }}>Cargando recepciones...</p>
           </div>
         )}
 
         {/* Error */}
         {!cargando && error && (
-          <div style={{ padding: '1.5rem' }}>
-            <div
-              role="alert"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                borderRadius: 8,
-                padding: '12px 16px',
-                color: '#991b1b',
-              }}
-            >
-              <AlertCircle size={18} />
+          <div className="recepcion-error">
+            <div className="recepcion-error-inner" role="alert">
+              <AlertCircle size={16} />
               <span>{error}</span>
-              <button
-                onClick={cargarDatos}
-                style={{
-                  marginLeft: 'auto',
-                  background: 'none',
-                  border: 'none',
-                  color: '#991b1b',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
-                }}
-              >
-                Reintentar
-              </button>
+              <button className="recepcion-error-retry" onClick={cargarDatos}>Reintentar</button>
             </div>
           </div>
         )}
 
         {/* Empty state */}
         {!cargando && !error && filteredInspecciones.length === 0 && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '60px 20px',
-            gap: 12,
-          }}>
-            <div style={{
-              background: '#f1f5f9',
-              borderRadius: 999,
-              padding: 16,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <ClipboardList size={32} style={{ color: '#94a3b8' }} />
+          <div className="recepcion-empty">
+            <div className="recepcion-empty-icon">
+              <ClipboardList size={28} />
             </div>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#1e293b' }}>
-              No hay recepciones que coincidan
-            </h3>
-            <p style={{ margin: 0, color: '#64748b', textAlign: 'center', maxWidth: 400 }}>
+            <h3 className="recepcion-empty-title">No hay recepciones que coincidan</h3>
+            <p className="recepcion-empty-desc">
               No encontramos recepciones que coincidan con la búsqueda o el filtro activo.
             </p>
           </div>
@@ -528,149 +420,79 @@ export function RecepcionPage() {
 
         {/* Table */}
         {!cargando && !error && filteredInspecciones.length > 0 && (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="recepcion-table-scroll">
             <div className="receptions-table-desktop">
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                fontSize: '0.875rem',
-              }}>
+              <table className="recepcion-table">
               <thead>
-                <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                <tr>
                   {['#', 'Placa', 'Cliente', 'Tipo de revisión', 'Kilometraje', 'Fecha', 'Estado', 'Acciones'].map((col) => (
-                    <th
-                      key={col}
-                      style={{
-                        padding: '12px 16px',
-                        textAlign: 'left',
-                        fontWeight: 600,
-                        color: '#475569',
-                        fontSize: '0.8rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {col}
-                    </th>
+                    <th key={col}>{col}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {paginatedInspecciones.map((insp, idx) => {
+                {paginatedInspecciones.map((insp) => {
                   const badge = estadoBadge(insp, statuses)
-                  const isHovered = hoveredRow === insp.id
                   return (
-                    <tr
-                      key={insp.id}
-                      onMouseEnter={() => setHoveredRow(insp.id)}
-                      onMouseLeave={() => setHoveredRow(null)}
-                      style={{
-                        borderBottom: '1px solid #f1f5f9',
-                        background: isHovered ? '#f8fafc' : idx % 2 === 0 ? '#fff' : '#fafbfc',
-                        transition: 'background-color 0.15s',
-                      }}
-                    >
-                      <td style={{ padding: '12px 16px', fontWeight: 500, color: '#1e293b', whiteSpace: 'nowrap' }}>
-                        {insp.inspection_number || insp.id.substring(0, 8)}
+                    <tr key={insp.id}>
+                      <td>
+                        <span className="recepcion-id-cell">
+                          {insp.inspection_number || insp.id.substring(0, 8)}
+                        </span>
                       </td>
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          color: '#1e293b',
-                          fontWeight: 500,
-                        }}>
-                          <Car size={14} style={{ color: '#64748b' }} />
+                      <td>
+                        <span className="recepcion-plate-cell">
+                          <Car size={13} className="rc-icon-muted" />
                           {infoVehiculo(insp)}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
-                        {infoCliente(insp)}
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <Wrench size={14} style={{ color: '#64748b' }} />
+                      <td>{infoCliente(insp)}</td>
+                      <td>
+                        <span className="recepcion-type-cell">
+                          <Wrench size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
                           {formatRevisionType(insp.revision_type)}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
+                      <td>
                         {insp.mileage != null ? `${insp.mileage.toLocaleString()} km` : '—'}
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <Calendar size={14} style={{ color: '#64748b' }} />
+                      <td>
+                        <span className="recepcion-date-cell">
+                          <Calendar size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
                           {formatDate(insp.inspection_date || insp.date || insp.createdAt)}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '4px 10px',
-                          borderRadius: 999,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          background: badge.bg,
-                          color: badge.color,
-                          whiteSpace: 'nowrap',
-                        }}>
+                      <td>
+                        <span
+                          className="recepcion-badge-generic"
+                          style={{ background: badge.bg, color: badge.color }}
+                        >
                           {badge.label}
                         </span>
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                      <td>
+                        <div className="recepcion-actions-cell">
                           <button
+                            className="recepcion-action-btn recepcion-action-btn--view"
                             onClick={() => setSelectedInspectionId(insp.id)}
                             title="Ver Detalle"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: '#eff6ff',
-                              border: 'none',
-                              borderRadius: 6,
-                              padding: 6,
-                              cursor: 'pointer',
-                              color: '#155DFC',
-                            }}
                           >
                             <Eye size={16} />
                           </button>
-                          
+
                           <button
+                            className="recepcion-action-btn recepcion-action-btn--edit"
                             onClick={() => iniciarEdicion(insp)}
                             title="Editar Recepción"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: '#f8fafc',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: 6,
-                              padding: 6,
-                              cursor: 'pointer',
-                              color: '#475569',
-                            }}
                           >
                             <Pencil size={16} />
                           </button>
 
                           {isAdmin && (
                             <button
+                              className="recepcion-action-btn recepcion-action-btn--delete"
                               onClick={() => setDeleteConfirmId(insp.id)}
                               title="Eliminar"
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: '#fee2e2',
-                                border: 'none',
-                                borderRadius: 6,
-                                padding: 6,
-                                cursor: 'pointer',
-                                color: '#ef4444',
-                              }}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -801,64 +623,39 @@ export function RecepcionPage() {
 
 
             {/* Paginación y Contador */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '12px 16px',
-              borderTop: '1px solid #e2e8f0',
-              color: '#64748b',
-              fontSize: '0.8rem',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={14} />
+            <div className="recepcion-table-footer">
+              <span className="recepcion-footer-timestamp">
+                <Clock size={13} />
                 Última actualización: {new Date().toLocaleTimeString('es-CO')}
               </span>
 
-              {/* Botones de Paginación */}
               {totalPages > 1 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="recepcion-pagination">
                   <button
+                    className="recepcion-pagination-btn"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: 6,
-                      background: '#f1f5f9',
-                      border: 'none',
-                      borderRadius: 6,
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                      opacity: currentPage === 1 ? 0.5 : 1,
-                    }}
+                    aria-label="Página anterior"
                   >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={15} />
                   </button>
-                  <span style={{ fontWeight: 500, color: '#1e293b' }}>
+                  <span className="recepcion-pagination-label">
                     Página {currentPage} de {totalPages}
                   </span>
                   <button
+                    className="recepcion-pagination-btn"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: 6,
-                      background: '#f1f5f9',
-                      border: 'none',
-                      borderRadius: 6,
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                      opacity: currentPage === totalPages ? 0.5 : 1,
-                    }}
+                    aria-label="Página siguiente"
                   >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={15} />
                   </button>
                 </div>
               )}
 
-              <span>{filteredInspecciones.length} de {inspecciones.length} recepciones</span>
+              <span className="recepcion-footer-count">
+                {filteredInspecciones.length} de {inspecciones.length} recepciones
+              </span>
             </div>
           </div>
         )}

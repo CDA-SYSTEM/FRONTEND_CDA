@@ -9,6 +9,7 @@ import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
+import './ClientesPage.css'
 
 export function ClientesPage() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
@@ -103,42 +104,24 @@ export function ClientesPage() {
 
   // ── Renderizado Principal ──────────────────────────────────────────────────
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="clientes-root">
 
       {/* ── Cabecera ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '1.5rem', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ background: '#eff6ff', borderRadius: 12, padding: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Users size={24} style={{ color: '#155DFC' }} />
+      <div className="cl-header">
+        <div className="cl-header-info">
+          <div className="cl-header-icon">
+            <Users size={22} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-              Gestión de Clientes
-            </h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-              Registro y administración de clientes
-            </p>
+            <h1 className="cl-header-title">Gestión de Clientes</h1>
+            <p className="cl-header-desc">Registro y administración de clientes</p>
           </div>
         </div>
         <button
+          className="cl-btn-primary"
           onClick={() => setIsModalOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            background: '#155DFC',
-            color: '#fff',
-            padding: '10px 16px',
-            borderRadius: 8,
-            border: 'none',
-            fontWeight: 500,
-            cursor: 'pointer',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1347d4')}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#155DFC')}
         >
-          <Plus size={18} />
+          <Plus size={16} />
           Nuevo Cliente
         </button>
       </div>
@@ -210,56 +193,42 @@ export function ClientesPage() {
       <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* ── Nombre y Apellido ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Nombre <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Nombre <span className="cl-field-required">*</span>
             </span>
             <input
+              className="cl-input"
               placeholder="Ej: Juan Carlos"
               {...register('nombre')}
               disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
             />
             {errors.nombre && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.nombre.message}</span>
+              <span className="cl-field-error">{errors.nombre.message}</span>
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Apellido <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Apellido <span className="cl-field-required">*</span>
             </span>
             <input
+              className="cl-input"
               placeholder="Ej: Pérez Gómez"
               {...register('apellido')}
               disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-                transition: 'border-color 0.2s',
-              }}
             />
             {errors.apellido && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.apellido.message}</span>
+              <span className="cl-field-error">{errors.apellido.message}</span>
             )}
           </div>
         </div>
 
         {/* ── Tipo de documento e Identity ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Tipo de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Tipo de documento <span className="cl-field-required">*</span>
             </span>
             <CustomSelect
               options={tiposDocumento.map((tipo) => ({ value: String(tipo.id), label: tipo.nombre }))}
@@ -267,40 +236,34 @@ export function ClientesPage() {
               onChange={(val) => setValue('documentTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
             />
             {errors.documentTypeId && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>
+              <span className="cl-field-error">
                 {errors.documentTypeId.message}
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Número de documento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Número de documento <span className="cl-field-required">*</span>
             </span>
             <input
+              className="cl-input"
               placeholder={placeholderIdentity}
               {...register('identity')}
               disabled={enviando}
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                padding: '10px 14px',
-                fontSize: '0.95rem',
-                outline: 'none',
-                textTransform: 'uppercase',
-              }}
+              style={{ textTransform: 'uppercase' }}
             />
             {errors.identity && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.identity.message}</span>
+              <span className="cl-field-error">{errors.identity.message}</span>
             )}
           </div>
         </div>
 
         {/* ── Tipo de persona (oculto si solo hay uno) ── */}
         {tiposPersona.length > 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Tipo de persona <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+          <div className="cl-field">
+            <span className="cl-field-label">
+              Tipo de persona <span className="cl-field-required">*</span>
             </span>
             <CustomSelect
               options={tiposPersona.map((tp) => ({ value: String(tp.id), label: tp.nombre }))}
@@ -308,109 +271,69 @@ export function ClientesPage() {
               onChange={(val) => setValue('personTypeId', Number(val), { shouldValidate: true, shouldDirty: true })}
             />
             {errors.personTypeId && (
-              <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.personTypeId.message}</span>
+              <span className="cl-field-error">{errors.personTypeId.message}</span>
             )}
           </div>
         )}
 
         {/* ── Celular ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-            Celular <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+        <div className="cl-field">
+          <span className="cl-field-label">
+            Celular <span className="cl-field-required">*</span>
           </span>
           <input
+            className="cl-input"
             type="tel"
             placeholder="Ej: 3001234567"
             maxLength={10}
             {...register('celular')}
             disabled={enviando}
-            style={{
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              padding: '10px 14px',
-              fontSize: '0.95rem',
-              outline: 'none',
-            }}
           />
           {errors.celular && (
-            <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.celular.message}</span>
+            <span className="cl-field-error">{errors.celular.message}</span>
           )}
         </div>
 
         {/* ── Correo (opcional) ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-            Correo electrónico{' '}
-            <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-              (opcional)
-            </span>
+        <div className="cl-field">
+          <span className="cl-field-label">
+            Correo electrónico
+            <span className="cl-field-optional">(opcional)</span>
           </span>
           <input
+            className="cl-input"
             type="email"
             placeholder="Ej: juan@correo.com"
             {...register('email')}
             disabled={enviando}
-            style={{
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              padding: '10px 14px',
-              fontSize: '0.95rem',
-              outline: 'none',
-            }}
           />
           {errors.email && (
-            <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.email.message}</span>
+            <span className="cl-field-error">{errors.email.message}</span>
           )}
         </div>
 
         {/* ── Dirección (opcional) ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-            Dirección{' '}
-            <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-              (opcional)
-            </span>
+        <div className="cl-field">
+          <span className="cl-field-label">
+            Dirección
+            <span className="cl-field-optional">(opcional)</span>
           </span>
           <input
+            className="cl-input"
             placeholder="Ej: Cra 5 # 12-34, Mocoa"
             {...register('direccion')}
             disabled={enviando}
-            style={{
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              padding: '10px 14px',
-              fontSize: '0.95rem',
-              outline: 'none',
-            }}
           />
           {errors.direccion && (
-            <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
+            <span className="cl-field-error">{errors.direccion.message}</span>
           )}
         </div>
 
         {/* ── Botón de envío ── */}
         <button
           type="submit"
+          className="cl-btn-submit"
           disabled={enviando}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            marginTop: '1rem',
-            padding: '12px 24px',
-            fontSize: '1rem',
-            fontWeight: 600,
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #155DFC 0%, #0c4ad1 100%)',
-            color: '#fff',
-            cursor: 'pointer',
-            border: 'none',
-            boxShadow: '0 4px 12px rgba(21, 93, 252, 0.2)',
-            transition: 'opacity 0.2s',
-            opacity: enviando ? 0.7 : 1,
-            width: '100%',
-          }}
         >
           {enviando && (
             <Loader2

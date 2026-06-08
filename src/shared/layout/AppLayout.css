@@ -97,6 +97,33 @@
    Topbar Styles
    ═══════════════════════════════════════════════ */
 
+.topbar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    transform 90ms ease;
+  flex-shrink: 0;
+}
+
+.topbar-toggle:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.topbar-toggle:active {
+  transform: scale(0.9);
+}
+
 .topbar-left {
   display: flex;
   align-items: center;

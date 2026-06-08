@@ -719,39 +719,27 @@
 }
 
 .recepcion-actions-trigger:active {
-  transform: scale(0.88);
-}
-
-.recepcion-actions-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
+  transform: scale(0.85);
 }
 
 .recepcion-actions-menu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 20;
-  min-width: 160px;
+  z-index: 100;
+  min-width: 180px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow:
-    0 8px 24px rgba(15, 23, 42, 0.12),
-    0 2px 6px rgba(15, 23, 42, 0.06);
-  padding: 4px;
-  animation: actionsMenuIn 0.12s ease-out;
+    0 12px 32px rgba(15, 23, 42, 0.18),
+    0 4px 8px rgba(15, 23, 42, 0.08);
+  padding: 6px;
+  animation: actionsMenuIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: top right;
 }
 
 @keyframes actionsMenuIn {
   from {
     opacity: 0;
-    transform: scale(0.92) translateY(-4px);
+    transform: scale(0.88) translateY(-6px);
   }
   to {
     opacity: 1;
@@ -759,14 +747,28 @@
   }
 }
 
+.recepcion-actions-menu-arrow {
+  position: absolute;
+  top: -5px;
+  right: 14px;
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-right: none;
+  border-bottom: none;
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
 .recepcion-actions-menu-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 9px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   color: var(--rc-text-muted);
   font-size: 0.85rem;
@@ -774,13 +776,25 @@
   cursor: pointer;
   transition:
     background  var(--rc-dur-fast) var(--rc-ease-out),
-    color       var(--rc-dur-fast) var(--rc-ease-out);
+    color       var(--rc-dur-fast) var(--rc-ease-out),
+    transform   90ms              var(--rc-ease-out);
   white-space: nowrap;
 }
 
 .recepcion-actions-menu-item:hover {
   background: #f1f5f9;
   color: var(--rc-text);
+  transform: translateX(2px);
+}
+
+.recepcion-actions-menu-item:active {
+  transform: scale(0.97);
+}
+
+.recepcion-actions-menu-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 4px 8px;
 }
 
 .recepcion-actions-menu-item--danger {

@@ -144,6 +144,32 @@ export function RecepcionPage() {
 
   // Dropdown de acciones
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+
+  const openActions = (id: string, e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setMenuPos({ top: rect.bottom + 6, right: document.documentElement.clientWidth - rect.right })
+    setOpenActionsId(id)
+  }
+
+  useEffect(() => {
+    if (!openActionsId) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setOpenActionsId(null); setMenuPos(null) }
+    }
+    const clickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.recepcion-actions-dropdown')) {
+        setOpenActionsId(null); setMenuPos(null)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    document.addEventListener('mousedown', clickOutside)
+    return () => {
+      document.removeEventListener('keydown', handler)
+      document.removeEventListener('mousedown', clickOutside)
+    }
+  }, [openActionsId])
   const [eliminandoId, setEliminandoId] = useState<string | null>(null)
 
   // Obtener rol de usuario
@@ -574,44 +600,55 @@ export function RecepcionPage() {
                               className="recepcion-actions-trigger"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setOpenActionsId(openActionsId === insp.id ? null : insp.id)
+                                if (openActionsId === insp.id) {
+                                  setOpenActionsId(null)
+                                  setMenuPos(null)
+                                } else {
+                                  openActions(insp.id, e)
+                                }
                               }}
                               title="Acciones"
                             >
                               <MoreVertical size={16} />
                             </button>
-                            {openActionsId === insp.id && (
-                              <>
-                                <div
-                                  className="recepcion-actions-backdrop"
-                                  onClick={() => setOpenActionsId(null)}
-                                />
-                                <div className="recepcion-actions-menu">
-                                  <button
-                                    className="recepcion-actions-menu-item"
-                                    onClick={() => { setOpenActionsId(null); setSelectedInspectionId(insp.id) }}
-                                  >
-                                    <Eye size={15} />
-                                    Ver detalle
-                                  </button>
-                                  <button
-                                    className="recepcion-actions-menu-item"
-                                    onClick={() => { setOpenActionsId(null); iniciarEdicion(insp) }}
-                                  >
-                                    <Pencil size={15} />
-                                    Editar
-                                  </button>
-                                  {isAdmin && (
+                            {openActionsId === insp.id && menuPos && (
+                              <div
+                                className="recepcion-actions-menu"
+                                style={{
+                                  position: 'fixed',
+                                  top: menuPos.top,
+                                  right: menuPos.right,
+                                }}
+                              >
+                                <div className="recepcion-actions-menu-arrow" />
+                                <button
+                                  className="recepcion-actions-menu-item"
+                                  onClick={() => { setOpenActionsId(null); setMenuPos(null); setSelectedInspectionId(insp.id) }}
+                                >
+                                  <Eye size={15} />
+                                  Ver detalle
+                                </button>
+                                <div className="recepcion-actions-menu-divider" />
+                                <button
+                                  className="recepcion-actions-menu-item"
+                                  onClick={() => { setOpenActionsId(null); setMenuPos(null); iniciarEdicion(insp) }}
+                                >
+                                  <Pencil size={15} />
+                                  Editar
+                                </button>
+                                {isAdmin && (
+                                  <>
+                                    <div className="recepcion-actions-menu-divider" />
                                     <button
                                       className="recepcion-actions-menu-item recepcion-actions-menu-item--danger"
-                                      onClick={() => { setOpenActionsId(null); setDeleteConfirmId(insp.id) }}
+                                      onClick={() => { setOpenActionsId(null); setMenuPos(null); setDeleteConfirmId(insp.id) }}
                                     >
                                       <Trash2 size={15} />
                                       Eliminar
                                     </button>
-                                  )}
-                                </div>
-                              </>
+                                  </>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>

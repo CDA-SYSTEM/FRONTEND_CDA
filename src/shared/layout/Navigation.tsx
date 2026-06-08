@@ -14,8 +14,6 @@ import {
   Activity,
   Home,
   Menu,
-  PanelLeftClose,
-  PanelLeft
 } from 'lucide-react'
 import './Navigation.css'
 
@@ -43,10 +41,9 @@ const navItems: NavItem[] = [
 
 interface NavigationProps {
   collapsed: boolean
-  onToggle: () => void
 }
 
-export function Navigation({ collapsed, onToggle }: NavigationProps) {
+export function Navigation({ collapsed }: NavigationProps) {
   const user = useAuthStore((state) => state.user)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -60,17 +57,6 @@ export function Navigation({ collapsed, onToggle }: NavigationProps) {
 
   return (
     <nav className={`navigation${collapsed ? ' navigation--collapsed' : ''}`} aria-label="Navegación principal">
-      {/* Desktop List */}
-      <div className="navigation__desktop-header">
-        <button
-          className="navigation__toggle"
-          onClick={onToggle}
-          title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-          aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-        >
-          {collapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
-        </button>
-      </div>
       <ul className="navigation__list navigation__list--desktop">
         {filteredItems.map((item) => (
           <li key={item.to} className="navigation__item">

@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut, WifiOff, KeyRound } from 'lucide-react'
+import { LogOut, WifiOff, KeyRound, PanelLeft, PanelLeftClose } from 'lucide-react'
 import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
 import { offlineStorage } from '@/core/services/offlineStorage'
 import { authService } from '@/modules/auth/services/authService'
@@ -106,11 +106,19 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <Navigation collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+      <Navigation collapsed={sidebarCollapsed} />
       
       <div className={`app-shell__main${sidebarCollapsed ? ' app-shell__main--collapsed' : ''}`}>
         <header className="topbar">
           <div className="topbar-left">
+            <button
+              className="topbar-toggle"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+              aria-label={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            >
+              {sidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
+            </button>
             <strong>CDA Putumayo</strong>
           </div>
           <div className="topbar-right">

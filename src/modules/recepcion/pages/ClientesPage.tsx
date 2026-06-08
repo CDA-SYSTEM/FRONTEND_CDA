@@ -353,6 +353,23 @@ export function ClientesPage() {
               <span className="cl-field-error">{errors.direccion.message}</span>
             )}
           </div>
+
+          {/* ── Fecha de nacimiento (opcional) ── */}
+          <div className="cl-field form-group-fecha">
+            <span className="cl-field-label">
+              Fecha de nacimiento
+              <span className="cl-field-optional">(opcional)</span>
+            </span>
+            <input
+              className="cl-input"
+              type="date"
+              {...register('birthDate')}
+              disabled={enviando}
+            />
+            {errors.birthDate && (
+              <span className="cl-field-error">{errors.birthDate.message}</span>
+            )}
+          </div>
         </div>
 
         {/* ── Botón de envío ── */}

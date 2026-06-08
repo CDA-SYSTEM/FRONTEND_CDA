@@ -987,3 +987,20 @@
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* Media query para max-width: 768px (adaptación de campos como fecha) */
+@media (max-width: 768px) {
+  .form-group-fecha,
+  .form-group-fecha input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+  
+  .form-group-fecha .cl-field-label {
+    color: #64748b !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+  }
+}

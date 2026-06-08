@@ -357,6 +357,11 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                   <span className="cl-field-label">Dirección</span>
                   <input className="cl-input" {...register('direccion')} disabled={actualizando} />
                 </div>
+                <div className="cl-field form-group-fecha">
+                  <span className="cl-field-label">Fecha de nacimiento</span>
+                  <input className="cl-input" type="date" {...register('birthDate')} disabled={actualizando} />
+                  {errors.birthDate && <span className="cl-field-error">{errors.birthDate.message}</span>}
+                </div>
               </Grid>
               
               <Flex justify="end" style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--cl-border)' }}>
@@ -396,6 +401,7 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                 
                 <InfoField label="Correo electrónico" value={cliente.email} />
                 <InfoField label="Dirección" value={cliente.direccion} />
+                <InfoField label="Fecha de nacimiento" value={cliente.birthDate} />
               </Grid>
             </DataDisplayGroup>
 

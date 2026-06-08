@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertCircle, Loader2, Plus, Users } from 'lucide-react'
+import { AlertCircle, Loader2, Plus, Users, CheckCircle, X } from 'lucide-react'
 import { ClienteBuscador } from '@/modules/recepcion/components/ClienteBuscador'
 import { ClienteDetalle } from '@/modules/recepcion/components/ClienteDetalle'
 import { ClienteConfirmacion } from '@/modules/recepcion/components/ClienteConfirmacion'
@@ -15,16 +15,24 @@ import './ClientesPage.css'
 export function ClientesPage() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    setTimeout(() => {
+      setToast(null)
+    }, 3000)
+  }
 
   const handleEliminarCliente = async (cliente: ClientePersonaNatural) => {
     if (!window.confirm(`¿Estás seguro de que deseas eliminar al cliente ${cliente.nombre} ${cliente.apellido}?`)) return
     try {
       await clienteService.eliminarCliente(cliente.id)
-      alert('Cliente eliminado con éxito')
+      showToast('Cliente eliminado con éxito', 'success')
       buscador.refrescar()
     } catch (err) {
       console.error(err)
-      alert('No se pudo eliminar el cliente.')
+      showToast('No se pudo eliminar el cliente.', 'error')
     }
   }
 
@@ -144,9 +152,11 @@ export function ClientesPage() {
         <ClienteDetalle
           clienteInicial={clienteSeleccionado}
           onVolver={() => setClienteSeleccionado(null)}
-          onActualizado={() => {
-            alert('Cliente actualizado con éxito')
-            setClienteSeleccionado(null)
+          onActualizado={(keepOpen?: boolean) => {
+            showToast('Cliente actualizado con éxito', 'success')
+            if (!keepOpen) {
+              setClienteSeleccionado(null)
+            }
             buscador.refrescar()
           }}
         />
@@ -165,8 +175,6 @@ export function ClientesPage() {
           onLimitChange={buscador.setLimite}
           totalElementos={buscador.totalElementos}
           totalPages={buscador.totalPages}
-          incluirInactivos={buscador.incluirInactivos}
-          onIncluirInactivosChange={buscador.setIncluirInactivos}
         />
       )}
 
@@ -343,6 +351,23 @@ export function ClientesPage() {
               <span className="cl-field-error">{errors.direccion.message}</span>
             )}
           </div>
+
+          {/* ── Fecha de nacimiento (opcional) ── */}
+          <div className="cl-field form-group-fecha">
+            <span className="cl-field-label">
+              Fecha de nacimiento
+              <span className="cl-field-optional">(opcional)</span>
+            </span>
+            <input
+              className="cl-input"
+              type="date"
+              {...register('birthDate')}
+              disabled={enviando}
+            />
+            {errors.birthDate && (
+              <span className="cl-field-error">{errors.birthDate.message}</span>
+            )}
+          </div>
         </div>
 
         {/* ── Botón de envío ── */}
@@ -363,6 +388,17 @@ export function ClientesPage() {
         </div>
       </form>
       </Modal>
+
+      {/* Notificación Toast */}
+      {toast && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+          <span>{toast.message}</span>
+          <button className="toast-close-btn" onClick={() => setToast(null)} type="button" style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', padding: 2, display: 'flex', marginLeft: 'auto' }}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

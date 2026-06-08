@@ -151,7 +151,10 @@ export function EstadosPage() {
   }
 
   const user = useAuthStore((state) => state.user)
-  const isAllowed = user?.role === 'ADMIN' || user?.role === 'MANAGER'
+  const isAllowed =
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager'
 
   // Obtener opciones únicas de filtros basadas en los códigos existentes
   const filterOptions = [

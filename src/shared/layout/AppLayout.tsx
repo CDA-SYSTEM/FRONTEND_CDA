@@ -103,7 +103,7 @@ export function AppLayout() {
           </div>
           <div className="topbar-right">
             <span className="badge">{user?.role ?? 'SIN ROL'}</span>
-            {user?.role === 'ADMIN' && (
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
               <button
                 className="btn-logout-topbar"
                 onClick={() => setChangePassOpen(true)}

@@ -29,7 +29,7 @@ import './AsignacionPage.css'
 
 type Tab = 'inspecciones' | 'labrado'
 
-const ROLES_PERMITIDOS: UserRole[] = ['ADMIN', 'INSPECTOR']
+const ROLES_PERMITIDOS: UserRole[] = ['admin', 'inspector']
 
 function formatearFecha(fecha?: string) {
   if (!fecha) return '—'
@@ -162,7 +162,9 @@ export function AsignacionPage() {
   const [errorLabrado, setErrorLabrado] = useState<string | null>(null)
   const labradoRequestSeq = useRef(0)
 
-  const tieneAcceso = ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
+  const tieneAcceso =
+    user?.role === 'superadmin' ||
+    ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
 
   const selectedInspection = useMemo(
     () => inspecciones.find((i) => i.id === selectedInspectionId) ?? null,

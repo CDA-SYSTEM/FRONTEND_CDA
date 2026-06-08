@@ -43,6 +43,12 @@ function extractArray(responseData: unknown): any[] {
 
   return []
 }
+function extractItem(responseData: unknown): any {
+  const body = responseData as Record<string, any>
+  if (body && body.data && typeof body.data === 'object' && body.data.data) return body.data.data
+  if (body && body.data && typeof body.data === 'object') return body.data
+  return body
+}
 
 export const clienteService = {
   /**
@@ -54,7 +60,7 @@ export const clienteService = {
       '/api/v1/clients',
       payload,
     )
-    return response.data
+    return extractItem(response.data)
   },
 
   /**
@@ -95,7 +101,7 @@ export const clienteService = {
       const response = await apiClient.get<ClientePersonaNatural>(
         `/api/v1/clients/${id}`,
       )
-      return response.data
+      return extractItem(response.data)
     } catch (error: unknown) {
       const e = error as { response?: { status?: number } }
       if (e.response?.status === 404) return null
@@ -127,6 +133,7 @@ export const clienteService = {
     personTypeId?: number
     page?: number
     size?: number
+    active?: boolean
   }): Promise<{
     content: ClientePersonaNatural[]
     totalElements: number
@@ -139,6 +146,7 @@ export const clienteService = {
         personTypeId: params.personTypeId || undefined,
         page: params.page ?? 0,
         size: params.size ?? 10,
+        active: params.active,
       },
     })
     const body = response.data as Record<string, any>
@@ -164,7 +172,7 @@ export const clienteService = {
       `/api/v1/clients/${id}`,
       payload,
     )
-    return response.data
+    return extractItem(response.data)
   },
 
   /**
@@ -195,7 +203,7 @@ export const clienteService = {
       const response = await apiClient.get<ClientePersonaNatural>(
         `/api/v1/clients/${id}/full`,
       )
-      return response.data
+      return extractItem(response.data)
     } catch (error: unknown) {
       const e = error as { response?: { status?: number } }
       if (e.response?.status === 404) return null
@@ -211,6 +219,6 @@ export const clienteService = {
     const response = await apiClient.put<ClientePersonaNatural>(
       `/api/v1/clients/${id}/activate`,
     )
-    return response.data
+    return extractItem(response.data)
   },
 }

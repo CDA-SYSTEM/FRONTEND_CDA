@@ -31,14 +31,15 @@ function RoleBasedRedirect() {
   }
 
   // Mapeo de roles backend → ruta inicial del frontend
-  // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
+  // Backend (minúsculas): admin | manager | operario | inspector | facturador | superadmin
   const roleRoutes: Record<string, string> = {
-    ADMIN: '/admin/dashboard',
-    MANAGER: '/recepcion',
-    OPERARIO: '/recepcion',
-    INSPECTOR: '/inspeccion/asignacion',
-    FACTURADOR: '/facturacion',
-    RECEPCIONISTA: '/recepcion',
+    admin: '/admin/dashboard',
+    superadmin: '/admin/dashboard',
+    manager: '/recepcion',
+    operario: '/recepcion',
+    inspector: '/inspeccion/asignacion',
+    facturador: '/facturacion',
+    recepcionista: '/recepcion',
   }
 
   const route = roleRoutes[user.role] || '/dashboard'

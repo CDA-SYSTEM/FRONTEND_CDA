@@ -26,17 +26,17 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: <Home size={20} /> },
-  { to: '/usuarios', label: 'Usuarios', icon: <Users size={20} />, roles: ['ADMIN'] },
-  { to: '/recepcion', label: 'Recepción', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/inspeccion/asignacion', label: 'Checklist', icon: <ClipboardCheck size={20} />, roles: ['ADMIN', 'INSPECTOR'] },
-  { to: '/vehiculo/registro', label: 'Vehículos', icon: <Car size={20} />, roles: ['ADMIN', 'RECEPCIONISTA', 'MANAGER', 'OPERARIO'] },
-  { to: '/facturacion', label: 'Facturación', icon: <DollarSign size={20} />, roles: ['ADMIN', 'FACTURADOR', 'MANAGER'] },
-  { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['ADMIN', 'MANAGER'] },
-  { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['ADMIN', 'MANAGER'] },
-  { to: '/plantillas', label: 'Plantillas', icon: <FileText size={20} />, roles: ['ADMIN', 'MANAGER'] },
-  { to: '/archivos', label: 'Archivos', icon: <FileArchive size={20} />, roles: ['ADMIN'] },
-  { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['ADMIN', 'MANAGER'] },
+  { to: '/usuarios', label: 'Usuarios', icon: <Users size={20} />, roles: ['admin'] },
+  { to: '/recepcion', label: 'Recepción', icon: <LayoutDashboard size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
+  { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
+  { to: '/inspeccion/asignacion', label: 'Checklist', icon: <ClipboardCheck size={20} />, roles: ['admin', 'inspector'] },
+  { to: '/vehiculo/registro', label: 'Vehículos', icon: <Car size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
+  { to: '/facturacion', label: 'Facturación', icon: <DollarSign size={20} />, roles: ['admin', 'facturador', 'manager'] },
+  { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['admin', 'manager'] },
+  { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['admin', 'manager'] },
+  { to: '/plantillas', label: 'Plantillas', icon: <FileText size={20} />, roles: ['admin', 'manager'] },
+  { to: '/archivos', label: 'Archivos', icon: <FileArchive size={20} />, roles: ['admin'] },
+  { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['admin', 'manager'] },
 ]
 
 export function Navigation() {
@@ -44,7 +44,11 @@ export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const filteredItems = navItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+    (item) =>
+      !item.roles ||
+      (user?.role &&
+        (user.role === 'superadmin' ||
+          item.roles.includes(user.role))),
   )
 
   return (

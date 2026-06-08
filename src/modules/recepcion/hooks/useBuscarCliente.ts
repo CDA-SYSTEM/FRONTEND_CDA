@@ -33,6 +33,7 @@ export function useBuscarCliente() {
           search: searchQuery,
           page: currentPage,
           size: pageSize,
+          active: incluirInactivos ? undefined : true,
         })
         setResultados(response.content)
         setTotalElementos(response.totalElements)

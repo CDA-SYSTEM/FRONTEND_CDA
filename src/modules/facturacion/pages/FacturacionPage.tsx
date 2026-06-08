@@ -272,7 +272,9 @@ export function FacturacionPage() {
   }
 
   const user = useAuthStore((state) => state.user)
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin =
+    user?.role === 'superadmin' ||
+    user?.role === 'admin'
 
   // Helper formatting values
   const formatCOP = (val: number) => {

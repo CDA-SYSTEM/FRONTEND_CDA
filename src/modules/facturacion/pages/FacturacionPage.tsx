@@ -19,6 +19,7 @@ import type { Factura, CreateInvoiceDTO, Status } from '../domain/factura.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { DetalleRecepcionModal } from '@/shared/components/DetalleRecepcionModal/DetalleRecepcionModal'
 
 export function FacturacionPage() {
   const [invoices, setInvoices] = useState<Factura[]>([])
@@ -51,6 +52,9 @@ export function FacturacionPage() {
     inspection_id: '',
     observations: ''
   })
+
+  // Modal de detalle de recepción
+  const [showReceptionDetail, setShowReceptionDetail] = useState<string | null>(null)
 
   // ID de inspección para autogeneración
   const [inspectionIdToGen, setInspectionIdToGen] = useState('')
@@ -654,7 +658,16 @@ export function FacturacionPage() {
               )}
             </div>
             <div className="factura-modal-footer">
-              <button 
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowReceptionDetail(selectedInvoice.inspection_id)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Ver Recepción
+                </button>
+              </div>
+              <button
                 className="btn btn-secondary"
                 onClick={() => setSelectedInvoice(null)}
               >
@@ -664,6 +677,12 @@ export function FacturacionPage() {
           </div>
         </div>
       )}
+
+      {/* Modal Detalle de Recepción */}
+      <DetalleRecepcionModal
+        inspectionId={showReceptionDetail}
+        onClose={() => setShowReceptionDetail(null)}
+      />
 
       {/* Modal Autogenerar factura */}
       {showGenerateModal && (

@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
 import { LogOut, WifiOff, KeyRound } from 'lucide-react'
@@ -9,7 +9,6 @@ import { Navigation } from './Navigation'
 import './AppLayout.css'
 
 export function AppLayout() {
-  const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 

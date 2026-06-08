@@ -270,4 +270,58 @@ export const authService = {
       }
     })
   },
+
+  /**
+   * POST /auth/oauth/google — respuesta: { data: { accessToken, refreshToken } }
+   * Envia el id_token de Google y devuelve la sesión de usuario.
+   */
+  async loginWithGoogle(idToken: string): Promise<LoginResponse> {
+    try {
+      const response = await apiClient.post('/auth/oauth/google', {
+        id_token: idToken,
+      })
+
+      const body = response.data as Record<string, unknown>
+      const { accessToken, refreshToken } = unwrapTokens(body)
+
+      if (!accessToken) {
+        const keys = Object.keys(body).join(', ')
+        const dataKeys = body['data'] && typeof body['data'] === 'object'
+          ? Object.keys(body['data'] as object).join(', ')
+          : 'N/A'
+        throw new Error(
+          `El servidor respondió pero sin token. Campos raíz: [${keys}]. Campos en data: [${dataKeys}]`
+        )
+      }
+
+      let user: AuthUser | null = null
+      if (accessToken) {
+        user = await this.getMe(accessToken)
+      }
+      if (!user && accessToken) {
+        user = extractUserFromToken(accessToken)
+      }
+
+      return { token: accessToken, refreshToken, user }
+    } catch (error: unknown) {
+      const e = error as { response?: { status?: number; data?: unknown }; message?: string; code?: string }
+      if (!e.response) {
+        throw new Error(
+          `No se pudo conectar al servidor. Verifique su conexión a internet. (${e.message ?? e.code ?? 'Network Error'})`
+        )
+      }
+      if (e.response?.status === 401 || e.response?.status === 400) {
+        throw new Error(
+          'Autenticación con Google fallida o token rechazado.',
+        )
+      }
+      if (e.response?.status === 500) {
+        throw new Error('Error del servidor al autenticar con Google.')
+      }
+      throw new Error(
+        e.message || 'Error al iniciar sesión con Google.',
+      )
+    }
+  },
 }
+

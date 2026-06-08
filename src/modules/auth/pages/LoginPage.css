@@ -51,12 +51,33 @@
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background:
     radial-gradient(ellipse 72% 55% at 15% 8%, var(--bg-orb-a), transparent),
     radial-gradient(ellipse 50% 40% at 88% 92%, var(--bg-orb-b), transparent),
     radial-gradient(ellipse 40% 35% at 50% 50%, var(--bg-orb-c), transparent);
-  pointer-events: none;
+}
+
+/* Background image layer */
+.bg-image {
+  position: absolute;
+  inset: 0;
   z-index: 0;
+  background-image: url('@/shared/assets/bg-mechanic-1.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* Dark gradient overlay over the image */
+.bg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(135deg, rgba(5, 10, 18, 0.92) 0%, rgba(8, 14, 30, 0.75) 50%, rgba(5, 10, 18, 0.92) 100%);
+  pointer-events: none;
 }
 
 .auth-shell::after {

@@ -221,6 +221,8 @@ export function LoginPage() {
 
   return (
     <main className="auth-shell">
+      <div className="bg-image" />
+      <div className="bg-overlay" />
       <div className="auth-split">
         {/* ── Left: Branding Panel ── */}
         <aside className="auth-brand">

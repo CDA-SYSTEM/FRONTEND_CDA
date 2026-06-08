@@ -91,4 +91,13 @@ export const facturaService = {
     )
     return response.data?.data || response.data
   },
+
+  /**
+   * Obtiene el documento PDF de la factura (genera si no existe).
+   */
+  async obtenerDocumento(id: string): Promise<string> {
+    const response = await apiClient.get<{ data: { url: string } }>(`/api/v1/invoices/${id}/document`)
+    const data = response.data?.data || response.data
+    return data.url
+  },
 }

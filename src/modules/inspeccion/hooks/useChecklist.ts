@@ -38,6 +38,9 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
   const [inspectorId, setInspectorId] = useState<string>('')
   const [cargandoInspectores, setCargandoInspectores] = useState(false)
   const itemPhotosRef = useRef(itemPhotos)
+  const vehicleTypeRef = useRef(vehicleType)
+  const observacionesRef = useRef(observaciones)
+  const inspectorIdRef = useRef(inspectorId)
   const inspectionKey = checklistInspection?.id || inspectionId
 
   const responsesFromChecklist = useCallback((detalle: ChecklistInspection) => {
@@ -54,7 +57,14 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
   }, [itemPhotos])
 
   useEffect(() => {
+    vehicleTypeRef.current = vehicleType
+    observacionesRef.current = observaciones
+    inspectorIdRef.current = inspectorId
+  }, [vehicleType, observaciones, inspectorId])
+
+  useEffect(() => {
     let mounted = true
+    let draftRestored = false
 
     async function inicializar() {
       setEstado('cargando')
@@ -75,6 +85,16 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
         setVehicleType(tipo)
         setResponses(responsesFromChecklist(detalle))
         setInspectorId(detalle.inspector_id || '')
+
+        /* HU-037b: Sobrescribir con borrador local síncrono si existe (post-401 / F5) */
+        const draftKey = vehicleTypeFromUrl ? getDraftKey(vehicleTypeFromUrl, inspectionId) : null
+        const draftData = draftKey ? loadDraft(draftKey) : null
+        if (draftData) {
+          draftRestored = true
+          if (draftData.responses?.length) setResponses(new Map(draftData.responses))
+          if (typeof draftData.observaciones === 'string') setObservaciones(draftData.observaciones)
+          if (draftData.inspectorId) setInspectorId(draftData.inspectorId)
+        }
 
         // Cargar inspectores
         setCargandoInspectores(true)
@@ -120,8 +140,9 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
     inicializar()
 
-    /* HU-037: Restaurar datos offline guardados para esta inspección */
+    /* HU-037: Restaurar datos offline guardados para esta inspección (solo si no hay borrador local) */
     ;(async () => {
+      if (draftRestored) return
       try {
         const savedInspection = await offlineStorage.obtenerMetadata(`inspection:${inspectionId}`)
         if (savedInspection === inspectionId) {
@@ -154,6 +175,16 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     }, 500)
     return () => { if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current) }
   }, [responses, observaciones, inspectionId])
+
+  /* HU-037b: Persistir borrador síncrono en localStorage (post-401 recovery) */
+  useEffect(() => {
+    if (!vehicleType) return
+    saveDraft(getDraftKey(vehicleType, inspectionId), {
+      responses: Array.from(responses.entries()),
+      observaciones,
+      inspectorId,
+    })
+  }, [responses, observaciones, inspectorId, vehicleType, inspectionId])
 
   const responderItem = useCallback((
     section_code: string,
@@ -358,6 +389,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     try {
       const ok = await checklistService.guardarBorrador(inspectionKey, payload)
       if (ok) {
+        if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
         setEstado('listo')
         return true
       }
@@ -398,6 +430,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
       const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
       if (cerradoOk) {
+        if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
         /* HU-037: Limpiar datos offline tras cierre exitoso */
         await offlineStorage.limpiarTodo(inspectionId)
         setEstado('exito')
@@ -416,6 +449,10 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
       return false
     }
   }, [checklistInspection, inspectionKey, observaciones, responses, inspectionId, construirPayloadInspeccion])
+
+  const limpiarBorradorLocal = useCallback(() => {
+    if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
+  }, [vehicleType, inspectionId])
 
   return {
     estado,
@@ -442,5 +479,56 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     setInspectorId,
     inspectores,
     cargandoInspectores,
+    limpiarBorradorLocal,
   }
+}
+
+/* ════════════════════════════════════════════════════════
+   Borrador síncrono en localStorage (post-401 recovery)
+   ════════════════════════════════════════════════════════ */
+const DRAFT_PREFIX = 'checklist_draft'
+const DRAFT_INDEX_KEY = 'checklist_draft_index'
+const MAX_DRAFTS = 2
+
+function getDraftKey(vehicleType: VehicleType, inspectionId: string): string {
+  return `${DRAFT_PREFIX}_${vehicleType}_${inspectionId}`
+}
+
+function getDraftIndex(): string[] {
+  try {
+    const raw = localStorage.getItem(DRAFT_INDEX_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+function saveDraft(key: string, data: {
+  responses: [string, InspectionItemResponse][]
+  observaciones: string
+  inspectorId: string
+}) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...data, _updated: Date.now() }))
+    const index = getDraftIndex().filter(k => k !== key)
+    index.push(key)
+    while (index.length > MAX_DRAFTS) {
+      const old = index.shift()!
+      localStorage.removeItem(old)
+    }
+    localStorage.setItem(DRAFT_INDEX_KEY, JSON.stringify(index))
+  } catch { /* quota exceeded — ignorar */ }
+}
+
+function loadDraft(key: string) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function removeDraft(key: string) {
+  try {
+    localStorage.removeItem(key)
+    const index = getDraftIndex().filter(k => k !== key)
+    localStorage.setItem(DRAFT_INDEX_KEY, JSON.stringify(index))
+  } catch { /* ignorar */ }
 }

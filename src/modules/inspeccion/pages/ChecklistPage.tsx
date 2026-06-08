@@ -228,6 +228,7 @@ export function ChecklistPage() {
     inspectorId,
     setInspectorId,
     inspectores,
+    limpiarBorradorLocal,
   } = useChecklist(inspectionId || '', vehicleTypeFromUrl)
 
   const optionsInspectores = useMemo(() => {
@@ -495,7 +496,7 @@ export function ChecklistPage() {
           padding: '16px 0', borderTop: '1px solid #e5e7eb',
         }}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { limpiarBorradorLocal(); navigate(-1) }}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px',
               background: '#fff', color: '#475569', border: '1px solid #e2e8f0',

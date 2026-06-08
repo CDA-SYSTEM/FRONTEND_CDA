@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { animate, stagger } from 'animejs'
 import { Car } from 'lucide-react'
 import {
@@ -39,6 +39,7 @@ function renderTextCharacters(text: string, className: string) {
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const error = useAuthStore((state) => state.error)
   const isLoading = useAuthStore((state) => state.isLoading)
@@ -64,10 +65,20 @@ export function LoginPage() {
    */
   useEffect(() => {
     if (user) {
-      const dashboardRoute = DASHBOARD_ROUTES[user.role] || '/dashboard'
-      navigate(dashboardRoute, { replace: true })
+      const searchParams = new URLSearchParams(location.search)
+      const onreturn = searchParams.get('onreturn')
+      const fromState = (location.state as { from?: string })?.from
+
+      if (onreturn && !onreturn.startsWith('/login')) {
+        navigate(onreturn, { replace: true })
+      } else if (fromState && !fromState.startsWith('/login')) {
+        navigate(fromState, { replace: true })
+      } else {
+        const dashboardRoute = DASHBOARD_ROUTES[user.role] || '/dashboard'
+        navigate(dashboardRoute, { replace: true })
+      }
     }
-  }, [user, navigate])
+  }, [user, navigate, location])
 
   useEffect(() => {
     const animacionTitulo = animate('.login-title-char', {

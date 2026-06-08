@@ -516,7 +516,7 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
                     {statusBadge(inv.statusId)}
                   </div>
                   <div className="admin-invoice-row-client">
-                    <Users size={12} /> {inv.client.name} — <span className="admin-invoice-row-doc">{inv.client.document}</span>
+                    <Users size={12} /> {inv.client?.name ?? '—'} — <span className="admin-invoice-row-doc">{inv.client?.document ?? 'S/D'}</span>
                   </div>
                   <div className="admin-invoice-row-bottom">
                     <span className="admin-invoice-row-total">{formatCOP(inv.total)}</span>

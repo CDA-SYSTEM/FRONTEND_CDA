@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
 import { offlineStorage } from '@/core/services/offlineStorage'
@@ -292,18 +292,14 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     return itemPhotos.get(key) || []
   }, [itemPhotos])
 
-  const itemsSinResponder = useCallback(() => {
-    return 0
-  }, [])
-
-  const progresoActual = useCallback(() => {
+  const progreso = useMemo(() => {
     if (!template) return { respondidos: 0, total: 0 }
     const total = template.sections.reduce(
       (sum, s) => sum + s.subsections.reduce((sSum, ss) => sSum + ss.items.length, 0), 0
     )
-    const respondidos = total - itemsSinResponder()
+    const respondidos = responses.size
     return { respondidos, total }
-  }, [template, itemsSinResponder])
+  }, [template, responses])
 
   const obtenerRespuestasArray = useCallback((): InspectionItemResponse[] => {
     return Array.from(responses.entries()).map(([key, r]) => {
@@ -466,13 +462,13 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
     setObservaciones,
     errorMensaje,
     setErrorMensaje,
-    progreso: progresoActual(),
+    progreso,
     responderItem,
     agregarObservacion,
     agregarFoto,
     eliminarFoto,
     obtenerFotosPorItem,
-    itemsSinResponder: itemsSinResponder(),
+    itemsSinResponder: progreso.total - progreso.respondidos,
     guardar,
     cerrar,
     inspectorId,

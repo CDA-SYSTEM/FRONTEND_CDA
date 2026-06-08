@@ -13,7 +13,7 @@ import {
   FileArchive, 
   Activity,
   Home,
-  Menu
+  Menu,
 } from 'lucide-react'
 import './Navigation.css'
 
@@ -39,7 +39,11 @@ const navItems: NavItem[] = [
   { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['admin', 'manager'] },
 ]
 
-export function Navigation() {
+interface NavigationProps {
+  collapsed: boolean
+}
+
+export function Navigation({ collapsed }: NavigationProps) {
   const user = useAuthStore((state) => state.user)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -52,8 +56,7 @@ export function Navigation() {
   )
 
   return (
-    <nav className="navigation" aria-label="Navegación principal">
-      {/* Desktop List */}
+    <nav className={`navigation${collapsed ? ' navigation--collapsed' : ''}`} aria-label="Navegación principal">
       <ul className="navigation__list navigation__list--desktop">
         {filteredItems.map((item) => (
           <li key={item.to} className="navigation__item">

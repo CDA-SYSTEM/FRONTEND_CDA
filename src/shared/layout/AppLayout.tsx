@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/core/store/authStore'
-import { LogOut, WifiOff, KeyRound } from 'lucide-react'
+import { LogOut, WifiOff, KeyRound, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { estaOnline, suscribirConectividad, sincronizar } from '@/core/api/apiClient'
 import { offlineStorage } from '@/core/services/offlineStorage'
 import { authService } from '@/modules/auth/services/authService'
@@ -11,6 +11,18 @@ import './AppLayout.css'
 export function AppLayout() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
 
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -62,10 +74,10 @@ export function AppLayout() {
   }
 
   const handleConfirmLogout = async () => {
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
     try {
       await logout()
     } finally {
-      const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
       window.location.href = `/login?onreturn=${returnTo}`
     }
   }
@@ -94,11 +106,19 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <Navigation />
+      <Navigation collapsed={sidebarCollapsed} />
       
-      <div className="app-shell__main">
+      <div className={`app-shell__main${sidebarCollapsed ? ' app-shell__main--collapsed' : ''}`}>
         <header className="topbar">
           <div className="topbar-left">
+            <button
+              className="topbar-toggle"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+              aria-label={sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            >
+              {sidebarCollapsed ? <PanelLeftOpen size={20} strokeWidth={2.5} /> : <PanelLeftClose size={20} strokeWidth={2.5} />}
+            </button>
             <strong>CDA Putumayo</strong>
           </div>
           <div className="topbar-right">

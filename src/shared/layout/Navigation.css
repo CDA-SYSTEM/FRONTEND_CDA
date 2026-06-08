@@ -47,6 +47,12 @@
     border-right: 1px solid var(--nav-border);
     z-index: 1000;
     padding: var(--space-4) var(--space-2);
+    transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+  }
+
+  .navigation--collapsed {
+    width: 64px;
   }
 
   .navigation__list {
@@ -56,6 +62,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .navigation--collapsed .navigation__list {
+    align-items: center;
   }
 
   .navigation__item {
@@ -77,6 +87,14 @@
     position: relative;
     transition: background-color var(--duration-fast) var(--ease-out),
                 color var(--duration-fast) var(--ease-out);
+    white-space: nowrap;
+  }
+
+  .navigation--collapsed .navigation__link {
+    justify-content: center;
+    padding: var(--space-2);
+    width: 44px;
+    margin: 0 auto;
   }
 
   .navigation__link:hover {
@@ -100,10 +118,18 @@
     line-height: 1.4;
   }
 
+  .navigation--collapsed .navigation__label {
+    display: none;
+  }
+
   /* Active state with elastic indicator */
   .navigation__link--active {
     color: var(--nav-text-active);
     background: rgba(59, 130, 246, 0.15);
+  }
+
+  .navigation--collapsed .navigation__link--active {
+    background: rgba(59, 130, 246, 0.20);
   }
 
   .navigation__link--active::before {

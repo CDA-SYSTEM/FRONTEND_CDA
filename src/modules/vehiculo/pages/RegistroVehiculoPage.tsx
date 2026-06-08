@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   AlertCircle,
   Bike,
@@ -24,7 +24,6 @@ import './VehiculosPage.css'
 
 export function RegistroVehiculoPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [queryVehiculo, setQueryVehiculo] = useState('')
 
   // ── Estado del modal de edición de vehículo ───────────────────────────────────
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -70,6 +69,9 @@ export function RegistroVehiculoPage() {
     setLimite,
     totalElementos,
     totalPaginas,
+    searchTerm,
+    setSearchTerm,
+    debouncedSearch,
   } = useRegistrarVehiculo()
 
   const {
@@ -141,25 +143,8 @@ export function RegistroVehiculoPage() {
     if (tiposServicio.length > 0) setLocalTiposServicio(tiposServicio)
   }, [tiposServicio])
 
-  // ── Filtrado de Vehículos en Cliente ─────────────────────────────────────────
-  const vehiculosFiltrados = useMemo(() => {
-    const q = queryVehiculo.toLowerCase().trim()
-    if (!q) return vehiculos
-    return vehiculos.filter((v) => {
-      const placaMatch = v.placa?.toLowerCase().includes(q)
-      const modeloMatch = v.modelo?.toLowerCase().includes(q)
-      const marcaNombre = typeof v.marca === 'object' ? v.marca?.nombre : v.marca
-      const marcaMatch = marcaNombre?.toLowerCase().includes(q)
-      const lineaNombre = typeof v.linea === 'object' ? v.linea?.nombre : v.linea
-      const lineaMatch = lineaNombre?.toLowerCase().includes(q)
-
-      const clientName = v.client ? `${v.client.nombre} ${v.client.apellido}`.toLowerCase() : ''
-      const clientIdDoc = v.client ? v.client.identity.toLowerCase() : ''
-      const clientMatch = clientName.includes(q) || clientIdDoc.includes(q) || String(v.clienteId).includes(q)
-
-      return placaMatch || modeloMatch || marcaMatch || lineaMatch || clientMatch
-    })
-  }, [vehiculos, queryVehiculo])
+  // ── Filtrado de Vehículos en Cliente (Ahora se realiza en Backend) ───────────
+  const vehiculosFiltrados = vehiculos
 
   const handleCloseModal = () => {
     resetFormulario()
@@ -311,14 +296,14 @@ export function RegistroVehiculoPage() {
           type="text"
           className="vh-search-input"
           placeholder="Buscar por placa, modelo, marca, línea o cliente..."
-          value={queryVehiculo}
-          onChange={(e) => setQueryVehiculo(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Tabla / Lista de Vehículos */}
       <article className="vh-table-card">
-        {cargandoVehiculos ? (
+        {cargandoVehiculos || searchTerm !== debouncedSearch ? (
           <div className="vh-state">
             <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#155DFC' }} />
           </div>
@@ -333,11 +318,11 @@ export function RegistroVehiculoPage() {
             <div className="vh-state-icon vh-state-icon--neutral"><Truck size={24} /></div>
             <h3 className="vh-state-title">No se encontraron vehículos</h3>
             <p className="vh-state-desc">
-              {queryVehiculo.trim()
+              {searchTerm.trim()
                 ? 'Intente ajustar los términos de búsqueda'
                 : 'Comience registrando el primer vehículo en el sistema'}
             </p>
-            {!queryVehiculo.trim() && (
+            {!searchTerm.trim() && (
               <button onClick={() => setIsModalOpen(true)} className="vh-btn-primary">
                 <Plus size={16} />
                 Registrar Vehículo

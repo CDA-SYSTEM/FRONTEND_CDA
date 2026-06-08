@@ -190,8 +190,9 @@ export function RecepcionWizard({ onCancelar }: Props) {
             setSignatureBlob={wizard.setSignatureBlob}
             confirmacionAcuerdo={wizard.confirmacionAcuerdo}
             setConfirmacionAcuerdo={wizard.setConfirmacionAcuerdo}
-              tires={wizard.tires}
-              setTires={wizard.setTires}
+            tires={wizard.tires}
+            setTires={wizard.setTires}
+            vehiculo={wizard.vehiculo}
             estadoEnvio={wizard.estadoEnvio}
             errorEnvio={wizard.errorEnvio}
             tintedWindows={wizard.tintedWindows}
@@ -703,11 +704,11 @@ function PasoCliente({
   interface PasoVehiculoProps {
   vehiculos: Vehiculo[]
   cargando: boolean
-  onSeleccionar: (v: { id: number | string; placa: string }) => void
+  onSeleccionar: (v: Vehiculo) => void
   onSaltar: () => void
   cliente: any
   onVolver: () => void
-  onVehiculoCreado: () => Promise<void>
+  onVehiculoCreado: (placa?: string) => Promise<void> | void
 }
 
 function PasoVehiculo({
@@ -720,6 +721,14 @@ function PasoVehiculo({
   onVehiculoCreado,
 }: PasoVehiculoProps) {
   const [vehiculoNuevoModal, setVehiculoNuevoModal] = useState(false)
+  const [searchPlaca, setSearchPlaca] = useState('')
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      onVehiculoCreado(searchPlaca)
+    }, 300)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchPlaca, onVehiculoCreado])
 
   const {
     form,
@@ -923,7 +932,28 @@ function PasoVehiculo({
         </button>
       </div>
 
-      {cargando ? (
+      {/* Buscador de placa */}
+      {(vehiculos.length > 0 || searchPlaca !== '') && (
+        <div className="vehiculo-search-wrapper" style={{ position: 'relative', marginBottom: 16 }}>
+          <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
+            {cargando ? (
+              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Search size={18} />
+            )}
+          </div>
+          <input
+            type="text"
+            placeholder="Filtrar por placa..."
+            value={searchPlaca}
+            onChange={(e) => setSearchPlaca(e.target.value)}
+            className="vehiculo-search-input"
+            style={{ paddingLeft: 42, height: 46, fontSize: '0.95rem', width: '100%', textTransform: 'uppercase' }}
+          />
+        </div>
+      )}
+
+      {cargando && vehiculos.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem' }}>
           <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#2563eb' }} />
         </div>
@@ -955,7 +985,7 @@ function PasoVehiculo({
                       <td style={{ padding: '12px 16px' }}>{v.modelo}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <button
-                          onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                          onClick={() => onSeleccionar(v)}
                           style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#e0e7ff', color: '#4f46e5', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 500 }}
                         >
                           Seleccionar
@@ -1003,7 +1033,7 @@ function PasoVehiculo({
                   </div>
                   <div className="vehiculo-card-footer">
                     <button
-                      onClick={() => onSeleccionar({ id: v.id, placa: v.placa })}
+                      onClick={() => onSeleccionar(v)}
                       className="vehiculo-select-card-btn"
                     >
                       Seleccionar
@@ -1017,7 +1047,11 @@ function PasoVehiculo({
       ) : (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
           <Car size={36} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 8 }} />
-          <p>Este cliente no tiene vehículos registrados.</p>
+          <p>
+            {searchPlaca !== ''
+              ? 'No se encontraron vehículos que coincidan con la placa.'
+              : 'Este cliente no tiene vehículos registrados.'}
+          </p>
         </div>
       )}
 
@@ -2159,6 +2193,7 @@ interface PasoCondicionesProps {
   setBrakeFluidSightGlass: (v: string) => void
   onSubmit: () => void
   onVolver: () => void
+  vehiculo: Vehiculo | null
 }
 
 function PasoCondiciones({
@@ -2172,10 +2207,17 @@ function PasoCondiciones({
   armoredVehicle, setArmoredVehicle,
   brakeFluidSightGlass, setBrakeFluidSightGlass,
   onSubmit, onVolver,
+  vehiculo,
 }: PasoCondicionesProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const presionesInvalidas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
   const puedeFinalizar = confirmacionAcuerdo && !presionesInvalidas && estadoEnvio !== 'enviando'
+
+  const esMoto = vehiculo?.tipoVehiculo ? (
+    typeof vehiculo.tipoVehiculo === 'object'
+      ? (vehiculo.tipoVehiculo.nombre || vehiculo.tipoVehiculo.name || '').toLowerCase().includes('moto')
+      : String(vehiculo.tipoVehiculo).toLowerCase().includes('moto')
+  ) : false
 
   const actualizarPresion = (index: number, value: string) => {
     setTires(
@@ -2193,6 +2235,8 @@ function PasoCondiciones({
       case 'FRONT_RIGHT': return 'Delantera derecha'
       case 'REAR_LEFT': return 'Trasera izquierda'
       case 'REAR_RIGHT': return 'Trasera derecha'
+      case 'FRONT': return 'Delantera'
+      case 'REAR': return 'Trasera'
       default: return position
     }
   }
@@ -2231,32 +2275,36 @@ function PasoCondiciones({
       <div className="form-grid">
         {/* Condiciones del vehículo */}
         <div className="recepcion-condiciones-selects-grid">
-          <label>
-            <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
-            <CustomSelect
-              options={[
-                { value: 'NO', label: 'NO' },
-                { value: 'SI', label: 'SÍ' },
-                { value: 'NO_APLICA', label: 'NO APLICA' },
-              ]}
-              value={tintedWindows}
-              onChange={(val) => setTintedWindows(val)}
-              disabled={estadoEnvio === 'enviando'}
-            />
-          </label>
-          <label>
-            <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
-            <CustomSelect
-              options={[
-                { value: 'NO', label: 'NO' },
-                { value: 'SI', label: 'SÍ' },
-                { value: 'NO_APLICA', label: 'NO APLICA' },
-              ]}
-              value={armoredVehicle}
-              onChange={(val) => setArmoredVehicle(val)}
-              disabled={estadoEnvio === 'enviando'}
-            />
-          </label>
+          {!esMoto && (
+            <>
+              <label>
+                <span style={{ fontWeight: 500 }}>Vidrios polarizados</span>
+                <CustomSelect
+                  options={[
+                    { value: 'NO', label: 'NO' },
+                    { value: 'SI', label: 'SÍ' },
+                    { value: 'NO_APLICA', label: 'NO APLICA' },
+                  ]}
+                  value={tintedWindows}
+                  onChange={(val) => setTintedWindows(val)}
+                  disabled={estadoEnvio === 'enviando'}
+                />
+              </label>
+              <label>
+                <span style={{ fontWeight: 500 }}>Vehículo blindado</span>
+                <CustomSelect
+                  options={[
+                    { value: 'NO', label: 'NO' },
+                    { value: 'SI', label: 'SÍ' },
+                    { value: 'NO_APLICA', label: 'NO APLICA' },
+                  ]}
+                  value={armoredVehicle}
+                  onChange={(val) => setArmoredVehicle(val)}
+                  disabled={estadoEnvio === 'enviando'}
+                />
+              </label>
+            </>
+          )}
           <label>
             <span style={{ fontWeight: 500 }}>Depósito líquido frenos</span>
             <CustomSelect

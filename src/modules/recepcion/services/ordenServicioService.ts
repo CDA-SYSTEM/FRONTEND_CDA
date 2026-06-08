@@ -151,9 +151,10 @@ export const ordenServicioService = {
     return extractItem(response.data) as OrdenServicioResponse
   },
 
-  async obtenerVehiculosCliente(clienteId: number | string): Promise<{ id: number | string; placa: string; marca?: string; linea?: string; modelo?: string }[]> {
+  async obtenerVehiculosCliente(clienteId: number | string, placa?: string): Promise<{ id: number | string; placa: string; marca?: string; linea?: string; modelo?: string; tipoVehiculo?: any }[]> {
     try {
-      const response = await apiClient.get(`/api/v1/vehiculo/cliente/${clienteId}`)
+      const url = placa ? `/api/v1/vehiculo/cliente/${clienteId}?placa=${encodeURIComponent(placa)}` : `/api/v1/vehiculo/cliente/${clienteId}`
+      const response = await apiClient.get(url)
       return extractArray(response.data).map((v) => {
         const raw = v as Record<string, unknown>
         return {
@@ -162,7 +163,8 @@ export const ordenServicioService = {
           marca: typeof raw.marca === 'object' ? (raw.marca as Record<string, unknown>)?.nombre || (raw.marca as Record<string, unknown>)?.name : raw.marca,
           linea: typeof raw.linea === 'object' ? (raw.linea as Record<string, unknown>)?.nombre || (raw.linea as Record<string, unknown>)?.name : raw.linea,
           modelo: raw.modelo as string,
-        } as { id: number | string; placa: string; marca?: string; linea?: string; modelo?: string }
+          tipoVehiculo: raw.tipoVehiculo,
+        } as { id: number | string; placa: string; marca?: string; linea?: string; modelo?: string; tipoVehiculo?: any }
       })
     } catch {
       return []

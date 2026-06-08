@@ -29,13 +29,13 @@ describe('authStore', () => {
   })
 
   it('inicia sesion demo y persiste token', () => {
-    useAuthStore.getState().loginAsDemo('INSPECTOR')
+    useAuthStore.getState().loginAsDemo('inspector')
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(localStorage.getItem('cda_auth_token')).toBe('demo-token-web')
   })
 
   it('cierra sesion y limpia estado', async () => {
-    useAuthStore.getState().loginAsDemo('ADMIN')
+    useAuthStore.getState().loginAsDemo('admin')
     await useAuthStore.getState().logout()
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
     expect(localStorage.getItem('cda_auth_token')).toBeNull()

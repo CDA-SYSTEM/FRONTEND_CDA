@@ -34,6 +34,7 @@ declare global {
 
 const DASHBOARD_ROUTES: Record<string, string> = {
   admin: '/admin/dashboard',
+  superadmin: '/admin/dashboard',
   manager: '/recepcion',
   operario: '/recepcion',
   inspector: '/inspeccion/asignacion',

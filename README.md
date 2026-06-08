@@ -6,7 +6,7 @@ Construido utilizando **React 18 + TypeScript**, orquestado bajo una arquitectur
 
 ---
 
-## 🚀 Stack Técnico Principal
+##  Stack Técnico Principal
 
 | Herramienta | Uso |
 |---|---|
@@ -70,7 +70,7 @@ VITE_APP_NAME=CDA Putumayo
 
 ---
 
-## 📁 Arquitectura Híbrida Modular + Clean
+##  Arquitectura Híbrida Modular + Clean
 
 El proyecto está diseñado bajo una **estructura modular** (donde cada módulo agrupa una funcionalidad de negocio independiente), implementando internamente la separación de responsabilidades de **Clean Architecture** (Capa de Dominio, Aplicación, Adaptadores y Presentación).
 
@@ -108,7 +108,7 @@ src/
 
 ---
 
-## 📦 Módulos del Sistema
+##  Módulos del Sistema
 
 | Módulo | Ruta Base | Funcionalidad |
 | :--- | :--- | :--- |
@@ -127,7 +127,7 @@ src/
 
 ---
 
-## 🌐 Control de Acceso Basado en Roles (RBAC)
+##  Control de Acceso Basado en Roles (RBAC)
 
 El frontend mapea dinámicamente las rutas de inicio y la visibilidad de la barra lateral (Sidebar) según el rol asignado al token del usuario:
 
@@ -161,7 +161,7 @@ El frontend mapea dinámicamente las rutas de inicio y la visibilidad de la barr
 
 ---
 
-## 📶 Mecanismo de Sincronización Offline (HU-021)
+##  Mecanismo de Sincronización Offline (HU-021)
 
 El sistema cuenta con un motor robusto para operar bajo condiciones de **conectividad limitada o nula** de manera transparente para el usuario:
 
@@ -172,7 +172,7 @@ El sistema cuenta con un motor robusto para operar bajo condiciones de **conecti
 
 ---
 
-## 🛠️ Configuración y Desarrollo
+##  Configuración y Desarrollo
 
 ### Prerrequisitos
 - Node.js **20.19+** o **22.12+**
@@ -204,7 +204,7 @@ KEY_PASSWORD="tu_contrasena_de_firma"
 
 ---
 
-## 📱 Empaquetado y Configuración Android (Capacitor)
+##  Empaquetado y Configuración Android (Capacitor)
 
 El proyecto incluye soporte nativo para compilarse y distribuirse como aplicación de Android.
 
@@ -225,7 +225,7 @@ Dado que el entorno de desarrollo y pruebas se ejecuta sobre una VPN privada de 
 
 ---
 
-## 🔑 Compilación de Producción y Firma del APK
+##  Compilación de Producción y Firma del APK
 
 El flujo de construcción nativa lee las credenciales del archivo `.env` mediante variables del sistema operativo en Gradle.
 
@@ -255,4 +255,4 @@ cd android
 
 ### Ubicación del Instalable Final:
 Una vez termine el build con éxito, tu instalador APK firmado estará listo en:
-👉 `android/app/build/outputs/apk/release/app-release.apk`
+ `android/app/build/outputs/apk/release/app-release.apk`

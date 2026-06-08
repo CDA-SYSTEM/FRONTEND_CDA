@@ -618,6 +618,17 @@
   font-size: 0.8125rem;
 }
 
+/* ── Hora ─────────────────────────────────────────────────────── */
+.recepcion-time-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rc-text-muted);
+  font-size: 0.8125rem;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  letter-spacing: 0.02em;
+}
+
 /* ── Badges de estado — pasteles semitransparentes ───────────── */
 .recepcion-badge {
   display: inline-flex;
@@ -674,67 +685,111 @@
   opacity: 0.95;
 }
 
-/* ── Botones de acción en fila ───────────────────────────────── */
+/* ── Three-dot actions dropdown ───────────────────────────────── */
 .recepcion-actions-cell {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 5px;
 }
 
-.recepcion-action-btn {
+.recepcion-actions-dropdown {
+  position: relative;
+}
+
+.recepcion-actions-trigger {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--touch-target);
-  height: var(--touch-target);
-  min-width: var(--touch-target);
-  border-radius: var(--rc-radius-btn);
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--rc-text-subtle);
   cursor: pointer;
   transition:
-    background    var(--rc-dur-fast) var(--rc-ease-out),
-    color         var(--rc-dur-fast) var(--rc-ease-out),
-    transform     90ms              var(--rc-ease-out);
-  flex-shrink: 0;
+    background  var(--rc-dur-fast) var(--rc-ease-out),
+    color       var(--rc-dur-fast) var(--rc-ease-out),
+    transform   90ms              var(--rc-ease-out);
 }
 
-.recepcion-action-btn:active {
-  transform: scale(0.92);
-}
-
-/* Variante: ver detalle */
-.recepcion-action-btn--view {
-  background: var(--rc-accent-tint);
-  border: none;
-  color: var(--rc-accent);
-}
-
-.recepcion-action-btn--view:hover {
-  background: rgba(21, 93, 252, 0.15);
-}
-
-/* Variante: editar */
-.recepcion-action-btn--edit {
+.recepcion-actions-trigger:hover {
   background: #f1f5f9;
-  border: 1px solid var(--rc-border);
-  color: var(--rc-text-muted);
-}
-
-.recepcion-action-btn--edit:hover {
-  background: #e8edf2;
   color: var(--rc-text);
-  border-color: var(--rc-border-strong);
 }
 
-/* Variante: eliminar */
-.recepcion-action-btn--delete {
-  background: rgba(239, 68, 68, 0.07);
+.recepcion-actions-trigger:active {
+  transform: scale(0.88);
+}
+
+.recepcion-actions-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+.recepcion-actions-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 160px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.12),
+    0 2px 6px rgba(15, 23, 42, 0.06);
+  padding: 4px;
+  animation: actionsMenuIn 0.12s ease-out;
+  transform-origin: top right;
+}
+
+@keyframes actionsMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.recepcion-actions-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
   border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--rc-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background  var(--rc-dur-fast) var(--rc-ease-out),
+    color       var(--rc-dur-fast) var(--rc-ease-out);
+  white-space: nowrap;
+}
+
+.recepcion-actions-menu-item:hover {
+  background: #f1f5f9;
+  color: var(--rc-text);
+}
+
+.recepcion-actions-menu-item--danger {
   color: #ef4444;
 }
 
-.recepcion-action-btn--delete:hover {
-  background: rgba(239, 68, 68, 0.14);
+.recepcion-actions-menu-item--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -867,6 +922,50 @@
     padding-top: 10px;
     gap: 6px;
     flex-wrap: wrap;
+  }
+
+  .recepcion-card-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    transition:
+      background  var(--rc-dur-fast) var(--rc-ease-out),
+      color       var(--rc-dur-fast) var(--rc-ease-out);
+  }
+
+  .recepcion-card-action-btn--view {
+    background: var(--rc-accent-tint);
+    color: var(--rc-accent);
+  }
+
+  .recepcion-card-action-btn--view:hover {
+    background: rgba(21, 93, 252, 0.15);
+  }
+
+  .recepcion-card-action-btn--edit {
+    background: #f1f5f9;
+    color: var(--rc-text-muted);
+    border: 1px solid var(--rc-border);
+  }
+
+  .recepcion-card-action-btn--edit:hover {
+    background: #e8edf2;
+    color: var(--rc-text);
+  }
+
+  .recepcion-card-action-btn--delete {
+    background: rgba(239, 68, 68, 0.07);
+    color: #ef4444;
+  }
+
+  .recepcion-card-action-btn--delete:hover {
+    background: rgba(239, 68, 68, 0.14);
   }
 }
 

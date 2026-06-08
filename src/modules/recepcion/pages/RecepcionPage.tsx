@@ -20,7 +20,8 @@ import {
   Users,
   CheckCircle2,
   Camera,
-  Pen
+  Pen,
+  MoreVertical
 } from 'lucide-react'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
@@ -66,11 +67,21 @@ function formatDate(iso?: string): string {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     })
   } catch {
     return iso
+  }
+}
+
+function formatTime(iso?: string): string {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return '—'
   }
 }
 
@@ -130,6 +141,9 @@ export function RecepcionPage() {
 
   // Modal de Eliminación
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+
+  // Dropdown de acciones
+  const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [eliminandoId, setEliminandoId] = useState<string | null>(null)
 
   // Obtener rol de usuario
@@ -498,6 +512,7 @@ export function RecepcionPage() {
                   <th>Tipo de revisión</th>
                   <th>Kilometraje</th>
                   <th>Fecha</th>
+                  <th>Hora</th>
                   <th>Estado</th>
                   <th className="recepcion-actions-header-cell">Acciones</th>
                 </tr>
@@ -539,6 +554,12 @@ export function RecepcionPage() {
                         </span>
                       </td>
                       <td>
+                        <span className="recepcion-time-cell">
+                          <Clock size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                          {formatTime(insp.inspection_date || insp.date || insp.createdAt)}
+                        </span>
+                      </td>
+                      <td>
                         <span
                           className="recepcion-badge-generic"
                           style={{ background: badge.bg, color: badge.color }}
@@ -548,31 +569,51 @@ export function RecepcionPage() {
                       </td>
                       <td className="recepcion-actions-body-cell">
                         <div className="recepcion-actions-cell">
-                          <button
-                            className="recepcion-action-btn recepcion-action-btn--view"
-                            onClick={() => setSelectedInspectionId(insp.id)}
-                            title="Ver Detalle"
-                          >
-                            <Eye size={16} />
-                          </button>
-
-                          <button
-                            className="recepcion-action-btn recepcion-action-btn--edit"
-                            onClick={() => iniciarEdicion(insp)}
-                            title="Editar Recepción"
-                          >
-                            <Pencil size={16} />
-                          </button>
-
-                          {isAdmin && (
+                          <div className="recepcion-actions-dropdown">
                             <button
-                              className="recepcion-action-btn recepcion-action-btn--delete"
-                              onClick={() => setDeleteConfirmId(insp.id)}
-                              title="Eliminar"
+                              className="recepcion-actions-trigger"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setOpenActionsId(openActionsId === insp.id ? null : insp.id)
+                              }}
+                              title="Acciones"
                             >
-                              <Trash2 size={16} />
+                              <MoreVertical size={16} />
                             </button>
-                          )}
+                            {openActionsId === insp.id && (
+                              <>
+                                <div
+                                  className="recepcion-actions-backdrop"
+                                  onClick={() => setOpenActionsId(null)}
+                                />
+                                <div className="recepcion-actions-menu">
+                                  <button
+                                    className="recepcion-actions-menu-item"
+                                    onClick={() => { setOpenActionsId(null); setSelectedInspectionId(insp.id) }}
+                                  >
+                                    <Eye size={15} />
+                                    Ver detalle
+                                  </button>
+                                  <button
+                                    className="recepcion-actions-menu-item"
+                                    onClick={() => { setOpenActionsId(null); iniciarEdicion(insp) }}
+                                  >
+                                    <Pencil size={15} />
+                                    Editar
+                                  </button>
+                                  {isAdmin && (
+                                    <button
+                                      className="recepcion-actions-menu-item recepcion-actions-menu-item--danger"
+                                      onClick={() => { setOpenActionsId(null); setDeleteConfirmId(insp.id) }}
+                                    >
+                                      <Trash2 size={15} />
+                                      Eliminar
+                                    </button>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -629,63 +670,30 @@ export function RecepcionPage() {
                     <span className="reception-card-value">{formatDate(insp.inspection_date || insp.date || insp.createdAt)}</span>
                   </div>
 
+                  <div className="reception-card-row">
+                    <span className="reception-card-label">Hora:</span>
+                    <span className="reception-card-value">{formatTime(insp.inspection_date || insp.date || insp.createdAt)}</span>
+                  </div>
+
                   <div className="reception-card-actions">
                     <button
                       onClick={() => setSelectedInspectionId(insp.id)}
-                      style={{
-                        background: '#eff6ff',
-                        color: '#155DFC',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                      }}
+                      className="recepcion-card-action-btn recepcion-card-action-btn--view"
                     >
                       <Eye size={14} />
                       Detalle
                     </button>
-
                     <button
                       onClick={() => iniciarEdicion(insp)}
-                      style={{
-                        background: '#f8fafc',
-                        color: '#475569',
-                        border: '1px solid #e2e8f0',
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                      }}
+                      className="recepcion-card-action-btn recepcion-card-action-btn--edit"
                     >
                       <Pencil size={14} />
                       Editar
                     </button>
-
                     {isAdmin && (
                       <button
                         onClick={() => setDeleteConfirmId(insp.id)}
-                        style={{
-                          background: '#fee2e2',
-                          color: '#ef4444',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          fontSize: '0.85rem',
-                          fontWeight: 500,
-                        }}
+                        className="recepcion-card-action-btn recepcion-card-action-btn--delete"
                       >
                         <Trash2 size={14} />
                         Eliminar

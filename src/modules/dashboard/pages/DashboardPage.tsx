@@ -27,7 +27,7 @@ const tarjetasDashboard: DashboardCard[] = [
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user)
 
-  if (user?.role === 'operario' || user?.role === 'recepcionista') {
+  if (user?.role === 'operario') {
     return <Navigate to="/recepcion" replace />
   }
 

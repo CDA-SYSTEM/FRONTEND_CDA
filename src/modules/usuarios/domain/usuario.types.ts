@@ -1,4 +1,4 @@
-export type RolUsuario = 'ADMIN' | 'RECEPCIONISTA' | 'INSPECTOR' | 'FACTURADOR' | 'MANAGER' | 'OPERARIO' | 'SUPERADMIN' | 'ROLE_SUPERADMIN'
+export type RolUsuario = 'admin' | 'recepcionista' | 'inspector' | 'facturador' | 'manager' | 'operario' | 'superadmin'
 export type RolUsuarioForm = 'admin' | 'manager' | 'inspector' | 'operario'
 export type RolPersonalDropdown = 'operario' | 'inspector'
 export type TipoIdentificacion = 'cc' | 'ce' | 'nit' | 'pasaporte'

@@ -216,10 +216,9 @@ export function PlantillasPage() {
 
   const user = useAuthStore((state) => state.user)
   const isAllowed =
-    user?.role === 'SUPERADMIN' ||
-    user?.role === 'ROLE_SUPERADMIN' ||
-    user?.role === 'ADMIN' ||
-    user?.role === 'MANAGER'
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager'
 
   const filteredTemplates = templates.filter((t) => {
     if (vehicleTypeFilter === 'todos') return true

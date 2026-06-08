@@ -116,11 +116,10 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   const [tiposPersona, setTiposPersona] = useState<PersonType[]>([])
 
   const puedeEditar =
-    user?.role === 'SUPERADMIN' ||
-    user?.role === 'ROLE_SUPERADMIN' ||
-    user?.role === 'ADMIN' ||
-    user?.role === 'MANAGER' ||
-    user?.role === 'OPERARIO'
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager' ||
+    user?.role === 'operario'
 
   useEffect(() => {
     setCliente(clienteInicial)

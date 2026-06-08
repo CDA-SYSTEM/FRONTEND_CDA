@@ -12,7 +12,7 @@ import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 
 export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'condiciones' | 'confirmacion'
 
-export type RolAsignacion = 'INSPECTOR' | 'OPERARIO'
+export type RolAsignacion = 'inspector' | 'operario'
 
 export type EstadoEnvio = 'idle' | 'enviando' | 'exito' | 'error'
 
@@ -40,7 +40,7 @@ export function useCrearRecepcion() {
   const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
   const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
 
-  const rolAsignado: RolAsignacion = 'OPERARIO'
+  const rolAsignado: RolAsignacion = 'operario'
   const [usuarioAsignadoId, setUsuarioAsignadoId] = useState('')
   const [usuariosAsignables, setUsuariosAsignables] = useState<Usuario[]>([])
   const [cargandoUsuariosAsignables, setCargandoUsuariosAsignables] = useState(false)
@@ -103,7 +103,7 @@ export function useCrearRecepcion() {
       setErrorUsuariosAsignables(null)
 
       try {
-        const personal = await usuarioService.obtenerPersonalAsignable('OPERARIO', user?.role)
+        const personal = await usuarioService.obtenerPersonalAsignable('operario', user?.role)
         if (!mounted) return
 
         if (personal.length === 0) {

@@ -12,7 +12,7 @@ import type {
 } from '@/modules/usuarios/domain/usuario.types'
 
 function normalizeRole(role: string): RolUsuario {
-  return role.toUpperCase() as RolUsuario
+  return role.toLowerCase() as RolUsuario
 }
 
 function toFormRole(role: RolUsuario): RolUsuarioForm {
@@ -24,7 +24,7 @@ function normalizeUsuario(raw: unknown): Usuario {
   const firstName = r['firstName'] != null ? String(r['firstName']) : undefined
   const lastName = r['lastName'] != null ? String(r['lastName']) : undefined
   const builtName = [firstName, lastName].filter(Boolean).join(' ').trim()
-  const roleRaw = String(r['role'] ?? 'OPERARIO')
+  const roleRaw = String(r['role'] ?? 'operario')
 
   return {
     id: String(r['id'] ?? r['sub'] ?? ''),
@@ -124,14 +124,14 @@ export const usuarioService = {
    * - Si /auth/users/options falla, hace fallback a /auth/users/operarios.
    */
   async obtenerPersonalAsignable(
-    role: 'OPERARIO' | 'INSPECTOR',
+    role: 'operario' | 'inspector',
     userRole?: string,
   ): Promise<Usuario[]> {
     const targetRole = role.toLowerCase() as RolPersonalDropdown
     try {
       const opciones = await this.obtenerOpcionesUsuarios(targetRole)
-      const r = userRole?.toUpperCase()
-      if (r === 'OPERARIO' || r === 'INSPECTOR') {
+      const r = userRole?.toLowerCase()
+      if (r === 'operario' || r === 'inspector') {
         const activeUser = useAuthStore.getState().user
         if (activeUser) {
           const self = opciones.filter((u) => String(u.id) === String(activeUser.id))
@@ -144,8 +144,8 @@ export const usuarioService = {
     }
 
     // Fallback
-    const r = userRole?.toUpperCase()
-    if (r === 'OPERARIO' || r === 'INSPECTOR') {
+    const r = userRole?.toLowerCase()
+    if (r === 'operario' || r === 'inspector') {
       const activeUser = useAuthStore.getState().user
       if (activeUser) {
         return [
@@ -250,8 +250,8 @@ export const usuarioService = {
 
   /** @deprecated usar obtenerPersonalAsignable */
   async obtenerUsuariosAsignables(role: string): Promise<Usuario[]> {
-    const r = role.toUpperCase()
-    if (r !== 'OPERARIO' && r !== 'INSPECTOR') return []
-    return this.obtenerPersonalAsignable(r)
+    const r = role.toLowerCase()
+    if (r !== 'operario' && r !== 'inspector') return []
+    return this.obtenerPersonalAsignable(r as 'operario' | 'inspector')
   },
 }

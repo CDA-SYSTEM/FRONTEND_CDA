@@ -130,9 +130,8 @@ export function RecepcionPage() {
   // Obtener rol de usuario
   const user = useAuthStore((state) => state.user)
   const isAdmin =
-    user?.role === 'SUPERADMIN' ||
-    user?.role === 'ROLE_SUPERADMIN' ||
-    user?.role === 'ADMIN'
+    user?.role === 'superadmin' ||
+    user?.role === 'admin'
 
   const cargarDatos = useCallback(async () => {
     setCargando(true)

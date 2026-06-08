@@ -90,7 +90,7 @@ function extractUserFromToken(token: string | null): AuthUser | null {
   return {
     id: id != null ? String(id) : name,
     name,
-    role: resolvedRole.toUpperCase() as AuthUser['role'],
+    role: resolvedRole.toLowerCase() as AuthUser['role'],
   }
 }
 
@@ -104,7 +104,7 @@ function mapMeToAuthUser(raw: Record<string, unknown>): AuthUser {
   return {
     id: String(raw['id']),
     name,
-    role: String(raw['role']).toUpperCase() as AuthUser['role'],
+    role: String(raw['role']).toLowerCase() as AuthUser['role'],
   }
 }
 

@@ -201,7 +201,7 @@ apiClient.interceptors.response.use(
         const currentUser = authStore.user
         authStore.login(
           newAccessToken,
-          currentUser ?? { id: '', name: '', role: 'OPERARIO' },
+          currentUser ?? { id: '', name: '', role: 'operario' },
           newRefreshToken,
         )
 

@@ -39,11 +39,10 @@ export function ClienteBuscador({
 }: Props) {
   const { user } = useAuthStore()
   const puedeEliminar =
-    user?.role === 'SUPERADMIN' ||
-    user?.role === 'ROLE_SUPERADMIN' ||
-    user?.role === 'ADMIN' ||
-    user?.role === 'MANAGER' ||
-    user?.role === 'OPERARIO'
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager' ||
+    user?.role === 'operario'
 
   return (
     <div>

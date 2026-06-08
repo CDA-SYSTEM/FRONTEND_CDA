@@ -79,7 +79,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
         // Cargar inspectores
         setCargandoInspectores(true)
         try {
-          const list = await usuarioService.obtenerPersonalAsignable('INSPECTOR')
+          const list = await usuarioService.obtenerPersonalAsignable('inspector')
           if (mounted) {
             setInspectores(list)
           }

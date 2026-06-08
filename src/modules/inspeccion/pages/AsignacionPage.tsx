@@ -564,7 +564,7 @@ export function AsignacionPage() {
                           return
                         }
                         const tipo = (insp.vehicle_type || 'LIVIANO').toLowerCase()
-                        navigate(`/inspeccion/checklist/${tipo}/${insp.id}`)
+                        navigate(`/inspeccion/ejecutar/${tipo}/${insp.id}`)
                       }}
                       className="as-btn-action as-btn-action--dark"
                     >

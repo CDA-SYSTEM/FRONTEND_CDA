@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Loader2, Save, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'

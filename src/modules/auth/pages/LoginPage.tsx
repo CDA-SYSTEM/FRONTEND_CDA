@@ -333,10 +333,10 @@ export function LoginPage() {
                 {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
               </button>
 
-              <details className="form-demo-creds">
-                <summary className="demo-label">Credenciales de demostración</summary>
-                <code>admin@cdaputumayo.com / admin123</code>
-              </details>
+              <div className="form-badge">
+                <span className="badge-dot" />
+                <span>+5.000 inspecciones realizadas</span>
+              </div>
 
               <div className="auth-divider">
                 <span>o continúa con</span>

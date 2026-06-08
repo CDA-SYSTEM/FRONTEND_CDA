@@ -63,11 +63,23 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.028) 1px,
-    transparent 1px
-  );
-  background-size: 28px 28px;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 120px,
+      rgba(21, 93, 252, 0.015) 120px,
+      rgba(21, 93, 252, 0.015) 121px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 120px,
+      rgba(21, 93, 252, 0.015) 120px,
+      rgba(21, 93, 252, 0.015) 121px
+    );
+  background-size: 28px 28px, 100% 100%, 100% 100%;
   pointer-events: none;
   z-index: 0;
 }
@@ -326,7 +338,7 @@
 .form-grid input {
   padding: 0;
   height: var(--touch-target);
-  padding-inline: 2.75rem 0.75rem;
+  padding-inline: 2.75rem 3rem;
   border: 1px solid var(--border-input);
   border-radius: var(--radius-input);
   font-size: 0.9375rem;
@@ -381,28 +393,36 @@
 .input-toggle {
   position: absolute;
   right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border: none;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
   border-radius: 8px;
   transition: color 0.2s, background 0.2s, box-shadow 0.2s;
   z-index: 2;
+  padding: 0;
 }
 
 .input-toggle:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.10);
-  box-shadow: 0 0 12px rgba(21, 93, 252, 0.15);
+  color: #ffffff;
+  background: rgba(21, 93, 252, 0.25);
+  box-shadow: 0 0 16px rgba(21, 93, 252, 0.25);
 }
 
 .input-toggle:active {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(21, 93, 252, 0.35);
+}
+
+.input-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ── Form Options ── */
@@ -530,56 +550,33 @@
   box-shadow: none;
 }
 
-/* ── Demo Credentials (collapsible) ── */
-.form-demo-creds {
-  border-radius: var(--radius-input);
-  background: rgba(21, 93, 252, 0.06);
-  border: 1px solid rgba(21, 93, 252, 0.15);
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.form-demo-creds[open] {
-  background: rgba(21, 93, 252, 0.08);
-  border-color: rgba(21, 93, 252, 0.25);
-}
-
-.demo-label {
+/* ── Form Badge ── */
+.form-badge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-}
-
-.demo-label::-webkit-details-marker {
-  display: none;
-}
-
-.demo-label::before {
-  content: '►';
-  font-size: 0.6rem;
-  transition: transform 0.2s;
-  color: var(--accent);
-}
-
-.form-demo-creds[open] .demo-label::before {
-  transform: rotate(90deg);
-}
-
-.form-demo-creds code {
-  display: block;
-  padding: 0 1rem 0.75rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-input);
+  background: rgba(21, 93, 252, 0.06);
+  border: 1px solid rgba(21, 93, 252, 0.12);
   font-size: 0.8125rem;
   color: var(--text-muted);
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 500;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* ── Divider / Google ── */

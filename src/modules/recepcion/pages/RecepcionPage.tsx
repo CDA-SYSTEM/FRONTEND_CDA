@@ -323,6 +323,10 @@ export function RecepcionPage() {
     }
 
     return false
+  }).sort((a, b) => {
+    const dateA = a.inspection_date || a.date || a.createdAt
+    const dateB = b.inspection_date || b.date || b.createdAt
+    return new Date(dateB || 0).getTime() - new Date(dateA || 0).getTime()
   })
 
   // Paginación

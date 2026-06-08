@@ -18,7 +18,6 @@ import {
   Pencil,
   TrendingUp,
   Users,
-  Activity,
   CheckCircle2,
   Camera,
   Pen
@@ -267,10 +266,9 @@ export function RecepcionPage() {
     
     // Comparación case-insensitive de la etiqueta del badge
     const labelLower = badge.label.toLowerCase()
-    if (statusFilter === 'aprobado' && labelLower === 'aprobado') return matchesSearch
-    if (statusFilter === 'rechazado' && (labelLower === 'rechazado' || labelLower === 'reprobado')) return matchesSearch
-    if (statusFilter === 'inspeccion' && labelLower === 'en inspección') return matchesSearch
-    if (statusFilter === 'recepcion' && labelLower === 'en recepción') return matchesSearch
+    if (statusFilter === 'pendiente' && labelLower === 'pendiente') return matchesSearch
+    if (statusFilter === 'pagado' && labelLower === 'pagado') return matchesSearch
+    if (statusFilter === 'cancelado' && labelLower === 'cancelado') return matchesSearch
     
     // O si el filtro coincide exactamente con el ID del estado o el código
     const statusId = (insp as any).statusId || insp.status_id || (insp as any).status?.id
@@ -377,8 +375,9 @@ export function RecepcionPage() {
         <div className="recepcion-filter-tabs">
           {[
             { value: 'todos', label: 'Todos' },
-            { value: 'recepcion', label: 'En recepción' },
-            { value: 'inspeccion', label: 'En inspección' },
+            { value: 'pendiente', label: 'Pendiente' },
+            { value: 'pagado', label: 'Pagado' },
+            { value: 'cancelado', label: 'Cancelado' },
           ].map((opt) => (
             <button
               key={opt.value}
@@ -411,11 +410,11 @@ export function RecepcionPage() {
           </div>
           <div className="recepcion-stat-card recepcion-stat-card--espera">
             <div className="recepcion-stat-body">
-              <span className="recepcion-stat-label">En Recepción</span>
-              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label === 'En recepción').length}</span>
+              <span className="recepcion-stat-label">Pendiente</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label.toLowerCase() === 'pendiente').length}</span>
               <span className="recepcion-stat-footer">
-                <Users size={12} />
-                Pendientes de asignar
+                <Clock size={12} />
+                Pendientes de pago
               </span>
             </div>
             <div className="recepcion-stat-icon">
@@ -424,28 +423,28 @@ export function RecepcionPage() {
           </div>
           <div className="recepcion-stat-card recepcion-stat-card--proceso">
             <div className="recepcion-stat-body">
-              <span className="recepcion-stat-label">En Inspección</span>
-              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label === 'En inspección').length}</span>
-              <span className="recepcion-stat-footer">
-                <Activity size={12} />
-                En proceso técnico
-              </span>
-            </div>
-            <div className="recepcion-stat-icon">
-              <Wrench size={22} />
-            </div>
-          </div>
-          <div className="recepcion-stat-card recepcion-stat-card--completado">
-            <div className="recepcion-stat-body">
-              <span className="recepcion-stat-label">Completadas</span>
-              <span className="recepcion-stat-value">{inspecciones.filter((i) => ['APROBADO', 'REPROBADO'].includes(i.result || '')).length}</span>
+              <span className="recepcion-stat-label">Pagado</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label.toLowerCase() === 'pagado').length}</span>
               <span className="recepcion-stat-footer">
                 <CheckCircle2 size={12} />
-                Inspecciones finalizadas
+                Pagos completados
               </span>
             </div>
             <div className="recepcion-stat-icon">
               <CheckCircle2 size={22} />
+            </div>
+          </div>
+          <div className="recepcion-stat-card recepcion-stat-card--completado">
+            <div className="recepcion-stat-body">
+              <span className="recepcion-stat-label">Cancelado</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label.toLowerCase() === 'cancelado').length}</span>
+              <span className="recepcion-stat-footer">
+                <X size={12} />
+                Recepciones canceladas
+              </span>
+            </div>
+            <div className="recepcion-stat-icon">
+              <X size={22} />
             </div>
           </div>
         </div>

@@ -365,8 +365,8 @@ export function ChecklistPage() {
             </h1>
             <p style={{ margin: '2px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
               {vehicleType === 'MOTO'
-                ? 'Lista de chequeo NTC 5375:2012 — Numeral 8 (Motocicletas)'
-                : 'Lista de chequeo NTC 5375:2012 — Numerales 6 y 7'}
+                ? 'Inspección Técnica NTC 5375:2012 — Numeral 8 (Motocicletas)'
+                : 'Inspección Técnica NTC 5375:2012 — Numerales 6 y 7'}
             </p>
           </div>
         </div>

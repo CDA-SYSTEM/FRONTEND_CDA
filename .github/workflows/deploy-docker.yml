@@ -42,6 +42,7 @@ jobs:
             ghcr.io/${{ env.REPO_LC }}:${{ github.sha }}
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
             VITE_API_KEY_FRONT=${{ secrets.VITE_API_KEY_FRONT }}
 
       - name: Deploy via SSH

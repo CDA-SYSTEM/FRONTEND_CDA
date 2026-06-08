@@ -322,7 +322,7 @@ export function AsignacionPage() {
       <div className="page-header-responsive">
         <div>
           <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>
-            Checklist y Labrado
+            Inspección y Labrado
           </h1>
           <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
             Consulte inspecciones reales del backend y el labrado asociado a cada una.
@@ -564,7 +564,7 @@ export function AsignacionPage() {
                           return
                         }
                         const tipo = (insp.vehicle_type || 'LIVIANO').toLowerCase()
-                        navigate(`/inspeccion/checklist/${tipo}/${insp.id}`)
+                        navigate(`/inspeccion/ejecutar/${tipo}/${insp.id}`)
                       }}
                       className="as-btn-action as-btn-action--dark"
                     >

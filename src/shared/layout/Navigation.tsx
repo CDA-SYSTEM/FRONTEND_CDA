@@ -25,12 +25,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: <Home size={20} /> },
+  { to: '/', label: 'Dashboard', icon: <Home size={20} />, roles: ['admin', 'manager', 'facturador'] },
   { to: '/usuarios', label: 'Usuarios', icon: <Users size={20} />, roles: ['admin'] },
   { to: '/recepcion', label: 'Recepción', icon: <LayoutDashboard size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
-  { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
-  { to: '/inspeccion/asignacion', label: 'Checklist', icon: <ClipboardCheck size={20} />, roles: ['admin', 'inspector'] },
-  { to: '/vehiculo/registro', label: 'Vehículos', icon: <Car size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
+  { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario', 'inspector'] },
+  { to: '/inspeccion/asignacion', label: 'Inspección', icon: <ClipboardCheck size={20} />, roles: ['admin', 'inspector'] },
+  { to: '/vehiculo/registro', label: 'Vehículos', icon: <Car size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario', 'inspector'] },
   { to: '/facturacion', label: 'Facturación', icon: <DollarSign size={20} />, roles: ['admin', 'facturador', 'manager'] },
   { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['admin', 'manager'] },
   { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['admin', 'manager'] },

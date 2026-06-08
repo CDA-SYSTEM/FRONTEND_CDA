@@ -24,6 +24,7 @@ interface AuthState {
   setRequireReauth: (v: boolean) => void
   login: (token: string, user: AuthUser, refreshToken?: string) => void
   loginWithCredentials: (credentials: LoginFormData) => Promise<void>
+  loginWithGoogle: (idToken: string) => Promise<void>
   loginAsDemo: (role?: UserRole) => void
   logout: () => Promise<void>
   clearError: () => void
@@ -125,7 +126,45 @@ export const useAuthStore = create<AuthState>((set) => {
       }
     },
 
-    loginAsDemo: (role: UserRole = 'OPERARIO') => {
+    loginWithGoogle: async (idToken: string) => {
+      set({ isLoading: true, error: null })
+      try {
+        const svc = await getAuthService()
+        const response = await svc.loginWithGoogle(idToken)
+
+        if (!response.token) {
+          throw new Error('El servidor no devolvió un token de acceso.')
+        }
+        if (!response.user) {
+          throw new Error(
+            'No se pudo determinar el rol del usuario. Contacte al administrador.',
+          )
+        }
+
+        storage.setItem(TOKEN_KEY, response.token)
+        storage.setItem(USER_KEY, JSON.stringify(response.user))
+        if (response.refreshToken) {
+          storage.setItem(REFRESH_KEY, response.refreshToken)
+        }
+
+        set({
+          token: response.token,
+          refreshToken: response.refreshToken,
+          user: response.user,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        })
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido'
+        set({ isLoading: false, error: errorMessage })
+        throw err
+      }
+    },
+
+
+    loginAsDemo: (role: UserRole = 'operario') => {
       const demoUser: AuthUser = {
         id: 'demo-user',
         name: 'Usuario Demo CDA',

@@ -3,6 +3,9 @@ import { animate, stagger } from 'animejs'
 
 import type { DashboardCard } from '../domain/dashboard.types'
 
+import { useAuthStore } from '@/core/store/authStore'
+import { Navigate } from 'react-router-dom'
+
 const tarjetasDashboard: DashboardCard[] = [
   {
     titulo: 'Recepcion',
@@ -22,6 +25,16 @@ const tarjetasDashboard: DashboardCard[] = [
 ]
 
 export function DashboardPage() {
+  const user = useAuthStore((state) => state.user)
+
+  if (user?.role === 'operario') {
+    return <Navigate to="/recepcion" replace />
+  }
+
+  if (user?.role === 'inspector') {
+    return <Navigate to="/inspeccion/asignacion" replace />
+  }
+
   useEffect(() => {
     const animacion = animate('.dashboard-card', {
       opacity: [0, 1],

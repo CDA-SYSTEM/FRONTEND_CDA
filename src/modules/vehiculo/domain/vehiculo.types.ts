@@ -17,6 +17,15 @@ export interface VehiculoResponse {
   certificadoNo?: string
   clienteId?: string
   cilindraje?: string
+  client?: {
+    id: number | string
+    nombre: string
+    apellido: string
+    identity: string
+    celular?: string
+    email?: string
+    direccion?: string
+  }
 }
 
 export interface CreateVehicleDto {

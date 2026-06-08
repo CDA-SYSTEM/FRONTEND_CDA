@@ -1,0 +1,602 @@
+/* ═══════════════════════════════════════════════════════════════
+   VehiculosPage.css — Módulo Gestión de Vehículos
+   Refero design reference: Linear-style table, unified surface,
+   monospace tech identifiers, ghost icon actions, spring CTA.
+   Touch targets ≥ 44px. No transition:all.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tokens de diseño (scope: módulo) ─────────────────────────── */
+.vh-root {
+  --vh-bg:              #f8fafc;
+  --vh-surface:         #ffffff;
+  --vh-border:          #e2e8f0;
+  --vh-border-strong:   #cbd5e1;
+  --vh-text:            #0f172a;
+  --vh-text-muted:      #64748b;
+  --vh-text-subtle:     #94a3b8;
+  --vh-accent:          #155dfc;
+  --vh-accent-tint:     rgba(21, 93, 252, 0.08);
+  --vh-accent-hover:    rgba(21, 93, 252, 0.90);
+  --vh-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --vh-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.05),
+    0 8px 24px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --vh-radius-card:     14px;
+  --vh-radius-btn:      9px;
+  --vh-radius-pill:     999px;
+  --touch-target:       44px;
+
+  /* Motion tokens */
+  --vh-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --vh-ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --vh-dur-fast:        150ms;
+  --vh-dur-default:     220ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   1. CABECERA — Header card y botón CTA "Nuevo Vehículo"
+   ══════════════════════════════════════════════════════════════ */
+.vh-root .page-header-responsive {
+  background: var(--vh-surface);
+  border: 1px solid var(--vh-border);
+  border-radius: var(--vh-radius-card);
+  box-shadow: var(--vh-shadow-card);
+  padding: 1.25rem 1.5rem;
+  transition: box-shadow var(--vh-dur-default) var(--vh-ease-out);
+}
+
+.vh-root .page-header-responsive:hover {
+  box-shadow: var(--vh-shadow-hover);
+}
+
+.vh-page-icon {
+  background: var(--vh-accent-tint);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vh-accent);
+  flex-shrink: 0;
+}
+
+.vh-page-title {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  font-weight: 700;
+  color: var(--vh-text);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.vh-page-desc {
+  margin: 0.2rem 0 0 0;
+  color: var(--vh-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Botón CTA — spring elástico en hover/active */
+.vh-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--touch-target); /* Estricto 44px */
+  padding-inline: 1.25rem;
+  background: var(--vh-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--vh-radius-btn);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 4px 14px rgba(21, 93, 252, 0.28);
+  transition:
+    background   var(--vh-dur-fast)    var(--vh-ease-out),
+    box-shadow   var(--vh-dur-fast)    var(--vh-ease-out),
+    transform    var(--vh-dur-default) var(--vh-ease-spring);
+}
+
+.vh-btn-primary:hover {
+  background: var(--vh-accent-hover);
+  transform: translateY(-2px) scale(1.025);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 8px 20px rgba(21, 93, 252, 0.35);
+}
+
+.vh-btn-primary:active {
+  transform: translateY(0) scale(0.975);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 3px 10px rgba(21, 93, 252, 0.22);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. BUSCADOR — Input clean con focus ring azul
+   ══════════════════════════════════════════════════════════════ */
+.vh-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--vh-surface);
+  border: 1px solid var(--vh-border);
+  border-radius: var(--vh-radius-card);
+  box-shadow: var(--vh-shadow-card);
+  padding: 0 1.25rem;
+  height: var(--touch-target);
+  transition:
+    border-color var(--vh-dur-fast) var(--vh-ease-out),
+    box-shadow   var(--vh-dur-fast) var(--vh-ease-out);
+}
+
+.vh-search-wrap:focus-within {
+  border-color: var(--vh-accent);
+  box-shadow:
+    0 0 0 3px rgba(21, 93, 252, 0.12),
+    0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.vh-search-icon {
+  color: var(--vh-text-subtle);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.vh-search-input {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 0.9rem;
+  width: 100%;
+  background: transparent !important;
+  color: var(--vh-text);
+  padding: 0 !important;
+  margin-top: 0 !important;
+  min-height: unset !important;
+  border-radius: 0 !important;
+}
+
+.vh-search-input::placeholder {
+  color: var(--vh-text-subtle);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. TABLA PRINCIPAL — Card premium con filas limpias
+   ══════════════════════════════════════════════════════════════ */
+.vh-table-card {
+  background: var(--vh-surface);
+  border: 1px solid var(--vh-border);
+  border-radius: var(--vh-radius-card);
+  box-shadow: var(--vh-shadow-card);
+  overflow: hidden;
+}
+
+.vh-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vh-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+/* Encabezados */
+.vh-table thead tr {
+  border-bottom: 1px solid var(--vh-border);
+}
+
+.vh-table thead th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--vh-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  background: #fafbfc;
+  user-select: none;
+}
+
+.vh-table thead th:first-child { padding-left: 20px; }
+.vh-table thead th:last-child  { text-align: center; padding-right: 20px; }
+
+/* Filas del cuerpo */
+.vh-table tbody tr {
+  border-bottom: 1px solid var(--vh-border);
+  transition: background var(--vh-dur-fast) var(--vh-ease-out);
+}
+
+.vh-table tbody tr:last-child { border-bottom: none; }
+
+.vh-table tbody tr:hover { background: #f8fafc; }
+
+.vh-table tbody td {
+  padding: 14px 16px;
+  color: var(--vh-text-muted);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.vh-table tbody td:first-child { padding-left: 20px; }
+.vh-table tbody td:last-child  { padding-right: 20px; }
+
+/* ── Placa — monospace técnico ───────────────────────────────── */
+.vh-placa-cell {
+  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--vh-text);
+  text-transform: uppercase;
+}
+
+/* ── Certificado — monospace sutil ───────────────────────────── */
+.vh-cert-cell {
+  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--vh-text-muted);
+}
+
+/* ── Cliente — nombre destacado + identity sutil ─────────────── */
+.vh-client-name {
+  font-weight: 500;
+  color: var(--vh-text);
+  font-size: 0.875rem;
+}
+
+.vh-client-id {
+  font-size: 0.78rem;
+  color: var(--vh-text-subtle);
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. ICONOS DE ACCIÓN — Ghost minimalistas en fila horizontal
+   ══════════════════════════════════════════════════════════════ */
+.vh-actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.vh-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--vh-border);
+  background: #f8fafc;
+  padding: 0 !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  color: var(--vh-text-muted);
+  transition:
+    background    var(--vh-dur-fast) var(--vh-ease-out),
+    border-color  var(--vh-dur-fast) var(--vh-ease-out),
+    color         var(--vh-dur-fast) var(--vh-ease-out),
+    transform     90ms               var(--vh-ease-out);
+}
+.vh-action-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  stroke-width: 2.25px !important;
+  fill: none !important;
+  display: block;
+}
+.vh-action-btn:active {
+  transform: scale(0.92);
+}
+
+/* Ver detalles — neutral */
+.vh-action-btn--view:hover {
+  background: #e2e8f0;
+  border-color: var(--vh-border-strong);
+  color: var(--vh-text);
+}
+
+/* Editar — azul sutil */
+.vh-action-btn--edit:hover {
+  background: var(--vh-accent-tint);
+  border-color: rgba(21, 93, 252, 0.2);
+  color: var(--vh-accent);
+}
+
+/* Eliminar — rojo sutil */
+.vh-action-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. PIE DE TABLA — Paginación integrada
+   ══════════════════════════════════════════════════════════════ */
+.vh-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 20px;
+  border-top: 1px solid var(--vh-border);
+  background: #fafbfc;
+  color: var(--vh-text-subtle);
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vh-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--vh-text-muted);
+  font-size: 0.875rem;
+}
+
+.vh-footer-select {
+  height: 32px;
+  padding: 0 24px 0 8px;
+  border-radius: 7px;
+  border: 1px solid var(--vh-border);
+  background: var(--vh-surface);
+  outline: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--vh-text);
+  min-height: unset !important;
+  margin-top: 0 !important;
+  width: auto !important;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  transition:
+    border-color var(--vh-dur-fast) var(--vh-ease-out),
+    box-shadow   var(--vh-dur-fast) var(--vh-ease-out);
+}
+
+.vh-footer-select:focus {
+  border-color: var(--vh-accent);
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12);
+}
+
+.vh-footer-info {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--vh-text-muted);
+}
+
+.vh-footer-info strong {
+  color: var(--vh-text);
+  font-weight: 600;
+}
+
+.vh-pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vh-pagination-label {
+  font-weight: 500;
+  color: var(--vh-text-muted);
+  font-size: 0.8125rem;
+  padding-inline: 4px;
+}
+
+.vh-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 33px;
+  padding: 0 14px;
+  border-radius: 7px;
+  border: 1px solid var(--vh-border);
+  background: var(--vh-surface);
+  color: var(--vh-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background    var(--vh-dur-fast) var(--vh-ease-out),
+    border-color  var(--vh-dur-fast) var(--vh-ease-out),
+    color         var(--vh-dur-fast) var(--vh-ease-out);
+}
+
+.vh-pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: var(--vh-border-strong);
+  color: var(--vh-text);
+}
+
+.vh-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. ESTADOS — Loading / Error / Empty
+   ══════════════════════════════════════════════════════════════ */
+.vh-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.vh-state-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--vh-radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.vh-state-icon--neutral { background: #f1f5f9; color: var(--vh-text-subtle); }
+.vh-state-icon--error   { background: #fef2f2; color: #ef4444; }
+
+.vh-state-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--vh-text);
+}
+
+.vh-state-desc {
+  margin: 0;
+  color: var(--vh-text-muted);
+  font-size: 0.875rem;
+  max-width: 380px;
+  line-height: 1.55;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. REDUCED MOTION — accesibilidad
+   ══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .vh-root *,
+  .vh-root *::before,
+  .vh-root *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration:  0.01ms !important;
+  }
+}
+
+/* ── MODAL VEHÍCULO ESTRUCTURA ELÁSTICA (Refero Design) ────────── */
+.vehiculo-modal-window {
+  max-height: calc(100vh - 40px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.vehiculo-modal-window .cliente-modal-content {
+  overflow: hidden !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.vehiculo-modal-form {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: calc(90vh - 70px) !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  flex: 1;
+}
+
+.vehiculo-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  padding-right: 18px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Scrollbar premium */
+.vehiculo-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.vehiculo-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vehiculo-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.vehiculo-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.vehiculo-modal-footer {
+  border-top: 1px solid var(--vh-border, #e2e8f0);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── MODAL VEHÍCULO DETALLE ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.vehiculo-detalle-modal-window {
+  max-height: calc(100vh - 60px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.vehiculo-detalle-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  padding-right: 18px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Scrollbar premium */
+.vehiculo-detalle-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.vehiculo-detalle-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vehiculo-detalle-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.vehiculo-detalle-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.vehiculo-detalle-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+

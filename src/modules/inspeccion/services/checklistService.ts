@@ -109,15 +109,19 @@ function toNumberId(value: unknown): number | undefined {
 
 function obtenerMensajeError(error: unknown, fallback: string): string {
   if (error && typeof error === 'object') {
-    const anyError = error as Record<string, unknown>
-    const response = anyError.response as Record<string, unknown> | undefined
-    const data = response?.data as Record<string, unknown> | undefined
-    const nestedError = data?.error as Record<string, unknown> | undefined
-    const mensaje =
-      (typeof data?.message === 'string' && data.message) ||
-      (typeof nestedError?.message === 'string' && nestedError.message) ||
-      (typeof anyError.message === 'string' && anyError.message)
-    if (mensaje) return mensaje
+    const anyError = error as any
+    const data = anyError.response?.data
+    if (data) {
+      if (data.error && typeof data.error === 'object' && typeof data.error.message === 'string') {
+        return data.error.message
+      }
+      if (typeof data.message === 'string' && data.message !== 'Http Exception') {
+        return data.message
+      }
+    }
+    if (typeof anyError.message === 'string') {
+      return anyError.message
+    }
   }
   return fallback
 }
@@ -191,7 +195,11 @@ function normalizeChecklistInspection(raw: unknown): ChecklistInspection {
     vehicle_type: String(body.vehicle_type ?? body.vehicleType ?? vehicle.vehicle_type ?? vehicle.tipoVehiculo ?? 'LIVIANO') as ChecklistInspection['vehicle_type'],
     template_id: toStringId(body.template_id ?? body.templateId),
     inspection_datetime: toStringId(body.inspection_datetime ?? body.inspectionDatetime ?? body.created_at ?? body.createdAt),
-    inspector_id: toStringId(body.inspector_id ?? body.inspectorId ?? body.operator_id ?? body.operatorId),
+    inspector_id: toStringId(
+      body.inspector_id ??
+      body.inspectorId ??
+      (body.inspector && typeof body.inspector === 'object' ? (body.inspector as any).id : undefined)
+    ),
     status: toStringId(body.status),
     general_result: toStringId(body.general_result ?? body.generalResult),
     responses: Array.isArray(body.responses) ? (body.responses as ChecklistInspection['responses']) : undefined,
@@ -355,8 +363,8 @@ export const checklistService = {
         observations: payload.observations,
       })
       return true
-    } catch {
-      return false
+    } catch (error) {
+      throw new Error(obtenerMensajeError(error, 'Error al guardar el borrador'))
     }
   },
 
@@ -466,6 +474,90 @@ export const checklistService = {
       return normalizeInspectionList(response.data)
     } catch {
       return []
+    }
+  },
+
+  async obtenerTodasLasInspecciones(): Promise<ChecklistInspection[]> {
+    try {
+      const response = await apiClient.get('/api/v1/checklist/inspections')
+      return normalizeInspectionList(response.data)
+    } catch {
+      return []
+    }
+  },
+
+  async actualizarInspeccion(
+    id: string,
+    dto: Partial<CreateChecklistInspectionDTO> & { responses?: InspectionItemResponse[] },
+  ): Promise<ChecklistInspection | null> {
+    try {
+      const response = await apiClient.put(`/api/v1/checklist/inspections/${id}`, dto)
+      return normalizeChecklistInspection(extractItem<unknown>(response.data))
+    } catch {
+      return null
+    }
+  },
+
+  async eliminarInspeccion(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/checklist/inspections/${id}`)
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  async guardarComoBorrador(
+    id: string,
+    payload: {
+      plate: string
+      vehicle_id: number
+      client_id?: number
+      vehicle_type: VehicleType
+      template_id?: string
+      inspection_datetime?: string
+      inspector_id?: string
+      responses: InspectionItemResponse[]
+      observations?: string
+    },
+  ): Promise<boolean> {
+    try {
+      await apiClient.patch(`/api/v1/checklist/inspections/${id}/draft`, {
+        plate: payload.plate,
+        vehicle_id: payload.vehicle_id,
+        client_id: payload.client_id,
+        vehicle_type: payload.vehicle_type,
+        template_id: payload.template_id,
+        inspection_datetime: payload.inspection_datetime,
+        inspector_id: payload.inspector_id,
+        responses: payload.responses,
+        observations: payload.observations,
+      })
+      return true
+    } catch {
+      return false
+    }
+  },
+
+  async listarArchivos(limit = 100): Promise<any[]> {
+    try {
+      const response = await apiClient.get('/api/v1/storage/files', {
+        params: { limit }
+      })
+      const body = response.data as Record<string, any>
+      const files = body?.data?.data || body?.data || []
+      return Array.isArray(files) ? files : []
+    } catch {
+      return []
+    }
+  },
+
+  async eliminarArchivo(id: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/api/v1/storage/files/${id}`)
+      return true
+    } catch {
+      return false
     }
   },
 }

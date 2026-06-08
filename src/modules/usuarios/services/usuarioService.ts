@@ -1,6 +1,6 @@
 import { apiClient } from '@/core/api/apiClient'
 import { extractApiArray, extractApiData } from '@/core/api/extractApiData'
-import { authService } from '@/modules/auth/services/authService'
+import { useAuthStore } from '@/core/store/authStore'
 import type {
   ActualizarUsuarioDTO,
   CrearUsuarioDTO,
@@ -8,10 +8,11 @@ import type {
   RolUsuario,
   RolUsuarioForm,
   Usuario,
+  AuthAccount,
 } from '@/modules/usuarios/domain/usuario.types'
 
 function normalizeRole(role: string): RolUsuario {
-  return role.toUpperCase() as RolUsuario
+  return role.toLowerCase() as RolUsuario
 }
 
 function toFormRole(role: RolUsuario): RolUsuarioForm {
@@ -23,7 +24,7 @@ function normalizeUsuario(raw: unknown): Usuario {
   const firstName = r['firstName'] != null ? String(r['firstName']) : undefined
   const lastName = r['lastName'] != null ? String(r['lastName']) : undefined
   const builtName = [firstName, lastName].filter(Boolean).join(' ').trim()
-  const roleRaw = String(r['role'] ?? 'OPERARIO')
+  const roleRaw = String(r['role'] ?? 'operario')
 
   return {
     id: String(r['id'] ?? r['sub'] ?? ''),
@@ -45,16 +46,6 @@ function onlyActive(usuarios: Usuario[]): Usuario[] {
   return usuarios.filter((u) => u.isActive)
 }
 
-function meToUsuario(me: { id: string; name: string; role: RolUsuario }): Usuario {
-  return {
-    id: me.id,
-    name: me.name,
-    email: '',
-    role: me.role,
-    isActive: true,
-  }
-}
-
 export const usuarioService = {
   /**
    * GET /auth/users?role={role} — Admin, Manager
@@ -71,9 +62,12 @@ export const usuarioService = {
             ),
         ),
       )
-      return onlyActive(
-        results.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])),
-      )
+      const flatList = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+      const uniqueMap = new Map<string, Usuario>()
+      for (const u of flatList) {
+        uniqueMap.set(u.id, u)
+      }
+      return onlyActive(Array.from(uniqueMap.values()))
     }
 
     try {
@@ -126,43 +120,61 @@ export const usuarioService = {
 
   /**
    * Personal para asignar en recepción (operator_id).
-   * - Admin/Manager: GET /auth/users/options → operarios|inspectors
-   * - Operario/Inspector: GET /auth/me (solo su propia cuenta)
+   * - Recepción usa operarios.
+   * - Si /auth/users/options falla, hace fallback a /auth/users/operarios.
    */
   async obtenerPersonalAsignable(
-    role: 'OPERARIO' | 'INSPECTOR',
-    rolSesion?: string,
+    role: 'operario' | 'inspector',
+    userRole?: string,
   ): Promise<Usuario[]> {
-    const sesion = (rolSesion ?? '').toUpperCase()
-    const rolDropdown: RolPersonalDropdown =
-      role === 'OPERARIO' ? 'operario' : 'inspector'
-
-    if (sesion === 'ADMIN' || sesion === 'MANAGER') {
-      const opciones = await this.obtenerOpcionesUsuarios(rolDropdown)
+    const targetRole = role.toLowerCase() as RolPersonalDropdown
+    try {
+      const opciones = await this.obtenerOpcionesUsuarios(targetRole)
+      const r = userRole?.toLowerCase()
+      if (r === 'operario' || r === 'inspector') {
+        const activeUser = useAuthStore.getState().user
+        if (activeUser) {
+          const self = opciones.filter((u) => String(u.id) === String(activeUser.id))
+          if (self.length > 0) return self
+        }
+      }
       if (opciones.length > 0) return opciones
-
-      if (role === 'OPERARIO') return this.obtenerOperarios()
-      return this.obtenerInspectores()
+    } catch (err) {
+      console.error('Error fetching assignable user options:', err)
     }
 
-    const me = await authService.getMe()
-    if (!me) return []
-
-    const rolCuenta = me.role.toUpperCase()
-    if (role === 'OPERARIO' && rolCuenta === 'OPERARIO') {
-      return [meToUsuario({ ...me, role: 'OPERARIO' })]
+    // Fallback
+    const r = userRole?.toLowerCase()
+    if (r === 'operario' || r === 'inspector') {
+      const activeUser = useAuthStore.getState().user
+      if (activeUser) {
+        return [
+          {
+            id: String(activeUser.id),
+            name: activeUser.name,
+            email: '',
+            role: activeUser.role as RolUsuario,
+            isActive: true,
+          },
+        ]
+      }
     }
-    if (role === 'INSPECTOR' && rolCuenta === 'INSPECTOR') {
-      return [meToUsuario({ ...me, role: 'INSPECTOR' })]
-    }
-
     return []
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
-    await apiClient.patch(`/auth/users/${id}`, {
+    await apiClient.patch(`/auth/users/${id}/role`, {
       role: toFormRole(payload.role),
     })
+  },
+
+  async obtenerCuentasAutenticacion(): Promise<AuthAccount[]> {
+    try {
+      const response = await apiClient.get('/auth/admin/personnel/auth-accounts')
+      return extractApiArray(response.data) as AuthAccount[]
+    } catch {
+      return []
+    }
   },
 
   async cambiarEstado(id: string, isActive: boolean): Promise<void> {
@@ -203,28 +215,43 @@ export const usuarioService = {
   },
 
   /**
+   * PATCH /auth/admin/personnel/{id}/reset-password
+   */
+  async restablecerPassword(userId: string, newPassword: string): Promise<void> {
+    await apiClient.patch(`/auth/admin/personnel/${userId}/reset-password`, {
+      newPassword,
+    })
+  },
+
+  /**
    * GET /auth/identification-types — Admin, Manager
    */
   async obtenerTiposIdentificacion(): Promise<{ code: string; name: string }[]> {
     try {
       const response = await apiClient.get('/auth/identification-types')
       const data = extractApiArray(response.data)
-      return data.map((item) => {
+      const unique = new Map<string, string>()
+      data.forEach((item) => {
         const r = item as Record<string, unknown>
-        return {
-          code: String(r['code'] ?? r['id'] ?? ''),
-          name: String(r['name'] ?? r['nombre'] ?? r['code'] ?? ''),
+        const rawName = String(r['name'] ?? r['code'] ?? '').trim()
+        const code = rawName.toLowerCase()
+        if (code && !unique.has(code)) {
+          unique.set(code, rawName.toUpperCase())
         }
       })
+      return Array.from(unique.entries()).map(([code, name]) => ({
+        code,
+        name,
+      }))
     } catch {
       return []
     }
   },
 
   /** @deprecated usar obtenerPersonalAsignable */
-  async obtenerUsuariosAsignables(role: string, rolSesion?: string): Promise<Usuario[]> {
-    const r = role.toUpperCase()
-    if (r !== 'OPERARIO' && r !== 'INSPECTOR') return []
-    return this.obtenerPersonalAsignable(r, rolSesion)
+  async obtenerUsuariosAsignables(role: string): Promise<Usuario[]> {
+    const r = role.toLowerCase()
+    if (r !== 'operario' && r !== 'inspector') return []
+    return this.obtenerPersonalAsignable(r as 'operario' | 'inspector')
   },
 }

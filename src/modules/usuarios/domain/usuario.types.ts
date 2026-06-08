@@ -1,4 +1,4 @@
-export type RolUsuario = 'ADMIN' | 'RECEPCIONISTA' | 'INSPECTOR' | 'FACTURADOR' | 'MANAGER' | 'OPERARIO'
+export type RolUsuario = 'admin' | 'recepcionista' | 'inspector' | 'facturador' | 'manager' | 'operario' | 'superadmin'
 export type RolUsuarioForm = 'admin' | 'manager' | 'inspector' | 'operario'
 export type RolPersonalDropdown = 'operario' | 'inspector'
 export type TipoIdentificacion = 'cc' | 'ce' | 'nit' | 'pasaporte'
@@ -31,3 +31,13 @@ export interface ActualizarUsuarioDTO {
   role?: RolUsuarioForm
   isActive?: boolean
 }
+
+export interface AuthAccount {
+  id: string
+  email: string
+  role: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+

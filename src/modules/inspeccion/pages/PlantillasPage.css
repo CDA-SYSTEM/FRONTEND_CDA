@@ -1,0 +1,354 @@
+/* ═══════════════════════════════════════════════════════════════
+   PlantillasPage.css — Plantillas de Checklist Módulo UI Premium
+   Refero design reference: Auto-fit grid, monospace detail metrics,
+   alfa-opacity badges, low-profile aligned actions.
+   ═══════════════════════════════════════════════════════════════ */
+
+.plantillas-root {
+  --plt-bg:              #f8fafc;
+  --plt-surface:         #ffffff;
+  --plt-border:          #e2e8f0;
+  --plt-border-strong:   #cbd5e1;
+  --plt-text:            #0f172a;
+  --plt-text-muted:      #64748b;
+  --plt-text-subtle:     #94a3b8;
+  --plt-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.03),
+    0 4px 16px rgba(15, 23, 42, 0.05),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --plt-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.04),
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --plt-radius-card:     16px;
+  --plt-radius-btn:      8px;
+  --plt-radius-badge:    6px;
+
+  /* Motion */
+  --plt-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --plt-dur-fast:        160ms;
+  --plt-dur-default:     220ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* GRID DE PLANTILLAS — 100% ANCHO CON AUTO-FIT */
+.plantillas-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* TEMPLATE PREMIUM CARD */
+.plantilla-premium-card {
+  background: var(--plt-surface);
+  border: 1px solid var(--plt-border);
+  border-radius: var(--plt-radius-card);
+  box-shadow: var(--plt-shadow-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 230px;
+  transition:
+    box-shadow var(--plt-dur-default) var(--plt-ease-out),
+    border-color var(--plt-dur-default) var(--plt-ease-out),
+    transform var(--plt-dur-default) var(--plt-ease-out);
+}
+
+.plantilla-premium-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--plt-border-strong);
+  box-shadow: var(--plt-shadow-hover);
+}
+
+.plantilla-premium-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plantilla-premium-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Badges vehiculos a la izquierda */
+.plantilla-vehicles-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plantilla-badge-vehicle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--plt-radius-badge);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(21, 93, 252, 0.08);
+  color: #155dfc;
+}
+
+/* Badge de estado a la derecha */
+.plantilla-badge-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--plt-radius-badge);
+  letter-spacing: 0.02em;
+}
+
+.plantilla-badge-status--active {
+  background: rgba(34, 197, 94, 0.08);
+  color: #16a34a;
+}
+
+.plantilla-badge-status--inactive {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+/* Título */
+.plantilla-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--plt-text);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.35;
+}
+
+/* Bloque detalles tecnicos */
+.plantilla-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.plantilla-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  color: var(--plt-text-muted);
+}
+
+.plantilla-detail-row-label {
+  font-weight: 500;
+}
+
+.plantilla-detail-row-value {
+  font-family: ui-monospace, 'SF Mono', Cascadia, Menlo, monospace;
+  font-weight: 700;
+  color: var(--plt-text);
+}
+
+/* Botones minimalistas de acción al fondo */
+.plantilla-premium-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid rgba(241, 245, 249, 0.8);
+  padding-top: 1rem;
+  margin-top: 1.25rem;
+}
+
+.plt-btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px !important;
+  height: 34px !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  border-radius: var(--plt-radius-btn);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition:
+    background    var(--plt-dur-fast) var(--plt-ease-out),
+    border-color  var(--plt-dur-fast) var(--plt-ease-out),
+    color         var(--plt-dur-fast) var(--plt-ease-out),
+    transform     90ms              var(--plt-ease-out);
+}
+
+.plt-btn-action:active {
+  transform: scale(0.95);
+}
+
+.plt-btn-action svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.25px;
+}
+
+/* Ver — perfil bajo neutral sutil */
+.plt-btn-action--view {
+  background: transparent;
+  border: 1px solid var(--plt-border);
+  color: var(--plt-text-muted);
+}
+
+.plt-btn-action--view:hover {
+  background: #f1f5f9;
+  border-color: var(--plt-border-strong);
+  color: var(--plt-text);
+}
+
+/* Editar — perfil bajo azul sutil */
+.plt-btn-action--edit {
+  background: transparent;
+  border: 1px solid var(--plt-border);
+  color: var(--plt-text-muted);
+}
+
+.plt-btn-action--edit:hover {
+  background: rgba(21, 93, 252, 0.08);
+  border-color: rgba(21, 93, 252, 0.2);
+  color: #155dfc;
+}
+
+
+/* Ver — perfil bajo rojo sutil */
+.plt-btn-action--delete {
+  background: transparent;
+  border: 1px solid var(--plt-border);
+  color: var(--plt-text-muted);
+}
+
+.plt-btn-action--delete:hover {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* ── MODAL DETALLE DE PLANTILLA ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.plantilla-detalle-modal-window {
+  max-height: calc(100vh - 80px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+.plantilla-detalle-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  text-align: left;
+}
+
+/* Scrollbar premium */
+.plantilla-detalle-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.plantilla-detalle-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.plantilla-detalle-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── MODAL CREAR PLANTILLA ESTRUCTURA ELÁSTICA (Refero Design) ── */
+.plantilla-crear-modal-window {
+  max-height: calc(100vh - 40px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 9999 !important;
+}
+
+.plantilla-crear-modal-body {
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Scrollbar premium para el cuerpo */
+.plantilla-crear-modal-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.plantilla-crear-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.plantilla-crear-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+.plantilla-crear-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.plantilla-crear-modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 16px 24px !important;
+  background: #ffffff;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.plantilla-crear-json-textarea {
+  width: 100% !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13px !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  resize: vertical !important;
+  box-sizing: border-box;
+  outline: none !important;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  margin-top: 4px;
+}
+
+.plantilla-crear-json-textarea:focus {
+  border-color: #155dfc !important;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.12) !important;
+}
+
+

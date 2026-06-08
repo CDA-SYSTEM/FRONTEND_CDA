@@ -1,11 +1,12 @@
 import axios from 'axios'
+import { API_BASE_URL, API_KEY_FRONT } from '@/core/api/apiConfig'
 import { useAuthStore } from '@/core/store/authStore'
 import { offlineStorage } from '@/core/services/offlineStorage'
 
 const METODOS_MUTACION = ['post', 'patch', 'put', 'delete'] as const
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api',
+  baseURL: API_BASE_URL,
   timeout: 15000,
 })
 
@@ -76,18 +77,20 @@ export async function sincronizar(): Promise<void> {
 
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token
-  const apiKey = import.meta.env.VITE_API_KEY_FRONT
+  const apiKey = API_KEY_FRONT
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
 
   if (apiKey) {
+    config.headers['x-api-key'] = apiKey
     config.headers['X-API-Key'] = apiKey
   }
 
   return config
 })
+
 
 /* ── Refresh token queue ── */
 
@@ -116,7 +119,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config
 
     // HU-037: Sin conexión — encolar mutación y responder como éxito local
-    if (!error.response && originalRequest) {
+    // EXCLUIR rutas de autenticación: el login nunca debe encolarse como offline
+    const isAuthRoute = originalRequest?.url?.includes('/auth/')
+    if (!error.response && originalRequest && !isAuthRoute) {
       const method = (originalRequest.method || '').toLowerCase()
       if (METODOS_MUTACION.includes(method as typeof METODOS_MUTACION[number])) {
         let payload: unknown = undefined
@@ -137,6 +142,7 @@ apiClient.interceptors.response.use(
         return Promise.resolve({ data: { __offline: true } })
       }
     }
+
 
     // Evitar loop infinito si la ruta de refresh, login o logout devuelve 401
     if (
@@ -169,19 +175,21 @@ apiClient.interceptors.response.use(
 
       if (!refreshToken) {
         processQueue(error, null)
-        authStore.logout()
+        try { await authStore.logout() } catch { /* ignore */ }
         isRefreshing = false
+        if (!window.location.pathname.startsWith('/login')) {
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?onreturn=${returnTo}`
+        }
         return Promise.reject(error)
       }
 
       try {
-        const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
-        const apiKey = import.meta.env.VITE_API_KEY_FRONT
         const response = await axios.post(
-          `${baseURL}/auth/refresh`,
+          `${API_BASE_URL}/auth/refresh`,
           { refreshToken },
           {
-            headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
+            headers: API_KEY_FRONT ? { 'X-API-Key': API_KEY_FRONT } : undefined,
           },
         )
 
@@ -197,7 +205,7 @@ apiClient.interceptors.response.use(
         const currentUser = authStore.user
         authStore.login(
           newAccessToken,
-          currentUser ?? { id: '', name: '', role: 'OPERARIO' },
+          currentUser ?? { id: '', name: '', role: 'operario' },
           newRefreshToken,
         )
 
@@ -206,7 +214,11 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest)
       } catch (err) {
         processQueue(err, null)
-        authStore.logout()
+        try { await authStore.logout() } catch { /* ignore */ }
+        if (!window.location.pathname.startsWith('/login')) {
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?onreturn=${returnTo}`
+        }
         return Promise.reject(err)
       } finally {
         isRefreshing = false

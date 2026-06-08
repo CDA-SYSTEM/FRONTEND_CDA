@@ -43,6 +43,12 @@ function extractArray(responseData: unknown): any[] {
 
   return []
 }
+function extractItem(responseData: unknown): any {
+  const body = responseData as Record<string, any>
+  if (body && body.data && typeof body.data === 'object' && body.data.data) return body.data.data
+  if (body && body.data && typeof body.data === 'object') return body.data
+  return body
+}
 
 export const clienteService = {
   /**
@@ -54,7 +60,7 @@ export const clienteService = {
       '/api/v1/clients',
       payload,
     )
-    return response.data
+    return extractItem(response.data)
   },
 
   /**
@@ -95,7 +101,7 @@ export const clienteService = {
       const response = await apiClient.get<ClientePersonaNatural>(
         `/api/v1/clients/${id}`,
       )
-      return response.data
+      return extractItem(response.data)
     } catch (error: unknown) {
       const e = error as { response?: { status?: number } }
       if (e.response?.status === 404) return null
@@ -118,6 +124,43 @@ export const clienteService = {
   },
 
   /**
+   * Listar clientes de forma paginada y filtrada.
+   * Usa GET /api/v1/clients?search=...&page=...&size=...
+   */
+  async listarClientes(params: {
+    search?: string
+    documentTypeId?: number
+    personTypeId?: number
+    page?: number
+    size?: number
+    active?: boolean
+  }): Promise<{
+    content: ClientePersonaNatural[]
+    totalElements: number
+    totalPages: number
+  }> {
+    const response = await apiClient.get('/api/v1/clients', {
+      params: {
+        search: params.search?.trim() || undefined,
+        documentTypeId: params.documentTypeId || undefined,
+        personTypeId: params.personTypeId || undefined,
+        page: params.page ?? 0,
+        size: params.size ?? 10,
+        active: params.active,
+      },
+    })
+    const body = response.data as Record<string, any>
+    const nestedData = body?.data?.data || body?.data || {}
+    const content = (nestedData.clients || nestedData.content || []) as ClientePersonaNatural[]
+    
+    return {
+      content,
+      totalElements: nestedData.totalElements ?? content.length,
+      totalPages: nestedData.totalPages ?? 1,
+    }
+  },
+
+  /**
    * Actualiza los datos de un cliente existente.
    * Usa PUT /api/v1/clients/:id
    */
@@ -129,6 +172,53 @@ export const clienteService = {
       `/api/v1/clients/${id}`,
       payload,
     )
-    return response.data
+    return extractItem(response.data)
+  },
+
+  /**
+   * Elimina un cliente de forma lógica (soft delete).
+   * Usa DELETE /api/v1/clients/:id
+   */
+  async eliminarCliente(id: number | string): Promise<void> {
+    await apiClient.delete(`/api/v1/clients/${id}`)
+  },
+
+  /**
+   * Obtiene la lista completa de todos los clientes sin paginación.
+   * Usa GET /api/v1/clients/all
+   */
+  async obtenerTodosLosClientes(): Promise<ClientePersonaNatural[]> {
+    const response = await apiClient.get('/api/v1/clients/all')
+    return extractArray(response.data)
+  },
+
+  /**
+   * Obtiene un cliente por ID incluyendo los que tienen soft delete.
+   * Usa GET /api/v1/clients/:id/full
+   */
+  async obtenerClienteCompletoPorId(
+    id: number | string,
+  ): Promise<ClientePersonaNatural | null> {
+    try {
+      const response = await apiClient.get<ClientePersonaNatural>(
+        `/api/v1/clients/${id}/full`,
+      )
+      return extractItem(response.data)
+    } catch (error: unknown) {
+      const e = error as { response?: { status?: number } }
+      if (e.response?.status === 404) return null
+      throw error
+    }
+  },
+
+  /**
+   * Activa un cliente que ha sido eliminado lógicamente.
+   * Usa PUT /api/v1/clients/:id/activate
+   */
+  async activarCliente(id: number | string): Promise<ClientePersonaNatural> {
+    const response = await apiClient.put<ClientePersonaNatural>(
+      `/api/v1/clients/${id}/activate`,
+    )
+    return extractItem(response.data)
   },
 }

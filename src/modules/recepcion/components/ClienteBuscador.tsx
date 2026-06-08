@@ -1,5 +1,6 @@
-import { Search, Loader2, User } from 'lucide-react'
+import { Search, Loader2, User, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
+import { useAuthStore } from '@/core/store/authStore'
 
 interface Props {
   query: string
@@ -8,6 +9,13 @@ interface Props {
   cargando: boolean
   error: string | null
   onSeleccionarCliente: (cliente: ClientePersonaNatural) => void
+  onEliminarCliente?: (cliente: ClientePersonaNatural) => void
+  pagina: number
+  onPageChange: (p: number) => void
+  limite: number
+  onLimitChange: (l: number) => void
+  totalElementos: number
+  totalPages: number
 }
 
 export function ClienteBuscador({
@@ -17,108 +25,227 @@ export function ClienteBuscador({
   cargando,
   error,
   onSeleccionarCliente,
+  onEliminarCliente,
+  pagina,
+  onPageChange,
+  limite,
+  onLimitChange,
+  totalElementos,
+  totalPages,
 }: Props) {
+  const { user } = useAuthStore()
+  const puedeEliminar =
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager' ||
+    user?.role === 'operario'
+
   return (
     <div>
-      <div style={{ position: 'relative', marginBottom: 24 }}>
-        <div
-          style={{
-            position: 'absolute',
-            left: 16,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#9ca3af',
-          }}
-        >
-          {cargando ? (
-            <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-          ) : (
-            <Search size={20} />
-          )}
+      {/* ── Barra de búsqueda y filtros ── */}
+      <div className="cl-filter-bar" style={{ marginBottom: 20 }}>
+        <div className="cl-search-wrapper">
+          <span className="cl-search-icon">
+            {cargando ? (
+              <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+            ) : (
+              <Search size={18} />
+            )}
+          </span>
+          <input
+            className="cl-search-input"
+            type="text"
+            placeholder="Buscar por nombre, documento o placa..."
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+          />
         </div>
-        <input
-          type="text"
-          placeholder="Buscar por nombre, documento o placa..."
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          style={{ 
-            paddingLeft: 46, 
-            height: 48, 
-            fontSize: '1rem', 
-            borderRadius: 8, 
-            border: '1px solid #e2e8f0', 
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)' 
-          }}
-        />
+
       </div>
 
+      {/* Error */}
       {error && (
-        <div style={{ color: '#ef4444', marginBottom: 16 }}>{error}</div>
+        <div className="cl-error" style={{ marginBottom: 16 }}>{error}</div>
       )}
 
-      {/* Empty State / No hay resultados */}
-      {(query.length < 3 || (resultados.length === 0 && !cargando)) && !error && (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '6rem 2rem',
-          background: '#fff',
-          borderRadius: 12,
-          border: '1px solid #f1f5f9',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-          color: '#64748b',
-          minHeight: 300,
-        }}>
-          <User size={64} color="#cbd5e1" strokeWidth={1.5} style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: '1.1rem', margin: 0 }}>No se encontraron clientes</p>
+      {/* Empty state */}
+      {resultados.length === 0 && !cargando && !error && (
+        <div className="cl-table-card">
+          <div className="cl-empty">
+            <User size={56} color="#cbd5e1" strokeWidth={1.5} />
+            <p className="cl-empty-title">No se encontraron clientes</p>
+          </div>
         </div>
       )}
 
+      {/* Tabla */}
       {resultados.length > 0 && (
-        <article className="panel" style={{ padding: 0, overflow: 'hidden' }}>
-          <div className="table-wrap">
-            <table style={{ margin: 0 }}>
-              <thead style={{ background: '#f8fafc' }}>
+        <div className="cl-table-card">
+          {/* Vista desktop */}
+          <div className="cl-table-scroll clients-table-desktop">
+            <table className="cl-table">
+              <thead>
                 <tr>
-                  <th style={{ padding: '16px 24px' }}>Documento</th>
-                  <th style={{ padding: '16px 24px' }}>Nombre completo</th>
-                  <th style={{ padding: '16px 24px' }}>Celular</th>
-                  <th style={{ padding: '16px 24px', width: 120 }}>Acciones</th>
+                  <th>Documento</th>
+                  <th>Nombre completo</th>
+                  <th>Celular</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {resultados.map((c) => (
-                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '16px 24px', fontWeight: 500 }}>{c.identity}</td>
-                    <td style={{ padding: '16px 24px' }}>
-                      {c.nombre} {c.apellido}
-                    </td>
-                    <td style={{ padding: '16px 24px' }}>{c.celular}</td>
-                    <td style={{ padding: '16px 24px' }}>
-                      <button
-                        onClick={() => onSeleccionarCliente(c)}
-                        style={{
-                          padding: '6px 16px',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          background: '#e0e7ff',
-                          color: '#4f46e5',
-                          border: 'none',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Ver
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {resultados.map((c) => {
+                  const isActive = (c as any).active !== false
+                  return (
+                    <tr key={c.id}>
+                      <td>
+                        <span className="cl-doc-cell">{c.identity}</span>
+                      </td>
+                      <td>
+                        <span className="cl-name-cell">{c.nombre} {c.apellido}</span>
+                      </td>
+                      <td>{c.celular}</td>
+                      <td>
+                        <span className={`cl-badge ${isActive ? 'cl-badge--active' : 'cl-badge--inactive'}`}>
+                          {isActive ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <button
+                            className="cl-btn-view"
+                            onClick={() => onSeleccionarCliente(c)}
+                            type="button"
+                          >
+                            Ver
+                          </button>
+                          {puedeEliminar && isActive && onEliminarCliente && (
+                            <button
+                              className="cl-btn-delete"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onEliminarCliente(c)
+                              }}
+                              type="button"
+                            >
+                              <Trash2 size={13} style={{ marginRight: 4 }} />
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
-        </article>
+
+          {/* Vista mobile cards */}
+          <div className="clients-cards-mobile">
+            {resultados.map((c) => {
+              const isActive = (c as any).active !== false
+              return (
+                <div key={c.id} className="client-card">
+                  <div className="client-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="client-card-identity">
+                      {c.nombre} {c.apellido}
+                    </span>
+                    <span className={`cl-badge ${isActive ? 'cl-badge--active' : 'cl-badge--inactive'}`}>
+                      {isActive ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+
+                  <div className="client-card-row">
+                    <span className="client-card-label">Documento:</span>
+                    <span className="client-card-value">{c.identity}</span>
+                  </div>
+
+                  <div className="client-card-row">
+                    <span className="client-card-label">Celular:</span>
+                    <span className="client-card-value">{c.celular || '—'}</span>
+                  </div>
+
+                  <div className="client-card-actions" style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      className="cl-btn-view"
+                      onClick={() => onSeleccionarCliente(c)}
+                      type="button"
+                      style={{ flex: 1 }}
+                    >
+                      Ver
+                    </button>
+                    {puedeEliminar && isActive && onEliminarCliente && (
+                      <button
+                        className="cl-btn-delete"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEliminarCliente(c)
+                        }}
+                        type="button"
+                        style={{ flex: 1 }}
+                      >
+                        <Trash2 size={13} style={{ marginRight: 4 }} />
+                        Eliminar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Pie de tabla — paginación + límite + contador */}
+          <div className="cl-table-footer">
+            {/* Selector de límite */}
+            <div className="cl-limit-row">
+              <span>Mostrar</span>
+              <select
+                className="cl-limit-select"
+                value={limite}
+                onChange={(e) => onLimitChange(Number(e.target.value))}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span>por página</span>
+            </div>
+
+            {/* Contador */}
+            <div className="cl-footer-count">
+              Mostrando{' '}
+              <strong>{totalElementos === 0 ? 0 : pagina * limite + 1}</strong>
+              {' '}a{' '}
+              <strong>{Math.min((pagina + 1) * limite, totalElementos)}</strong>
+              {' '}de <strong>{totalElementos}</strong> clientes
+            </div>
+
+            {/* Paginación */}
+            <div className="cl-pagination">
+              <button
+                className="cl-pagination-btn"
+                onClick={() => onPageChange(Math.max(0, pagina - 1))}
+                disabled={pagina === 0}
+                aria-label="Página anterior"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <span className="cl-pagination-label">
+                Página {pagina + 1} de {totalPages || 1}
+              </span>
+              <button
+                className="cl-pagination-btn"
+                onClick={() => onPageChange(Math.min(totalPages - 1, pagina + 1))}
+                disabled={pagina >= totalPages - 1}
+                aria-label="Página siguiente"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

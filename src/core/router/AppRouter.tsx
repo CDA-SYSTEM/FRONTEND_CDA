@@ -10,6 +10,12 @@ import { RecepcionPage } from '@/modules/recepcion/pages/RecepcionPage'
 import { ClientesPage } from '@/modules/recepcion/pages/ClientesPage'
 import { RegistroVehiculoPage } from '@/modules/vehiculo/pages/RegistroVehiculoPage'
 import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
+import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
+import { EstadosPage } from '@/modules/estados/pages/EstadosPage'
+import { PlantillasPage } from '@/modules/inspeccion/pages/PlantillasPage'
+import { AdminDashboard } from '@/modules/admin/pages/AdminDashboard'
+import { ArchivosPage } from '@/modules/storage/pages/ArchivosPage'
+import { TrackerPage } from '@/modules/tracker/pages/TrackerPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
@@ -25,14 +31,15 @@ function RoleBasedRedirect() {
   }
 
   // Mapeo de roles backend → ruta inicial del frontend
-  // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
+  // Backend (minúsculas): admin | manager | operario | inspector | facturador | superadmin
   const roleRoutes: Record<string, string> = {
-    ADMIN: '/dashboard',
-    MANAGER: '/recepcion',
-    OPERARIO: '/recepcion',
-    INSPECTOR: '/inspeccion/asignacion',
-    FACTURADOR: '/facturacion',
-    RECEPCIONISTA: '/recepcion',
+    admin: '/admin/dashboard',
+    superadmin: '/admin/dashboard',
+    manager: '/recepcion',
+    operario: '/recepcion',
+    inspector: '/inspeccion/asignacion',
+    facturador: '/facturacion',
+    recepcionista: '/recepcion',
   }
 
   const route = roleRoutes[user.role] || '/dashboard'
@@ -48,15 +55,22 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<RoleBasedRedirect />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recepcion" element={<RecepcionPage />} />
             <Route path="/clientes" element={<ClientesPage />} />
             <Route path="/inspeccion" element={<InspeccionPage />} />
             <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
-            <Route path="/inspeccion/checklist/:inspectionId" element={<ChecklistPage />} />
+            <Route path="/inspeccion/ejecutar/:vehicleType/:inspectionId" element={<ChecklistPage />} />
+            <Route path="/inspeccion/ejecutar/:inspectionId" element={<ChecklistPage />} />
             <Route path="/facturacion" element={<FacturacionPage />} />
+            <Route path="/precios" element={<PreciosPage />} />
+            <Route path="/estados" element={<EstadosPage />} />
+            <Route path="/plantillas" element={<PlantillasPage />} />
+            <Route path="/archivos" element={<ArchivosPage />} />
             <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
+            <Route path="/tracker" element={<TrackerPage />} />
           </Route>
         </Route>
 

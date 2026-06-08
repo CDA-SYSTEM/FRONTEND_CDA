@@ -54,6 +54,14 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.20") {
+            because("Forzar una única versión de Kotlin evita el error de clases duplicadas")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20") {
+            because("Evita duplicados en extensiones jdk8")
+        }
+    }
 }
 
 apply from: 'capacitor.build.gradle'

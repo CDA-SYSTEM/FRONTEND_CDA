@@ -1,0 +1,579 @@
+/* ═══════════════════════════════════════════════════════════════
+   AsignacionPage.css — Módulo de Asignación de Checklist y Labrado
+   Refero design reference: Linear-style controls, segmented
+   pill navigation tabs, high-contrast inputs, clean tactile buttons.
+   ═══════════════════════════════════════════════════════════════ */
+
+.as-root {
+  --as-bg:            #f8fafc;
+  --as-surface:       #ffffff;
+  --as-border:        #e2e8f0;
+  --as-border-strong: #cbd5e1;
+  --as-text:          #0f172a;
+  --as-text-muted:    #64748b;
+  --as-text-subtle:   #94a3b8;
+  --as-accent:        #155dfc;
+  --as-accent-tint:   rgba(21, 93, 252, 0.08);
+  --as-accent-hover:  rgba(21, 93, 252, 0.90);
+  --as-shadow-card:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  --as-shadow-hover:
+    0 2px 4px rgba(15, 23, 42, 0.05),
+    0 8px 24px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  --as-radius-card:   14px;
+  --as-radius-pill:   999px;
+  --as-radius-btn:    9px;
+  --touch-target:     44px;
+
+  /* Motion */
+  --as-ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --as-ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+  --as-dur-fast:      150ms;
+  --as-dur-default:   250ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   1. FILTROS SUPERIORES — Cuadrícula armónica & Focus Ring
+   ══════════════════════════════════════════════════════════════ */
+.as-filters-panel {
+  background: var(--as-surface);
+  border: 1px solid var(--as-border);
+  border-radius: var(--as-radius-card);
+  box-shadow: var(--as-shadow-card);
+  padding: 1.25rem 1.5rem;
+  transition: box-shadow var(--as-dur-default) var(--as-ease-out);
+}
+
+.as-filters-panel:hover {
+  box-shadow: var(--as-shadow-hover);
+}
+
+.as-filters-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+@media (min-width: 640px) {
+  .as-filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .as-filters-grid {
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+  }
+}
+
+.as-filters-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Inputs & Labels */
+.as-field-label {
+  display: grid;
+  gap: 6px;
+}
+
+.as-label-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--as-text-muted);
+}
+
+.as-input {
+  width: 100%;
+  height: var(--touch-target);
+  padding: 0 0.875rem;
+  border: 1px solid var(--as-border) !important;
+  border-radius: var(--as-radius-btn) !important;
+  font-size: 0.875rem;
+  color: var(--as-text);
+  background: var(--as-bg) !important;
+  box-sizing: border-box;
+  margin-top: 0 !important;
+  min-height: var(--touch-target) !important;
+  outline: none;
+  transition:
+    border-color var(--as-dur-fast) var(--as-ease-out),
+    background var(--as-dur-fast) var(--as-ease-out),
+    box-shadow var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-input::placeholder {
+  color: var(--as-text-subtle);
+}
+
+.as-input:hover {
+  border-color: var(--as-border-strong) !important;
+  background: #ffffff !important;
+}
+
+.as-input:focus {
+  border-color: var(--as-accent) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.15) !important;
+}
+
+/* CustomSelect override especificidad */
+.as-filters-grid .as-field-label button {
+  background: var(--as-bg) !important;
+  border: 1px solid var(--as-border) !important;
+  border-radius: var(--as-radius-btn) !important;
+  margin-top: 0 !important;
+  height: var(--touch-target) !important;
+  min-height: var(--touch-target) !important;
+  transition:
+    border-color var(--as-dur-fast) var(--as-ease-out),
+    background var(--as-dur-fast) var(--as-ease-out),
+    box-shadow var(--as-dur-fast) var(--as-ease-out) !important;
+}
+
+.as-filters-grid .as-field-label button:hover {
+  background: #ffffff !important;
+  border-color: var(--as-border-strong) !important;
+}
+
+.as-filters-grid .as-field-label button:focus {
+  background: #ffffff !important;
+  border-color: var(--as-accent) !important;
+  box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.15) !important;
+}
+
+/* Botones de acción del filtro */
+.as-btn-filter-clear,
+.as-btn-filter-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--touch-target);
+  padding: 0 16px;
+  border-radius: var(--as-radius-btn);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--as-dur-fast) var(--as-ease-out),
+    border-color var(--as-dur-fast) var(--as-ease-out),
+    color var(--as-dur-fast) var(--as-ease-out),
+    transform var(--as-dur-fast) var(--as-ease-out),
+    box-shadow var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-btn-filter-clear:active,
+.as-btn-filter-search:active {
+  transform: scale(0.97);
+}
+
+.as-btn-filter-clear {
+  background: #ffffff;
+  border: 1px solid var(--as-border);
+  color: var(--as-text-muted);
+}
+
+.as-btn-filter-clear:hover {
+  background: #f1f5f9;
+  border-color: var(--as-border-strong);
+  color: var(--as-text);
+}
+
+.as-btn-filter-search {
+  background: var(--as-accent);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(21, 93, 252, 0.15);
+}
+
+.as-btn-filter-search:hover {
+  background: var(--as-accent-hover);
+  box-shadow: 0 6px 16px rgba(21, 93, 252, 0.25);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. FILTRO POR TIPO — Barra Segmentada Tipo Píldora (Linear Tabs)
+   ══════════════════════════════════════════════════════════════ */
+.as-type-panel {
+  background: var(--as-surface);
+  border: 1px solid var(--as-border);
+  border-radius: var(--as-radius-card);
+  box-shadow: var(--as-shadow-card);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.as-type-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--as-text-muted);
+}
+
+.as-filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #f1f4f8;
+  border-radius: var(--as-radius-pill);
+  padding: 3px;
+  border: 1px solid var(--as-border);
+}
+
+.as-filter-tab {
+  height: 36px;
+  padding-inline: 0.875rem;
+  border-radius: var(--as-radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--as-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    background  var(--as-dur-fast) var(--as-ease-out),
+    color       var(--as-dur-fast) var(--as-ease-out),
+    box-shadow  var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-filter-tab:hover:not(.as-filter-tab--active) {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--as-text);
+}
+
+.as-filter-tab--active {
+  background: var(--as-surface);
+  color: var(--as-accent);
+  font-weight: 600;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.10),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+}
+
+.as-tab-badge {
+  background: #cbd5e1;
+  color: #475569;
+  border-radius: var(--as-radius-pill);
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  transition: background var(--as-dur-fast) var(--as-ease-out), color var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-filter-tab--active .as-tab-badge {
+  background: var(--as-accent);
+  color: #ffffff;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. TARJETA DE INSPECCIÓN — Monospace, Badges Pastel & Botones 44px
+   ══════════════════════════════════════════════════════════════ */
+.as-inspection-card {
+  background: var(--as-surface);
+  border: 1px solid var(--as-border);
+  border-radius: var(--as-radius-card);
+  box-shadow: var(--as-shadow-card);
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+  transition: box-shadow var(--as-dur-default) var(--as-ease-out);
+}
+
+.as-inspection-card:hover {
+  box-shadow: var(--as-shadow-hover);
+}
+
+@media (min-width: 768px) {
+  .as-inspection-card {
+    grid-template-columns: 1.6fr 1fr 1fr auto;
+  }
+}
+
+/* ID & Hashes monoespaciados */
+.as-mono {
+  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace !important;
+  font-size: 0.78rem !important;
+  letter-spacing: -0.01em !important;
+  color: var(--as-text-muted) !important;
+}
+
+.as-id-title {
+  font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace !important;
+  font-weight: 600;
+  color: var(--as-text);
+  font-size: 0.8125rem;
+}
+
+/* Badges pastel semitransparentes */
+.as-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: var(--as-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid currentColor;
+}
+
+.as-badge--borrador {
+  background: rgba(217, 119, 6, 0.08) !important;
+  color: #b45309 !important;
+  border-color: rgba(217, 119, 6, 0.18) !important;
+}
+
+.as-badge--pendiente {
+  background: rgba(234, 179, 8, 0.08) !important;
+  color: #a16207 !important;
+  border-color: rgba(234, 179, 8, 0.18) !important;
+}
+
+.as-badge--progreso {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(37, 99, 235, 0.18) !important;
+}
+
+.as-badge--cerrada {
+  background: rgba(22, 101, 52, 0.08) !important;
+  color: #15803d !important;
+  border-color: rgba(22, 101, 52, 0.18) !important;
+}
+
+.as-badge--sin-cierre {
+  background: rgba(100, 116, 139, 0.08) !important;
+  color: #475569 !important;
+  border-color: rgba(100, 116, 139, 0.18) !important;
+}
+
+.as-badge--aprobado {
+  background: rgba(22, 101, 52, 0.08) !important;
+  color: #15803d !important;
+  border-color: rgba(22, 101, 52, 0.18) !important;
+}
+
+.as-badge--rechazado {
+  background: rgba(185, 28, 28, 0.08) !important;
+  color: #b91c1c !important;
+  border-color: rgba(185, 28, 28, 0.18) !important;
+}
+
+/* Alineación horizontal y botón de 44px */
+.as-inspection-card-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .as-inspection-card-actions {
+    width: auto;
+    justify-self: end;
+  }
+}
+
+.as-btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--touch-target); /* Estricto 44px */
+  padding: 0 16px;
+  border-radius: var(--as-radius-btn);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  flex: 1;
+  transition:
+    background var(--as-dur-fast) var(--as-ease-out),
+    transform var(--as-dur-fast) var(--as-ease-out),
+    box-shadow var(--as-dur-fast) var(--as-ease-out);
+}
+
+@media (min-width: 480px) {
+  .as-btn-action {
+    flex: initial;
+  }
+}
+
+.as-btn-action:active {
+  transform: scale(0.97);
+}
+
+.as-btn-action--dark {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.as-btn-action--dark:hover {
+  background: #1e293b;
+}
+
+.as-btn-action--primary {
+  background: var(--as-accent);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(21, 93, 252, 0.18);
+}
+
+.as-btn-action--primary:hover {
+  background: var(--as-accent-hover);
+  box-shadow: 0 6px 16px rgba(21, 93, 252, 0.28);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. CONTROL DE PAGINACIÓN — Barra Premium
+   ══════════════════════════════════════════════════════════════ */
+.as-pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--as-surface);
+  border: 1px solid var(--as-border);
+  border-radius: var(--as-radius-card);
+  box-shadow: var(--as-shadow-card);
+  margin-top: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.as-pagination-info {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--as-text-muted);
+}
+
+.as-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.as-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--as-radius-btn);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid var(--as-border);
+  color: var(--as-text-muted);
+  transition:
+    background var(--as-dur-fast) var(--as-ease-out),
+    border-color var(--as-dur-fast) var(--as-ease-out),
+    color var(--as-dur-fast) var(--as-ease-out);
+}
+
+.as-pagination-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: var(--as-border-strong);
+  color: var(--as-text);
+}
+
+.as-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  /* Buttons: Limpiar/Buscar side by side */
+  .as-filters-actions {
+    display: flex !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .as-filters-actions .as-btn-filter-clear,
+  .as-filters-actions .as-btn-filter-search {
+    flex: 1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Carousel: Horizontal scroll for vehicle types */
+  .as-filter-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 4px 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important; /* Firefox */
+  }
+  
+  .as-filter-tabs::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+  }
+
+  .as-filter-tab {
+    flex-shrink: 0 !important;
+  }
+
+  /* Form Labels */
+  .as-field-label {
+    gap: 0 !important;
+  }
+
+  .as-label-text {
+    color: #64748b !important;
+    margin-bottom: 6px !important;
+    display: block !important;
+  }
+
+  /* Centered Elastic layout for main panels */
+  .as-filters-panel,
+  .as-type-panel {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 16px auto !important;
+    position: relative !important;
+    left: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .as-input,
+  .as-filters-grid .as-field-label button {
+    box-sizing: border-box !important;
+  }
+
+  /* Reset layout wrapper horizontal padding for perfect centering */
+  .content,
+  .as-root {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+

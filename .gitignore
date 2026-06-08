@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 .env.*
+!.env.example
 *.tsbuildinfo
 
 # Editor directories and files
@@ -32,3 +33,6 @@ android/local.properties
 android/keystore/
 android/**/*.jks
 android/**/*.keystore
+
+# Agents directory (local skill assets)
+.agents/

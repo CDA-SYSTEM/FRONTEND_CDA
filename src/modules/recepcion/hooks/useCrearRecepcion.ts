@@ -12,7 +12,7 @@ import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 
 export type PasoWizard = 'cliente' | 'vehiculo' | 'detalle' | 'condiciones' | 'confirmacion'
 
-export type RolAsignacion = 'INSPECTOR' | 'OPERARIO'
+export type RolAsignacion = 'inspector' | 'operario'
 
 export type EstadoEnvio = 'idle' | 'enviando' | 'exito' | 'error'
 
@@ -28,7 +28,7 @@ export function useCrearRecepcion() {
 
   const [cliente, setCliente] = useState<ClienteConVehiculos | null>(null)
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
-  const [vehiculo, setVehiculo] = useState<{ id: number | string; placa: string } | null>(null)
+  const [vehiculo, setVehiculo] = useState<Vehiculo | null>(null)
   const [cargandoVehiculos, setCargandoVehiculos] = useState(false)
 
   const [mileage, setMileage] = useState('')
@@ -40,7 +40,7 @@ export function useCrearRecepcion() {
   const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null)
   const [confirmacionAcuerdo, setConfirmacionAcuerdo] = useState(false)
 
-  const [rolAsignado, setRolAsignado] = useState<RolAsignacion>('OPERARIO')
+  const rolAsignado: RolAsignacion = 'operario'
   const [usuarioAsignadoId, setUsuarioAsignadoId] = useState('')
   const [usuariosAsignables, setUsuariosAsignables] = useState<Usuario[]>([])
   const [cargandoUsuariosAsignables, setCargandoUsuariosAsignables] = useState(false)
@@ -91,7 +91,6 @@ export function useCrearRecepcion() {
 
   useEffect(() => {
     let mounted = true
-    // Cargar personal ligado a la cuenta (GET /auth/users/operarios|inspectors)
     if (paso !== 'detalle') {
       return
     }
@@ -104,22 +103,13 @@ export function useCrearRecepcion() {
       setErrorUsuariosAsignables(null)
 
       try {
-        const personal = await usuarioService.obtenerPersonalAsignable(
-          rolAsignado,
-          user?.role,
-        )
+        const personal = await usuarioService.obtenerPersonalAsignable('operario', user?.role)
         if (!mounted) return
 
         if (personal.length === 0) {
           setUsuariosAsignables([])
           setUsuarioAsignadoId('')
-          setErrorUsuariosAsignables(
-            user?.role === 'OPERARIO' || user?.role === 'INSPECTOR'
-              ? 'Su rol solo permite asignarse a sí mismo. Si necesita elegir otro personal, use una cuenta Admin o Manager.'
-              : rolAsignado === 'OPERARIO'
-                ? 'No hay personal operario registrado. Regístrelo en Gestión de usuarios.'
-                : 'No hay personal inspector registrado. Regístrelo en Gestión de usuarios.',
-          )
+          setErrorUsuariosAsignables('No hay personal operario registrado. Regístrelo en Gestión de usuarios.')
           return
         }
 
@@ -144,7 +134,7 @@ export function useCrearRecepcion() {
       mounted = false
       loadingRef.current = false
     }
-  }, [rolAsignado, paso, user?.role])
+  }, [paso, user?.role])
 
   const seleccionarCliente = useCallback(async (c: ClienteConVehiculos) => {
     setCliente(c)
@@ -162,8 +152,55 @@ export function useCrearRecepcion() {
     }
   }, [])
 
-  const seleccionarVehiculo = useCallback((v: { id: number | string; placa: string }) => {
+  const recargarVehiculos = useCallback(async (placa?: string) => {
+    if (!cliente) return
+    setCargandoVehiculos(true)
+    try {
+      const v = await ordenServicioService.obtenerVehiculosCliente(cliente.id, placa)
+      setVehiculos(v as Vehiculo[])
+    } catch {
+      setVehiculos([])
+    } finally {
+      setCargandoVehiculos(false)
+    }
+  }, [cliente])
+
+  const seleccionarVehiculo = useCallback((v: Vehiculo) => {
     setVehiculo(v)
+
+    // Configurar ejes y llantas según tipo de vehículo (moto, etc.)
+    const isMotorcycle = v.tipoVehiculo ? (
+      typeof v.tipoVehiculo === 'object'
+        ? (v.tipoVehiculo.nombre || v.tipoVehiculo.name || '').toLowerCase().includes('moto')
+        : String(v.tipoVehiculo).toLowerCase().includes('moto')
+    ) : false
+
+    if (isMotorcycle) {
+      setTintedWindows('NO_APLICA')
+      setArmoredVehicle('NO_APLICA')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRASERO' },
+      ])
+      setTires([
+        { position: 'FRONT', code: '', tire_pressure: 0 },
+        { position: 'REAR', code: '', tire_pressure: 0 },
+      ])
+    } else {
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRASERO' },
+      ])
+      setTires([
+        { position: 'FRONT_LEFT', code: '', tire_pressure: 0 },
+        { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
+        { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
+        { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
+      ])
+    }
+
     setPaso('detalle')
   }, [])
 
@@ -175,28 +212,6 @@ export function useCrearRecepcion() {
     setPaso('condiciones')
   }, [])
 
-  const volver = useCallback(() => {
-    if (paso === 'vehiculo') {
-      setCliente(null)
-      setVehiculos([])
-      setVehiculo(null)
-      setPaso('cliente')
-    } else if (paso === 'detalle') {
-      if (vehiculo) {
-        setVehiculo(null)
-        setPaso('vehiculo')
-      } else {
-        setCliente(null)
-        setVehiculos([])
-        setPaso('cliente')
-      }
-    } else if (paso === 'condiciones') {
-      setPaso('detalle')
-    } else if (paso === 'confirmacion') {
-      reset()
-    }
-  }, [paso, vehiculo])
-
   const enviar = useCallback(async () => {
     if (!cliente || !user) return
     if (!vehiculo) {
@@ -206,6 +221,17 @@ export function useCrearRecepcion() {
     }
     if (!usuarioAsignadoId) {
       setErrorEnvio('Seleccione el personal operario que atenderá la recepción.')
+      setEstadoEnvio('error')
+      return
+    }
+    if (!confirmacionAcuerdo) {
+      setErrorEnvio('Debe aceptar los términos y condiciones antes de finalizar.')
+      setEstadoEnvio('error')
+      return
+    }
+    const presionesIncompletas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
+    if (presionesIncompletas) {
+      setErrorEnvio('Registre la presión PSI de todas las llantas antes de finalizar.')
       setEstadoEnvio('error')
       return
     }
@@ -233,10 +259,10 @@ export function useCrearRecepcion() {
           ? tires.map((t) => ({
               position: t.position,
               code: t.code || 'PENDIENTE',
-              tire_pressure: t.tire_pressure || 32.5,
+              tire_pressure: Number(t.tire_pressure) || 0,
             }))
-          : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 32.5 }],
-        checklist: { is_clean: false },
+          : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 0 }],
+        checklist: { is_clean: confirmacionAcuerdo },
       }
 
       const response = await ordenServicioService.crearOrdenServicio(dto, {
@@ -281,6 +307,28 @@ export function useCrearRecepcion() {
     if (tiposCliente.length > 0) setCustomerType(String(tiposCliente[0].id))
   }, [tiposRevision, tiposCliente])
 
+  const volver = useCallback(() => {
+    if (paso === 'vehiculo') {
+      setCliente(null)
+      setVehiculos([])
+      setVehiculo(null)
+      setPaso('cliente')
+    } else if (paso === 'detalle') {
+      if (vehiculo) {
+        setVehiculo(null)
+        setPaso('vehiculo')
+      } else {
+        setCliente(null)
+        setVehiculos([])
+        setPaso('cliente')
+      }
+    } else if (paso === 'condiciones') {
+      setPaso('detalle')
+    } else if (paso === 'confirmacion') {
+      reset()
+    }
+  }, [paso, vehiculo, reset])
+
   return {
     paso,
     cargandoCatalogos,
@@ -299,7 +347,6 @@ export function useCrearRecepcion() {
     signatureBlob,
     confirmacionAcuerdo,
     rolAsignado,
-    setRolAsignado,
     usuarioAsignadoId,
     setUsuarioAsignadoId,
     usuariosAsignables,
@@ -327,6 +374,7 @@ export function useCrearRecepcion() {
     setTires,
     seleccionarCliente,
     seleccionarVehiculo,
+    recargarVehiculos,
     irADetalleSinVehiculo,
     irACondiciones,
     enviar,

@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/api/apiClient'
-import { extractApiData } from '@/core/api/extractApiData'
+import { extractApiData, extractApiArray } from '@/core/api/extractApiData'
 import type { AuthUser, LoginFormData } from '@/modules/auth/domain/auth.types'
 
 interface LoginResponse {
@@ -9,6 +9,52 @@ interface LoginResponse {
 }
 
 type JwtPayload = Record<string, unknown>
+
+function unwrapMaybeNestedRecord(value: unknown, depth = 0): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || depth > 5) return null
+
+  const record = value as Record<string, unknown>
+  if (
+    'accessToken' in record ||
+    'access_token' in record ||
+    'refreshToken' in record ||
+    'refresh_token' in record ||
+    'token' in record ||
+    'jwt' in record
+  ) {
+    return record
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const nested = unwrapMaybeNestedRecord(nestedValue, depth + 1)
+    if (nested) return nested
+  }
+
+  return record
+}
+
+function readStringFromCandidates(
+  value: unknown,
+  candidates: string[],
+  depth = 0,
+): string | null {
+  if (!value || typeof value !== 'object' || depth > 4) return null
+
+  const record = value as Record<string, unknown>
+  for (const candidate of candidates) {
+    const candidateValue = record[candidate]
+    if (typeof candidateValue === 'string' && candidateValue.trim()) {
+      return candidateValue
+    }
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    const found = readStringFromCandidates(nestedValue, candidates, depth + 1)
+    if (found) return found
+  }
+
+  return null
+}
 
 function safeJsonBase64Decode(str: string): JwtPayload | null {
   try {
@@ -44,7 +90,7 @@ function extractUserFromToken(token: string | null): AuthUser | null {
   return {
     id: id != null ? String(id) : name,
     name,
-    role: resolvedRole.toUpperCase() as AuthUser['role'],
+    role: resolvedRole.toLowerCase() as AuthUser['role'],
   }
 }
 
@@ -58,7 +104,7 @@ function mapMeToAuthUser(raw: Record<string, unknown>): AuthUser {
   return {
     id: String(raw['id']),
     name,
-    role: String(raw['role']).toUpperCase() as AuthUser['role'],
+    role: String(raw['role']).toLowerCase() as AuthUser['role'],
   }
 }
 
@@ -66,21 +112,22 @@ function unwrapTokens(body: Record<string, unknown>): {
   accessToken: string | null
   refreshToken: string | null
 } {
-  const inner =
-    body['data'] && typeof body['data'] === 'object'
-      ? (body['data'] as Record<string, unknown>)
-      : body
+  const inner = unwrapMaybeNestedRecord(body['data']) ?? body
 
   return {
     accessToken:
-      (inner['accessToken'] as string) ||
-      (inner['access_token'] as string) ||
-      (inner['token'] as string) ||
-      null,
+      readStringFromCandidates(inner, [
+        'accessToken',
+        'access_token',
+        'token',
+        'jwt',
+      ]) ?? null,
     refreshToken:
-      (inner['refreshToken'] as string) ||
-      (inner['refresh_token'] as string) ||
-      null,
+      readStringFromCandidates(inner, [
+        'refreshToken',
+        'refresh_token',
+        'refresh',
+      ]) ?? null,
   }
 }
 
@@ -99,6 +146,16 @@ export const authService = {
       const body = response.data as Record<string, unknown>
       const { accessToken, refreshToken } = unwrapTokens(body)
 
+      if (!accessToken) {
+        const keys = Object.keys(body).join(', ')
+        const dataKeys = body['data'] && typeof body['data'] === 'object'
+          ? Object.keys(body['data'] as object).join(', ')
+          : 'N/A'
+        throw new Error(
+          `El servidor respondió pero sin token. Campos raíz: [${keys}]. Campos en data: [${dataKeys}]`
+        )
+      }
+
       let user: AuthUser | null = null
       if (accessToken) {
         user = await this.getMe(accessToken)
@@ -109,7 +166,13 @@ export const authService = {
 
       return { token: accessToken, refreshToken, user }
     } catch (error: unknown) {
-      const e = error as { response?: { status?: number }; message?: string }
+      const e = error as { response?: { status?: number; data?: unknown }; message?: string; code?: string }
+      if (!e.response) {
+        // Error de red — no se pudo conectar al servidor
+        throw new Error(
+          `No se pudo conectar al servidor. Verifique su conexión a internet. (${e.message ?? e.code ?? 'Network Error'})`
+        )
+      }
       if (e.response?.status === 401 || e.response?.status === 400) {
         throw new Error(
           'Credenciales inválidas. Verifique su email y contraseña.',
@@ -122,6 +185,7 @@ export const authService = {
         e.message || 'Error al iniciar sesión. Por favor, intente de nuevo.',
       )
     }
+
   },
 
   /**
@@ -180,4 +244,84 @@ export const authService = {
       return false
     }
   },
+
+  /**
+   * PATCH /auth/change-password
+   */
+  async cambiarPassword(oldPassword: string, newPassword: string): Promise<void> {
+    await apiClient.patch('/auth/change-password', {
+      oldPassword,
+      newPassword,
+    })
+  },
+
+  /**
+   * GET /auth/roles
+   */
+  async obtenerRoles(): Promise<{ code: string; name: string }[]> {
+    const response = await apiClient.get('/auth/roles')
+    const raw = extractApiArray(response.data)
+    return raw.map((r) => {
+      const obj = r as Record<string, unknown>
+      const codeStr = String(obj.code ?? obj.id ?? '')
+      return {
+        code: codeStr,
+        name: codeStr.toUpperCase(),
+      }
+    })
+  },
+
+  /**
+   * POST /auth/oauth/google — respuesta: { data: { accessToken, refreshToken } }
+   * Envia el id_token de Google y devuelve la sesión de usuario.
+   */
+  async loginWithGoogle(idToken: string): Promise<LoginResponse> {
+    try {
+      const response = await apiClient.post('/auth/oauth/google', {
+        id_token: idToken,
+      })
+
+      const body = response.data as Record<string, unknown>
+      const { accessToken, refreshToken } = unwrapTokens(body)
+
+      if (!accessToken) {
+        const keys = Object.keys(body).join(', ')
+        const dataKeys = body['data'] && typeof body['data'] === 'object'
+          ? Object.keys(body['data'] as object).join(', ')
+          : 'N/A'
+        throw new Error(
+          `El servidor respondió pero sin token. Campos raíz: [${keys}]. Campos en data: [${dataKeys}]`
+        )
+      }
+
+      let user: AuthUser | null = null
+      if (accessToken) {
+        user = await this.getMe(accessToken)
+      }
+      if (!user && accessToken) {
+        user = extractUserFromToken(accessToken)
+      }
+
+      return { token: accessToken, refreshToken, user }
+    } catch (error: unknown) {
+      const e = error as { response?: { status?: number; data?: unknown }; message?: string; code?: string }
+      if (!e.response) {
+        throw new Error(
+          `No se pudo conectar al servidor. Verifique su conexión a internet. (${e.message ?? e.code ?? 'Network Error'})`
+        )
+      }
+      if (e.response?.status === 401 || e.response?.status === 400) {
+        throw new Error(
+          'Autenticación con Google fallida o token rechazado.',
+        )
+      }
+      if (e.response?.status === 500) {
+        throw new Error('Error del servidor al autenticar con Google.')
+      }
+      throw new Error(
+        e.message || 'Error al iniciar sesión con Google.',
+      )
+    }
+  },
 }
+

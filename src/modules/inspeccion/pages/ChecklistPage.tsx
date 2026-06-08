@@ -5,6 +5,7 @@ import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capa
 import {
   AlertCircle,
   AlertTriangle,
+  Bike,
   Camera as CameraIcon,
   Car,
   CheckCircle,
@@ -21,17 +22,14 @@ import {
   Settings,
   Shield,
   Trash2,
+  Truck,
   Upload,
   X,
-  XCircle,
   Zap,
 } from 'lucide-react'
 import { useChecklist } from '@/modules/inspeccion/hooks/useChecklist'
-import {
-  RESPONSE_OPTIONS_NTC5375,
-  type ResponseOption,
-  type TemplateSection,
-} from '@/modules/inspeccion/domain/checklist.types'
+import { type TemplateSection, type VehicleType } from '@/modules/inspeccion/domain/checklist.types'
+import { CustomSelect } from '@/shared/components/CustomSelect'
 
 /* ═══════════════════════════════════════════════
    Helpers
@@ -49,7 +47,7 @@ function vehicleTypeLabel(type: string | null): string {
 /**
  * HU-016: Mapea el título/código de sección a un ícono contextual.
  * Detecta secciones de sistema exterior (carrocería, puertas, vidrios, espejos, chasis)
- * y otros sistemas comunes de inspección vehicular.
+    const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
  */
 function sectionIcon(title: string) {
   const t = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -66,6 +64,57 @@ function sectionIcon(title: string) {
   if (t.includes('visibilidad') || t.includes('retrovisor'))
     return <Eye size={16} />
   return <ClipboardList size={16} />
+}
+
+function getFriendlySectionTitle(code: string, title: string): string {
+  const normalizedCode = (code || '').trim()
+  if (normalizedCode.startsWith('10.')) {
+    return `${normalizedCode} ADAPTACIONES DE LOS VEHICULOS UTILIZADOS PARA IMPARTIR LA ENSEÑANZA AUTOMOVILISTICA`
+  }
+  return title
+}
+
+function agruparSeccionesPlantilla(sections: TemplateSection[]): TemplateSection[] {
+  const result: TemplateSection[] = []
+  let seccion10: TemplateSection | null = null
+
+  for (const sec of sections) {
+    const code = (sec.code || '').trim()
+    const title = (sec.title || '').toUpperCase()
+    const isAnexoA =
+      code.startsWith('10.') ||
+      code === '10' ||
+      code.startsWith('ANEXO A') ||
+      title.includes('ADAPTACIONES DE LOS VEHICULOS')
+
+    if (isAnexoA) {
+      if (!seccion10) {
+        seccion10 = {
+          code: '10',
+          title: 'ADAPTACIONES DE LOS VEHICULOS UTILIZADOS PARA IMPARTIR LA ENSEÑANZA AUTOMOVILISTICA En los vehiculos autorizados para impartir la enseñanza automovilistica se debe verificar:',
+          order: sec.order || 10,
+          subsections: []
+        }
+        result.push(seccion10)
+      }
+      
+      for (const sub of sec.subsections) {
+        const subTitle = sub.title || sec.title || ''
+        seccion10.subsections.push({
+          ...sub,
+          title: subTitle
+        })
+      }
+    } else {
+      result.push(sec)
+    }
+  }
+
+  if (seccion10) {
+    seccion10.subsections.sort((a, b) => (a.order || 0) - (b.order || 0))
+  }
+
+  return result
 }
 
 /* ═══════════════════════════════════════════════
@@ -151,8 +200,14 @@ async function obtenerCamaraWebPreferida(): Promise<MediaStream> {
 }
 
 export function ChecklistPage() {
-  const { inspectionId } = useParams<{ inspectionId: string }>()
+  const { inspectionId, vehicleType: vehicleTypeParam } = useParams<{ inspectionId: string; vehicleType?: string }>()
   const navigate = useNavigate()
+  const vehicleTypeFromUrl: VehicleType | null = useMemo(() => {
+    if (!vehicleTypeParam) return null
+    const upper = vehicleTypeParam.toUpperCase()
+    if (upper === 'MOTO' || upper === 'LIVIANO' || upper === 'PESADO') return upper as VehicleType
+    return null
+  }, [vehicleTypeParam])
   const {
     estado,
     template,
@@ -163,43 +218,33 @@ export function ChecklistPage() {
     setObservaciones,
     errorMensaje,
     setErrorMensaje,
-    progreso,
-    responderItem,
     agregarObservacion,
     agregarFoto,
     eliminarFoto,
     obtenerFotosPorItem,
-    itemsSinResponder,
+    responderItem,
     guardar,
     cerrar,
-  } = useChecklist(inspectionId || '')
+    inspectorId,
+    setInspectorId,
+    inspectores,
+    limpiarBorradorLocal,
+  } = useChecklist(inspectionId || '', vehicleTypeFromUrl)
 
+  const optionsInspectores = useMemo(() => {
+    return inspectores.map((ins) => ({
+      value: ins.id,
+      label: ins.name || [ins.firstName, ins.lastName].filter(Boolean).join(' ') || ins.email || '',
+    }))
+  }, [inspectores])
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
   const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
   const [guardando, setGuardando] = useState(false)
 
   /* HU-014: Opciones de respuesta dinámicas — del template o fallback NTC5375 */
-  const responseOptions: ResponseOption[] = useMemo(() => {
-    if (template?.response_options && template.response_options.length > 0) {
-      return template.response_options
-    }
-    return RESPONSE_OPTIONS_NTC5375
-  }, [template])
+  
 
-  const getRespuestaKey = useCallback((section: string, subsection: string, item: string) => {
-    return `${section}:${subsection}:${item}`
-  }, [])
-
-  const getRespondidosPorSeccion = useCallback((section: TemplateSection) => {
-    let count = 0
-    for (const sub of section.subsections) {
-      for (const item of sub.items) {
-        const key = getRespuestaKey(section.code || '', sub.code || '', item.code)
-        if (responses.has(key)) count++
-      }
-    }
-    return count
-  }, [getRespuestaKey, responses])
+  
 
   const toggleSeccion = useCallback((idx: number) => {
     setSeccionesAbiertas((prev) => {
@@ -218,9 +263,8 @@ export function ChecklistPage() {
   }
 
   const handleCerrar = async (resultado: 'APROBADO' | 'RECHAZADO') => {
-    /* HU-014: No se puede enviar si hay ítems obligatorios sin respuesta */
-    if (itemsSinResponder > 0) {
-      setErrorMensaje(`No se puede cerrar: faltan ${itemsSinResponder} ítems obligatorios sin respuesta.`)
+    if (!inspectorId) {
+      setErrorMensaje('Debe seleccionar un inspector asignado antes de cerrar la inspección.')
       return
     }
     setCerrando(resultado)
@@ -306,7 +350,7 @@ export function ChecklistPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: 900, margin: '0 auto' }}>
 
       {/* ═══════ Cabecera ═══════ */}
-      <div className="panel" style={{ borderTop: '4px solid #155DFC' }}>
+      <div className="panel" style={{ borderTop: '4px solid #155DFC', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <div style={{
             width: 48, height: 48, borderRadius: '50%',
@@ -322,8 +366,8 @@ export function ChecklistPage() {
             </h1>
             <p style={{ margin: '2px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
               {vehicleType === 'MOTO'
-                ? 'Lista de chequeo NTC 5375:2012 — Numeral 8 (Motocicletas)'
-                : 'Lista de chequeo NTC 5375:2012 — Numerales 6 y 7'}
+                ? 'Inspección Técnica NTC 5375:2012 — Numeral 8 (Motocicletas)'
+                : 'Inspección Técnica NTC 5375:2012 — Numerales 6 y 7'}
             </p>
           </div>
         </div>
@@ -337,13 +381,13 @@ export function ChecklistPage() {
             color: vehicleType === 'MOTO' ? '#92400e' : vehicleType === 'PESADO' ? '#991b1b' : '#1e40af',
             fontSize: '0.82rem', fontWeight: 600,
           }}>
-            {vehicleType === 'MOTO' ? '🏍️' : vehicleType === 'PESADO' ? '🚛' : '🚗'}
+            {vehicleType === 'MOTO' ? <Bike size={14} /> : vehicleType === 'PESADO' ? <Truck size={14} /> : <Car size={14} />}
             Tipo: {vehicleTypeLabel(vehicleType)}
           </div>
         )}
 
-        {/* Placa + Fecha */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* Placa + Inspector + Fecha */}
+        <div className="checklist-header-grid has-inspector">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
               Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>
@@ -357,6 +401,20 @@ export function ChecklistPage() {
                 border: '1px solid #e2e8f0', background: '#f8fafc',
                 fontSize: '0.95rem', fontWeight: 600, color: '#1e293b',
                 textTransform: 'uppercase', boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
+              Inspector Asignado <span style={{ color: '#dc2626' }}>*</span>
+            </label>
+            <CustomSelect
+              options={optionsInspectores}
+              value={inspectorId}
+              onChange={setInspectorId}
+              placeholder="Seleccione inspector..."
+              style={{
+                marginTop: 0,
               }}
             />
           </div>
@@ -378,28 +436,7 @@ export function ChecklistPage() {
         </div>
       </div>
 
-      {/* ═══════ Barra de progreso global ═══════ */}
-      <div className="panel" style={{ padding: '12px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: '0.85rem', color: '#475569', fontWeight: 500 }}>
-            Progreso: {progreso.respondidos} de {progreso.total} ítems
-          </span>
-          <span style={{ fontSize: '0.85rem', color: itemsSinResponder > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
-            {itemsSinResponder > 0 ? `${itemsSinResponder} pendientes` : '✓ Completo'}
-          </span>
-        </div>
-        <div style={{ width: '100%', height: 8, background: '#e5e7eb', borderRadius: 999, overflow: 'hidden' }}>
-          <div style={{
-            width: progreso.total > 0 ? `${(progreso.respondidos / progreso.total) * 100}%` : '0%',
-            height: '100%',
-            background: progreso.respondidos === progreso.total && progreso.total > 0
-              ? 'linear-gradient(90deg, #16a34a, #22c55e)'
-              : 'linear-gradient(90deg, #155DFC, #3b82f6)',
-            borderRadius: 999,
-            transition: 'width 0.3s ease',
-          }} />
-        </div>
-      </div>
+      {/* ═══════ Barra de progreso global — Oculta para Inspección por Excepción ═══════ */}
 
       {/* ═══════ Error ═══════ */}
       {errorMensaje && (
@@ -411,7 +448,7 @@ export function ChecklistPage() {
       )}
 
       {/* ═══════ Secciones Accordion ═══════ */}
-      {template && template.sections
+      {template && agruparSeccionesPlantilla(template.sections)
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((section, idx) => (
@@ -421,9 +458,7 @@ export function ChecklistPage() {
             index={idx}
             isOpen={seccionesAbiertas.has(idx)}
             onToggle={() => toggleSeccion(idx)}
-            initialRespondidos={getRespondidosPorSeccion(section)}
             respuestas={responses}
-            responseOptions={responseOptions}
             onResponder={responderItem}
             onObservar={agregarObservacion}
             onAgregarFoto={agregarFoto}
@@ -461,7 +496,7 @@ export function ChecklistPage() {
           padding: '16px 0', borderTop: '1px solid #e5e7eb',
         }}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { limpiarBorradorLocal(); navigate(-1) }}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px',
               background: '#fff', color: '#475569', border: '1px solid #e2e8f0',
@@ -502,21 +537,7 @@ export function ChecklistPage() {
             Guardar Inspección
           </button>
 
-          <button
-            onClick={() => handleCerrar('RECHAZADO')}
-            disabled={cerrando !== null || estado === 'enviando'}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px',
-              background: '#dc2626', color: '#fff', border: 'none',
-              borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem',
-              opacity: cerrando ? 0.7 : 1,
-            }}
-          >
-            {cerrando === 'RECHAZADO'
-              ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-              : <XCircle size={16} />}
-            Rechazar
-          </button>
+
         </div>
       )}
     </div>
@@ -532,9 +553,7 @@ function AccordionSection({
   index,
   isOpen,
   onToggle,
-  initialRespondidos,
   respuestas,
-  responseOptions,
   onResponder,
   onObservar,
   onAgregarFoto,
@@ -545,24 +564,22 @@ function AccordionSection({
   index: number
   isOpen: boolean
   onToggle: () => void
-  initialRespondidos: number
   respuestas: Map<string, { response?: string; observation?: string }>
-  responseOptions: ResponseOption[]
-  onResponder: (section: string, subsection: string, item: string, response: string) => void
+  onResponder: (section: string, subsection: string, item: string, response: string, isNew: boolean) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
   onAgregarFoto: (section: string, subsection: string, item: string, file: File) => Promise<void>
   onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
   obtenerFotos: (section: string, subsection: string, item: string) => { id: string; previewUrl: string }[]
 }) {
   const totalItems = section.subsections.reduce((s, ss) => s + ss.items.length, 0)
-  const [respondidos, setRespondidos] = useState(initialRespondidos)
-
-  const handleResponder = useCallback((sectionCode: string, subsectionCode: string, itemCode: string, response: string, isNewResponse: boolean) => {
-    onResponder(sectionCode, subsectionCode, itemCode, response)
-    if (isNewResponse) {
-      setRespondidos((prev) => Math.min(prev + 1, totalItems))
+  // Calcular los ítems respondidos a partir del mapa `respuestas` para mantener consistencia
+  const respondidos = section.subsections.reduce((count, ss) => {
+    for (const it of ss.items) {
+      const key = `${section.code || ''}:${ss.code || ''}:${it.code}`
+      if (respuestas.has(key)) count++
     }
-  }, [onResponder, totalItems])
+    return count
+  }, 0)
 
   const colors = ['#155DFC', '#7c3aed', '#0ea5e9', '#8b5cf6', '#06b6d4', '#6366f1', '#14b8a6', '#a855f7', '#0d9488']
   const accentColor = colors[index % colors.length]
@@ -590,7 +607,7 @@ function AccordionSection({
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, fontSize: '0.95rem', color: '#1e293b', textAlign: 'left' }}>
           <span style={{ color: colors[index % colors.length], flexShrink: 0 }}>{sectionIcon(section.title)}</span>
-          {section.title}
+          {getFriendlySectionTitle(section.code || '', section.title)}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
           <span style={{
@@ -625,16 +642,15 @@ function AccordionSection({
                   {sub.items
                     .slice()
                     .sort((a, b) => a.order - b.order)
-                    .map((item) => (
+                    .map((item, itemIdx) => (
                       <ItemRow
-                        key={item.code}
+                        key={`${section.code || ''}:${sub.code || ''}:${item.code}-${itemIdx}`}
                         item={item}
                         sectionCode={section.code || ''}
                         subsectionCode={sub.code || ''}
                         initialResponse={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.response ?? null}
                         initialObservation={respuestas.get(`${section.code || ''}:${sub.code || ''}:${item.code}`)?.observation ?? ''}
-                        responseOptions={responseOptions}
-                        onResponder={handleResponder}
+                        onResponder={onResponder}
                         onObservar={onObservar}
                         onAgregarFoto={onAgregarFoto}
                         onEliminarFoto={onEliminarFoto}
@@ -661,28 +677,26 @@ function ItemRow({
   item,
   sectionCode,
   subsectionCode,
-  responseOptions,
+  initialResponse,
+  initialObservation,
   onResponder,
   onObservar,
   onAgregarFoto,
   onEliminarFoto,
   obtenerFotos,
-  initialResponse,
-  initialObservation,
 }: {
   item: { code: string; description: string; defect_type: 'A' | 'B'; order: number }
   sectionCode: string
   subsectionCode: string
   initialResponse?: string | null
   initialObservation?: string
-  responseOptions: ResponseOption[]
   onResponder: (section: string, subsection: string, item: string, response: string, isNew: boolean) => void
   onObservar: (section: string, subsection: string, item: string, observation: string) => void
   onAgregarFoto: (section: string, subsection: string, item: string, file: File) => Promise<void>
   onEliminarFoto: (section: string, subsection: string, item: string, photoId: string) => void
   obtenerFotos: () => { id: string; previewUrl: string }[]
 }) {
-  const [selected, setSelected] = useState<string | null>(initialResponse ?? null)
+  // Ya no usamos selección interactiva; renderizamos sólo el `defect_type` del item
   const [observation, setObservation] = useState(initialObservation ?? '')
   const [showObservation, setShowObservation] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
@@ -693,6 +707,7 @@ function ItemRow({
   const videoRef = useRef<HTMLVideoElement>(null)
   const webStreamRef = useRef<MediaStream | null>(null)
   const fotos = obtenerFotos()
+  const selectedType = initialResponse === 'A' || initialResponse === 'B' ? initialResponse : null
 
   const procesarArchivoFoto = useCallback(async (file: File) => {
     if (!FORMATOS_PERMITIDOS.includes(file.type)) {
@@ -820,69 +835,75 @@ function ItemRow({
     }
   }, [procesarArchivoFoto])
 
-  const handleResponse = useCallback((value: string) => {
-    const isNew = selected === null
-    setSelected(value)
-    onResponder(sectionCode, subsectionCode, item.code, value, isNew)
-  }, [item.code, onResponder, sectionCode, selected, subsectionCode])
+  // Selección A/B visible desde la tarjeta del ítem
 
   const handleObservation = useCallback((value: string) => {
     setObservation(value)
     onObservar(sectionCode, subsectionCode, item.code, value)
   }, [item.code, onObservar, sectionCode, subsectionCode])
 
-  const selectedOption = responseOptions.find((op) => op.value === selected)
-  const isDefect = selected !== null && selected !== 'CUMPLE' && selected !== 'NO_APLICA'
+  // Mostrar sólo el defect_type que viene en la plantilla/backend
+  const displayType = item.defect_type
+  const isSelected = selectedType === displayType
+  const isDefect = displayType === 'B'
+  const defectTone = !isSelected
+    ? {
+        bg: '#f0fdf4',
+        border: '#bbf7d0',
+        chipBg: '#dcfce7',
+        chipColor: '#166534',
+        chipBorder: '#86efac',
+      }
+    : displayType === 'B'
+    ? {
+        bg: '#fff7ed',
+        border: '#fed7aa',
+        chipBg: '#fef3c7',
+        chipColor: '#92400e',
+        chipBorder: '#f59e0b',
+      }
+    : {
+        bg: '#fef2f2',
+        border: '#fecaca',
+        chipBg: '#fee2e2',
+        chipColor: '#991b1b',
+        chipBorder: '#fca5a5',
+      }
 
   return (
     <div style={{
       padding: '10px 14px', borderRadius: 8,
-      background: isDefect ? '#fef2f2' : selected ? '#f0fdf4' : '#fafafa',
+      background: defectTone.bg,
       border: '1px solid',
-      borderColor: selectedOption ? selectedOption.border : '#f1f5f9',
+      borderColor: defectTone.border,
       transition: 'all 0.15s ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <span style={{ fontSize: '0.88rem', color: '#374151', lineHeight: 1.4 }}>
           {item.description}
         </span>
-        <span
-          title={item.defect_type === 'A' ? 'Defecto tipo A (leve)' : 'Defecto tipo B (grave)'}
-          style={{
-            flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 22, height: 22, borderRadius: 4, fontSize: '0.72rem', fontWeight: 700,
-            background: item.defect_type === 'A' ? '#fef3c7' : '#fee2e2',
-            color: item.defect_type === 'A' ? '#92400e' : '#991b1b',
-            border: `1px solid ${item.defect_type === 'A' ? '#fde68a' : '#fecaca'}`,
-          }}
-        >
-          {item.defect_type}
-        </span>
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        {responseOptions.map((op) => {
-          const isSelected = selected === op.value
-          return (
-            <button
-              key={op.value}
-              type="button"
-              onClick={() => handleResponse(op.value)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                padding: '5px 14px', fontSize: '0.82rem', fontWeight: 500,
-                borderRadius: 6, cursor: 'pointer',
-                border: `1.5px solid ${isSelected ? op.color : '#d1d5db'}`,
-                background: isSelected ? op.bg : '#fff',
-                color: isSelected ? op.color : '#6b7280',
-                transition: 'all 0.12s ease',
-              }}
-            >
-              <span style={{ fontSize: '0.9rem' }}>{op.icon}</span>
-              {op.label}
-            </button>
-          )
-        })}
+        <button
+          type="button"
+          onClick={() => onResponder(sectionCode, subsectionCode, item.code, isSelected ? '' : displayType, initialResponse == null)}
+          title={`Seleccionar tipo ${displayType}`}
+          aria-pressed={isSelected}
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            minWidth: 28, height: 28, padding: '0 12px', borderRadius: 999, cursor: 'pointer',
+            border: `1.5px solid ${isSelected ? (displayType === 'B' ? '#f59e0b' : '#dc2626') : '#16a34a'}`,
+            background: isSelected ? (displayType === 'B' ? '#fef3c7' : '#fee2e2') : '#dcfce7',
+            color: isSelected ? (displayType === 'B' ? '#92400e' : '#991b1b') : '#166534',
+            fontWeight: 700,
+            fontSize: '0.76rem',
+            lineHeight: 1,
+            boxShadow: isSelected ? '0 1px 4px rgba(15, 23, 42, 0.08)' : 'none',
+          }}
+        >
+          {displayType}
+        </button>
 
         {!isDefect && !showObservation && (
           <button

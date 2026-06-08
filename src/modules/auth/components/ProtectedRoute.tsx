@@ -9,7 +9,7 @@ export function ProtectedRoute() {
 
   if (redirectPath) {
     return (
-      <Navigate to={redirectPath} replace state={{ from: location.pathname }} />
+      <Navigate to={redirectPath} replace state={{ from: location.pathname + location.search }} />
     )
   }
 

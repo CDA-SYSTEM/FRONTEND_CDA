@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
 import { compressImage, revokePreviewUrls } from '@/shared/utils/imageCompression'
 import { offlineStorage } from '@/core/services/offlineStorage'
+import { usuarioService } from '@/modules/usuarios/services/usuarioService'
+import type { Usuario } from '@/modules/usuarios/domain/usuario.types'
 import type {
   ChecklistInspection,
   ChecklistTemplate,
@@ -21,18 +23,24 @@ export type EstadoChecklist =
   | 'exito'
   | 'error_envio'
 
-export function useChecklist(inspectionId: string) {
+export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleType | null) {
   const [estado, setEstado] = useState<EstadoChecklist>('cargando')
   const [template, setTemplate] = useState<ChecklistTemplate | null>(null)
   const [checklistInspection, setChecklistInspection] = useState<ChecklistInspection | null>(null)
   const [responses, setResponses] = useState<Map<string, InspectionItemResponse>>(new Map())
   const [itemPhotos, setItemPhotos] = useState<Map<string, InspectionItemPhoto[]>>(new Map())
   const [observaciones, setObservaciones] = useState('')
-  const [vehicleType, setVehicleType] = useState<VehicleType | null>(null)
+  const [vehicleType, setVehicleType] = useState<VehicleType | null>(vehicleTypeFromUrl ?? null)
   const [plate, setPlate] = useState('')
   const [vehicleId, setVehicleId] = useState<number>(0)
   const [errorMensaje, setErrorMensaje] = useState<string | null>(null)
+  const [inspectores, setInspectores] = useState<Usuario[]>([])
+  const [inspectorId, setInspectorId] = useState<string>('')
+  const [cargandoInspectores, setCargandoInspectores] = useState(false)
   const itemPhotosRef = useRef(itemPhotos)
+  const vehicleTypeRef = useRef(vehicleType)
+  const observacionesRef = useRef(observaciones)
+  const inspectorIdRef = useRef(inspectorId)
   const inspectionKey = checklistInspection?.id || inspectionId
 
   const responsesFromChecklist = useCallback((detalle: ChecklistInspection) => {
@@ -49,7 +57,14 @@ export function useChecklist(inspectionId: string) {
   }, [itemPhotos])
 
   useEffect(() => {
+    vehicleTypeRef.current = vehicleType
+    observacionesRef.current = observaciones
+    inspectorIdRef.current = inspectorId
+  }, [vehicleType, observaciones, inspectorId])
+
+  useEffect(() => {
     let mounted = true
+    let draftRestored = false
 
     async function inicializar() {
       setEstado('cargando')
@@ -62,13 +77,37 @@ export function useChecklist(inspectionId: string) {
 
         const plateStr = detalle.plate || ''
         const vId = detalle.vehicle_id || 0
-        const tipo: VehicleType = detalle.vehicle_type || 'LIVIANO'
+        const tipo: VehicleType = vehicleTypeFromUrl || detalle.vehicle_type || 'LIVIANO'
 
         setChecklistInspection(detalle)
         setPlate(plateStr)
         setVehicleId(vId)
         setVehicleType(tipo)
         setResponses(responsesFromChecklist(detalle))
+        setInspectorId(detalle.inspector_id || '')
+
+        /* HU-037b: Sobrescribir con borrador local síncrono si existe (post-401 / F5) */
+        const draftKey = vehicleTypeFromUrl ? getDraftKey(vehicleTypeFromUrl, inspectionId) : null
+        const draftData = draftKey ? loadDraft(draftKey) : null
+        if (draftData) {
+          draftRestored = true
+          if (draftData.responses?.length) setResponses(new Map(draftData.responses))
+          if (typeof draftData.observaciones === 'string') setObservaciones(draftData.observaciones)
+          if (draftData.inspectorId) setInspectorId(draftData.inspectorId)
+        }
+
+        // Cargar inspectores
+        setCargandoInspectores(true)
+        try {
+          const list = await usuarioService.obtenerPersonalAsignable('inspector')
+          if (mounted) {
+            setInspectores(list)
+          }
+        } catch (e) {
+          console.error('Error cargando inspectores en useChecklist:', e)
+        } finally {
+          if (mounted) setCargandoInspectores(false)
+        }
 
         if (detalle.template_snapshot) {
           setTemplate(detalle.template_snapshot)
@@ -101,8 +140,9 @@ export function useChecklist(inspectionId: string) {
 
     inicializar()
 
-    /* HU-037: Restaurar datos offline guardados para esta inspección */
+    /* HU-037: Restaurar datos offline guardados para esta inspección (solo si no hay borrador local) */
     ;(async () => {
+      if (draftRestored) return
       try {
         const savedInspection = await offlineStorage.obtenerMetadata(`inspection:${inspectionId}`)
         if (savedInspection === inspectionId) {
@@ -136,6 +176,16 @@ export function useChecklist(inspectionId: string) {
     return () => { if (persistTimeoutRef.current) clearTimeout(persistTimeoutRef.current) }
   }, [responses, observaciones, inspectionId])
 
+  /* HU-037b: Persistir borrador síncrono en localStorage (post-401 recovery) */
+  useEffect(() => {
+    if (!vehicleType) return
+    saveDraft(getDraftKey(vehicleType, inspectionId), {
+      responses: Array.from(responses.entries()),
+      observaciones,
+      inspectorId,
+    })
+  }, [responses, observaciones, inspectorId, vehicleType, inspectionId])
+
   const responderItem = useCallback((
     section_code: string,
     subsection_code: string,
@@ -146,6 +196,13 @@ export function useChecklist(inspectionId: string) {
       const next = new Map(prev)
       const key = `${section_code}:${subsection_code}:${item_code}`
       const existing = next.get(key)
+
+      // Toggle de selección: si llega vacío o la misma respuesta previa, se desmarca.
+      if (!String(response).trim() || existing?.response === response) {
+        next.delete(key)
+        return next
+      }
+
       next.set(key, {
         section_code,
         subsection_code,
@@ -236,18 +293,8 @@ export function useChecklist(inspectionId: string) {
   }, [itemPhotos])
 
   const itemsSinResponder = useCallback(() => {
-    if (!template) return 0
-    let count = 0
-    for (const section of template.sections) {
-      for (const sub of section.subsections) {
-        for (const item of sub.items) {
-          const key = `${section.code || ''}:${sub.code || ''}:${item.code}`
-          if (!responses.has(key)) count++
-        }
-      }
-    }
-    return count
-  }, [template, responses])
+    return 0
+  }, [])
 
   const progresoActual = useCallback(() => {
     if (!template) return { respondidos: 0, total: 0 }
@@ -277,10 +324,31 @@ export function useChecklist(inspectionId: string) {
 
   const construirPayloadInspeccion = useCallback(() => {
     if (!checklistInspection) return null
-    const rawResponses = obtenerRespuestasArray()
-    // Normalizar cada response para evitar objetos con propiedades undefined
-    const normalizedResponses = rawResponses
-      .map((r) => ({
+    const finalResponses: InspectionItemResponse[] = []
+
+    if (template) {
+      for (const section of template.sections) {
+        for (const sub of section.subsections) {
+          for (const item of sub.items) {
+            const key = `${section.code || ''}:${sub.code || ''}:${item.code}`
+            const existing = responses.get(key)
+            if (existing) {
+              finalResponses.push({
+                section_code: String(existing.section_code ?? '').trim(),
+                subsection_code: String(existing.subsection_code ?? '').trim(),
+                item_code: String(existing.item_code ?? '').trim(),
+                response: String(existing.response ?? 'CUMPLE'),
+                defect_type: (existing as any).defect_type ?? undefined,
+                observation: (existing as any).observation ?? undefined,
+                photos: Array.isArray((existing as any).photos) ? (existing as any).photos : undefined,
+              })
+            }
+          }
+        }
+      }
+    } else {
+      const rawResponses = obtenerRespuestasArray()
+      finalResponses.push(...rawResponses.map((r) => ({
         section_code: String(r.section_code ?? '').trim(),
         subsection_code: String(r.subsection_code ?? '').trim(),
         item_code: String(r.item_code ?? '').trim(),
@@ -288,14 +356,10 @@ export function useChecklist(inspectionId: string) {
         defect_type: (r as any).defect_type ?? undefined,
         observation: (r as any).observation ?? undefined,
         photos: Array.isArray((r as any).photos) ? (r as any).photos : undefined,
-      }))
-      .filter((r) => r.section_code && r.subsection_code && r.item_code)
-
-    if (normalizedResponses.length !== rawResponses.length) {
-      // Al menos uno fue descartado por estar incompleto — útil para depuración
-      // eslint-disable-next-line no-console
-      console.warn('useChecklist: Some responses were omitted from payload because they were incomplete', { raw: rawResponses.length, sent: normalizedResponses.length })
+      })))
     }
+
+    const normalizedResponses = finalResponses.filter((r) => r.section_code && r.subsection_code && r.item_code)
 
     return {
       plate: checklistInspection.plate || plate,
@@ -304,11 +368,11 @@ export function useChecklist(inspectionId: string) {
       vehicle_type: checklistInspection.vehicle_type || (vehicleType || 'LIVIANO'),
       template_id: checklistInspection.template_id || checklistInspection.template_ref?.template_id || template?.id,
       inspection_datetime: checklistInspection.inspection_datetime,
-      inspector_id: checklistInspection.inspector_id,
+      inspector_id: inspectorId || checklistInspection.inspector_id,
       responses: normalizedResponses,
       observations: observaciones,
     }
-  }, [checklistInspection, obtenerRespuestasArray, observaciones, plate, template?.id, vehicleId, vehicleType])
+  }, [checklistInspection, template, responses, obtenerRespuestasArray, observaciones, plate, vehicleId, vehicleType, inspectorId])
 
   const guardar = useCallback(async () => {
     if (!checklistInspection) return false
@@ -322,19 +386,29 @@ export function useChecklist(inspectionId: string) {
     const payload = construirPayloadInspeccion()
     if (!payload) return false
 
-    const ok = await checklistService.guardarBorrador(inspectionKey, payload)
-    if (ok) setEstado('listo')
-    else { setEstado('error_envio'); setErrorMensaje('Error al guardar el borrador') }
-    return ok
+    try {
+      const ok = await checklistService.guardarBorrador(inspectionKey, payload)
+      if (ok) {
+        if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
+        setEstado('listo')
+        return true
+      }
+      setEstado('error_envio')
+      setErrorMensaje('Error al guardar el borrador')
+      return false
+    } catch (error) {
+      setEstado('error_envio')
+      setErrorMensaje(
+        error && typeof error === 'object' && 'message' in error
+          ? String((error as Record<string, unknown>).message)
+          : 'Error al guardar el borrador'
+      )
+      return false
+    }
   }, [checklistInspection, inspectionKey, construirPayloadInspeccion, inspectionId, observaciones, responses])
 
   const cerrar = useCallback(async (resultado: InspectionResult) => {
     if (!checklistInspection) return false
-    const sinResponder = itemsSinResponder()
-    if (sinResponder > 0) {
-      setErrorMensaje(`Faltan ${sinResponder} ítems por responder`)
-      return false
-    }
 
     setEstado('enviando')
 
@@ -346,16 +420,17 @@ export function useChecklist(inspectionId: string) {
     const payload = construirPayloadInspeccion()
     if (!payload) return false
 
-    const guardadoOk = await checklistService.guardarBorrador(inspectionKey, payload)
-    if (!guardadoOk) {
-      setEstado('error_envio')
-      setErrorMensaje('Error al guardar antes de cerrar')
-      return false
-    }
-
     try {
+      const guardadoOk = await checklistService.guardarBorrador(inspectionKey, payload)
+      if (!guardadoOk) {
+        setEstado('error_envio')
+        setErrorMensaje('Error al guardar antes de cerrar')
+        return false
+      }
+
       const cerradoOk = await checklistService.cerrarInspeccion(inspectionKey, resultado)
       if (cerradoOk) {
+        if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
         /* HU-037: Limpiar datos offline tras cierre exitoso */
         await offlineStorage.limpiarTodo(inspectionId)
         setEstado('exito')
@@ -369,11 +444,15 @@ export function useChecklist(inspectionId: string) {
       setErrorMensaje(
         error && typeof error === 'object' && 'message' in error
           ? String((error as Record<string, unknown>).message)
-          : 'Error al cerrar la inspección',
+          : 'Error al procesar la inspección',
       )
       return false
     }
-  }, [checklistInspection, inspectionKey, itemsSinResponder, observaciones, responses, inspectionId, construirPayloadInspeccion])
+  }, [checklistInspection, inspectionKey, observaciones, responses, inspectionId, construirPayloadInspeccion])
+
+  const limpiarBorradorLocal = useCallback(() => {
+    if (vehicleType) removeDraft(getDraftKey(vehicleType, inspectionId))
+  }, [vehicleType, inspectionId])
 
   return {
     estado,
@@ -396,5 +475,60 @@ export function useChecklist(inspectionId: string) {
     itemsSinResponder: itemsSinResponder(),
     guardar,
     cerrar,
+    inspectorId,
+    setInspectorId,
+    inspectores,
+    cargandoInspectores,
+    limpiarBorradorLocal,
   }
+}
+
+/* ════════════════════════════════════════════════════════
+   Borrador síncrono en localStorage (post-401 recovery)
+   ════════════════════════════════════════════════════════ */
+const DRAFT_PREFIX = 'checklist_draft'
+const DRAFT_INDEX_KEY = 'checklist_draft_index'
+const MAX_DRAFTS = 2
+
+function getDraftKey(vehicleType: VehicleType, inspectionId: string): string {
+  return `${DRAFT_PREFIX}_${vehicleType}_${inspectionId}`
+}
+
+function getDraftIndex(): string[] {
+  try {
+    const raw = localStorage.getItem(DRAFT_INDEX_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch { return [] }
+}
+
+function saveDraft(key: string, data: {
+  responses: [string, InspectionItemResponse][]
+  observaciones: string
+  inspectorId: string
+}) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...data, _updated: Date.now() }))
+    const index = getDraftIndex().filter(k => k !== key)
+    index.push(key)
+    while (index.length > MAX_DRAFTS) {
+      const old = index.shift()!
+      localStorage.removeItem(old)
+    }
+    localStorage.setItem(DRAFT_INDEX_KEY, JSON.stringify(index))
+  } catch { /* quota exceeded — ignorar */ }
+}
+
+function loadDraft(key: string) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function removeDraft(key: string) {
+  try {
+    localStorage.removeItem(key)
+    const index = getDraftIndex().filter(k => k !== key)
+    localStorage.setItem(DRAFT_INDEX_KEY, JSON.stringify(index))
+  } catch { /* ignorar */ }
 }

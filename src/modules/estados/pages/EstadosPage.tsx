@@ -1,0 +1,433 @@
+import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  RefreshCw,
+  Loader2,
+  X,
+  AlertCircle,
+  Hash,
+  Sliders
+} from 'lucide-react'
+import { animate, stagger } from 'animejs'
+import { estadoService } from '../services/estadoService'
+import type { Estado, CrearEstadoDTO } from '../domain/estado.types'
+import { useAuthStore } from '@/core/store/authStore'
+import { AnimatedText } from '@/shared/components/AnimatedText'
+import { CustomSelect } from '@/shared/components/CustomSelect'
+import './EstadosPage.css'
+
+export function EstadosPage() {
+  const [statuses, setStatuses] = useState<Estado[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Filtros
+  const [codeFilter, setCodeFilter] = useState('todos')
+
+  // Modales
+  const [showFormModal, setShowFormModal] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState<Estado | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  // Datos para nuevo/editar estado
+  const [formData, setFormData] = useState<CrearEstadoDTO>({
+    code: '',
+    name: '',
+    description: '',
+    color: '#3B82F6',
+    order: 1
+  })
+
+  const fetchStatuses = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await estadoService.listarEstados({
+        code: codeFilter !== 'todos' ? codeFilter : undefined
+      })
+      setStatuses(response.data || [])
+    } catch (err: any) {
+      console.error('Error al listar estados:', err)
+      setError('No se pudieron cargar los estados del sistema.')
+    } finally {
+      setLoading(false)
+    }
+  }, [codeFilter])
+
+  useEffect(() => {
+    fetchStatuses()
+  }, [fetchStatuses])
+
+  // Animación staggered de las tarjetas de estados
+  useEffect(() => {
+    if (!loading && statuses.length > 0) {
+      animate('.status-card', {
+        translateY: [24, 0],
+        opacity: [0, 1],
+        delay: stagger(80),
+        duration: 700,
+        easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+      })
+    }
+  }, [loading, statuses])
+
+  // Callback de Ref para animar la entrada del modal
+  const modalBackdropRef = useCallback((node: HTMLDivElement | null) => {
+    if (node !== null) {
+      animate(node, {
+        opacity: [0, 1],
+        duration: 250,
+        easing: 'easeOutQuad'
+      })
+      const box = node.querySelector('.modal-window-premium') || node.querySelector('.floating-modal-box')
+      if (box) {
+        animate(box, {
+          scale: [0.95, 1],
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 450,
+          easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+        })
+      }
+    }
+  }, [])
+
+  const handleOpenCreate = () => {
+    setSelectedStatus(null)
+    setFormData({
+      code: '',
+      name: '',
+      description: '',
+      color: '#3B82F6',
+      order: statuses.length + 1
+    })
+    setShowFormModal(true)
+  }
+
+  const handleOpenEdit = (status: Estado) => {
+    setSelectedStatus(status)
+    setFormData({
+      code: status.code,
+      name: status.name,
+      description: status.description || '',
+      color: status.color,
+      order: status.order ?? 1
+    })
+    setShowFormModal(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setError(null)
+    try {
+      if (selectedStatus) {
+        await estadoService.actualizarEstado(selectedStatus.id, formData)
+      } else {
+        await estadoService.crearEstado(formData)
+      }
+      setShowFormModal(false)
+      fetchStatuses()
+    } catch (err: any) {
+      console.error('Error guardando estado:', err)
+      setError(err?.response?.data?.message || 'Error al guardar el estado. Verifique los datos.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Está seguro de eliminar este estado?')) return
+    try {
+      await estadoService.eliminarEstado(id)
+      fetchStatuses()
+    } catch (err: any) {
+      console.error('Error eliminando estado:', err)
+      alert('No se pudo eliminar el estado.')
+    }
+  }
+
+  const user = useAuthStore((state) => state.user)
+  const isAllowed =
+    user?.role === 'superadmin' ||
+    user?.role === 'admin' ||
+    user?.role === 'manager'
+
+  // Obtener opciones únicas de filtros basadas en los códigos existentes
+  const filterOptions = [
+    { value: 'todos', label: 'Todos los códigos' },
+    ...Array.from(new Set(statuses.map((s) => s.code))).map((code) => ({
+      value: code,
+      label: code
+    }))
+  ]
+
+  return (
+    <div className="estados-root">
+      <article className="panel">
+        <header className="flex justify-between items-center mb-6">
+          <div>
+            <AnimatedText
+              text="Gestión de Estados"
+              variant="soft-blur-in"
+              style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}
+            />
+            <p className="text-gray-500 text-sm" style={{ marginTop: '4px' }}>
+              Administre los estados de inspección y orden de servicio utilizados en el sistema.
+            </p>
+          </div>
+          {isAllowed && (
+            <button
+              className="btn btn-primary flex items-center gap-2"
+              onClick={handleOpenCreate}
+            >
+              <Plus size={16} /> Agregar Estado
+            </button>
+          )}
+        </header>
+
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-center gap-2 mb-4">
+            <AlertCircle size={20} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Filtros responsivos */}
+        <section className="filters-bar">
+          <div className="filters-bar-right" style={{ width: '100%', justifyContent: 'flex-start', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            <div className="filter-group" style={{ flex: 1, minWidth: '220px' }}>
+              <label>Filtrar por Código:</label>
+              <CustomSelect
+                options={filterOptions}
+                value={codeFilter}
+                onChange={setCodeFilter}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setCodeFilter('todos')
+                }}
+                className="btn btn-secondary"
+                style={{ height: '44px', minHeight: '44px', padding: '0 16px', marginTop: '0.35rem' }}
+              >
+                Restablecer
+              </button>
+
+              <button
+                type="button"
+                onClick={fetchStatuses}
+                className="btn btn-secondary flex items-center gap-1"
+                title="Refrescar estados"
+                style={{ height: '44px', minHeight: '44px', padding: '0 16px', marginTop: '0.35rem' }}
+              >
+                <RefreshCw size={14} /> Recargar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Grid de Estados */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="animate-spin text-primary" size={32} />
+          </div>
+        ) : statuses.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+            <Sliders size={48} className="mx-auto mb-2 text-gray-300" />
+            <p>No se encontraron estados configurados.</p>
+          </div>
+        ) : (
+          <div className="estados-cards-grid">
+            {statuses.map((status) => (
+              <div
+                key={status.id}
+                className="status-card estado-premium-card"
+                style={{ opacity: 0 }}
+              >
+                <div className="estado-premium-card-body">
+                  <header className="estado-premium-card-header">
+                    <span
+                      className="estado-badge-code"
+                      style={{
+                        backgroundColor: `${status.color}15`,
+                        color: status.color
+                      }}
+                    >
+                      {status.code}
+                    </span>
+                    <span className="estado-order">
+                      <Hash size={12} /> Orden: {status.order ?? 'N/A'}
+                    </span>
+                  </header>
+
+                  <div className="estado-title-row">
+                    <span
+                      className="estado-color-dot"
+                      style={{
+                        backgroundColor: status.color
+                      }}
+                    />
+                    <h3 className="estado-name">
+                      {status.name}
+                    </h3>
+                  </div>
+
+                  <p className="estado-desc">
+                    {status.description || 'Sin descripción disponible.'}
+                  </p>
+                </div>
+
+                {isAllowed && (
+                  <div className="estado-premium-card-footer">
+                    <button
+                      className="est-btn-action est-btn-action--edit"
+                      onClick={() => handleOpenEdit(status)}
+                    >
+                      <Pencil size={13} /> Editar
+                    </button>
+                    <button
+                      className="est-btn-action est-btn-action--delete"
+                      onClick={() => handleDelete(status.id)}
+                    >
+                      <Trash2 size={13} /> Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </article>
+
+      {/* Modal flotante */}
+      {showFormModal && createPortal(
+        <div ref={modalBackdropRef} className="modal-overlay-premium" style={{ opacity: 0 }}>
+          <form
+            onSubmit={handleSubmit}
+            className="modal-window-premium max-w-md estado-modal-window"
+            style={{ opacity: 0, transform: 'scale(0.95) translateY(20px)' }}
+          >
+            <header className="floating-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3>
+                {selectedStatus ? 'Editar Estado' : 'Agregar Nuevo Estado'}
+              </h3>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowFormModal(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  padding: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  boxShadow: 'none',
+                  minHeight: 'initial'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e2e8f0')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f1f5f9')}
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            <div className="estado-modal-body">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Código de Estado *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. PENDING, IN_PROGRESS"
+                  className="form-control"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre Descriptivo *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej. Pendiente, En Progreso"
+                  className="form-control"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
+                <textarea
+                  placeholder="Descripción detallada del estado..."
+                  className="estado-descripcion-textarea"
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Color representativo</label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      className="form-control"
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      style={{ padding: '0px', width: '44px', height: '44px', cursor: 'pointer', border: 'none', borderRadius: '8px' }}
+                    />
+                    <span className="text-sm font-mono text-gray-500 uppercase">{formData.color}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Orden de visualización</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="form-control"
+                    value={formData.order}
+                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="estado-modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={submitting}
+                onClick={() => setShowFormModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={submitting}
+              >
+                {submitting ? 'Guardando...' : 'Guardar Estado'}
+              </button>
+            </div>
+          </form>
+        </div>,
+        document.body
+      )}
+    </div>
+  )
+}

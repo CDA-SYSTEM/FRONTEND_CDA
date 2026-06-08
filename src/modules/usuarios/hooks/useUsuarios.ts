@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { usuarioService } from '@/modules/usuarios/services/usuarioService'
+import { authService } from '@/modules/auth/services/authService'
 import type {
   CrearUsuarioDTO,
   RolUsuario,
   RolUsuarioForm,
   Usuario,
+  AuthAccount,
 } from '@/modules/usuarios/domain/usuario.types'
 
 const INITIAL_FORM: CrearUsuarioDTO = {
@@ -31,6 +33,19 @@ export function useUsuarios() {
   const [errorMensaje, setErrorMensaje] = useState('')
   const [formData, setFormData] = useState<CrearUsuarioDTO>(INITIAL_FORM)
 
+  // Cuentas de autenticación
+  const [cuentas, setCuentas] = useState<AuthAccount[]>([])
+  const [tab, setTab] = useState<'usuarios' | 'cuentas'>('usuarios')
+  const [loadingCuentas, setLoadingCuentas] = useState(false)
+
+  // Catálogos dinámicos
+  const [rolesList, setRolesList] = useState<{ code: string; name: string }[]>([])
+  const [identificacionesList, setIdentificacionesList] = useState<{ code: string; name: string }[]>([])
+
+  // Restablecimiento de contraseña
+  const [resetUserId, setResetUserId] = useState<string | null>(null)
+  const [resetPasswordVal, setResetPasswordVal] = useState('')
+
   const clearFeedback = () => {
     setMensaje('')
     setErrorMensaje('')
@@ -54,9 +69,43 @@ export function useUsuarios() {
     [filtroRol],
   )
 
+  const cargarCuentas = useCallback(async () => {
+    try {
+      setLoadingCuentas(true)
+      setErrorMensaje('')
+      const data = await usuarioService.obtenerCuentasAutenticacion()
+      setCuentas(data)
+    } catch {
+      setErrorMensaje('No se pudieron cargar las cuentas de acceso.')
+    } finally {
+      setLoadingCuentas(false)
+    }
+  }, [])
+
   useEffect(() => {
-    cargarUsuarios(filtroRol)
-  }, [filtroRol, cargarUsuarios])
+    if (tab === 'usuarios') {
+      cargarUsuarios(filtroRol)
+    } else {
+      cargarCuentas()
+    }
+  }, [tab, filtroRol, cargarUsuarios, cargarCuentas])
+
+  // Cargar catálogos dinámicos
+  useEffect(() => {
+    async function loadCatalogs() {
+      try {
+        const [roles, idTypes] = await Promise.all([
+          authService.obtenerRoles(),
+          usuarioService.obtenerTiposIdentificacion(),
+        ])
+        setRolesList(roles)
+        setIdentificacionesList(idTypes)
+      } catch (err) {
+        console.error('Error cargando catálogos de usuarios:', err)
+      }
+    }
+    loadCatalogs()
+  }, [])
 
   const handleCambiarRol = async (id: string, nuevoRol: string) => {
     if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
@@ -64,24 +113,32 @@ export function useUsuarios() {
       clearFeedback()
       await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
       setMensaje('Rol actualizado correctamente.')
-      cargarUsuarios()
+      if (tab === 'usuarios') {
+        cargarUsuarios()
+      } else {
+        cargarCuentas()
+      }
     } catch {
       setErrorMensaje('No se pudo actualizar el rol.')
     }
   }
 
-  const handleToggleEstado = async (usuario: Usuario) => {
+  const handleToggleEstado = async (usuario: { id: string; isActive: boolean }) => {
     const accion = usuario.isActive ? 'desactivar' : 'activar'
-    if (!window.confirm(`¿Confirmas ${accion} este usuario?`)) return
+    if (!window.confirm(`¿Confirmas ${accion} esta cuenta/usuario?`)) return
     try {
       clearFeedback()
       await usuarioService.cambiarEstado(usuario.id, !usuario.isActive)
       setMensaje(
-        `Usuario ${usuario.isActive ? 'desactivado' : 'activado'} correctamente.`,
+        `Estado ${usuario.isActive ? 'desactivado' : 'activado'} correctamente.`,
       )
-      cargarUsuarios()
+      if (tab === 'usuarios') {
+        cargarUsuarios()
+      } else {
+        cargarCuentas()
+      }
     } catch {
-      setErrorMensaje('No se pudo cambiar el estado del usuario.')
+      setErrorMensaje('No se pudo cambiar el estado.')
     }
   }
 
@@ -102,24 +159,56 @@ export function useUsuarios() {
       setFormData(INITIAL_FORM)
       setMensaje('Usuario creado correctamente.')
       cargarUsuarios()
+      cargarCuentas()
     } catch {
       setErrorMensaje('Hubo un error al registrar el usuario.')
+    }
+  }
+
+  const handleResetPassword = async (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    if (!resetUserId || !resetPasswordVal.trim()) return
+    try {
+      clearFeedback()
+      await usuarioService.restablecerPassword(resetUserId, resetPasswordVal.trim())
+      setMensaje('Contraseña restablecida correctamente.')
+      setResetUserId(null)
+      setResetPasswordVal('')
+    } catch {
+      setErrorMensaje('No se pudo restablecer la contraseña.')
     }
   }
 
   const handleBuscar = async () => {
     const term = busqueda.trim()
     if (!term) {
-      cargarUsuarios()
+      if (tab === 'usuarios') {
+        cargarUsuarios()
+      } else {
+        cargarCuentas()
+      }
       return
     }
     try {
       setLoading(true)
       clearFeedback()
-      const results = await usuarioService.buscarUsuarios(term)
-      setUsuarios(results)
-      if (results.length === 0) {
-        setMensaje('No se encontraron usuarios para la búsqueda.')
+      if (tab === 'usuarios') {
+        const results = await usuarioService.buscarUsuarios(term)
+        setUsuarios(results)
+        if (results.length === 0) {
+          setMensaje('No se encontraron usuarios para la búsqueda.')
+        }
+      } else {
+        // En cuentas de acceso filtramos localmente por email o rol
+        const data = await usuarioService.obtenerCuentasAutenticacion()
+        const filtered = data.filter(c => 
+          c.email.toLowerCase().includes(term.toLowerCase()) || 
+          c.role.toLowerCase().includes(term.toLowerCase())
+        )
+        setCuentas(filtered)
+        if (filtered.length === 0) {
+          setMensaje('No se encontraron cuentas de acceso para la búsqueda.')
+        }
       }
     } catch {
       setErrorMensaje('No se pudo realizar la búsqueda.')
@@ -131,23 +220,31 @@ export function useUsuarios() {
   const handleLimpiarBusqueda = () => {
     setBusqueda('')
     clearFeedback()
-    cargarUsuarios()
+    if (tab === 'usuarios') {
+      cargarUsuarios()
+    } else {
+      cargarCuentas()
+    }
   }
 
   const handleEliminarUsuario = async (id: string) => {
     if (
       !window.confirm(
-        '¿Seguro que deseas eliminar este usuario? Esta acción no se puede deshacer.',
+        '¿Seguro que deseas eliminar esta cuenta/usuario? Esta acción no se puede deshacer.',
       )
     )
       return
     try {
       clearFeedback()
       await usuarioService.eliminarUsuario(id)
-      setMensaje('Usuario eliminado correctamente.')
-      cargarUsuarios()
+      setMensaje('Eliminado correctamente.')
+      if (tab === 'usuarios') {
+        cargarUsuarios()
+      } else {
+        cargarCuentas()
+      }
     } catch {
-      setErrorMensaje('No se pudo eliminar el usuario.')
+      setErrorMensaje('No se pudo eliminar.')
     }
   }
 
@@ -161,6 +258,13 @@ export function useUsuarios() {
     mensaje,
     errorMensaje,
     formData,
+    rolesList,
+    identificacionesList,
+    resetUserId,
+    resetPasswordVal,
+    cuentas,
+    tab,
+    loadingCuentas,
     // acciones
     setMostrarModal,
     setFiltroRol,
@@ -172,5 +276,10 @@ export function useUsuarios() {
     handleBuscar,
     handleLimpiarBusqueda,
     handleEliminarUsuario,
+    setResetUserId,
+    setResetPasswordVal,
+    handleResetPassword,
+    setTab,
+    cargarCuentas,
   }
 }

@@ -1,0 +1,362 @@
+/* ═══════════════════════════════════════════════════════════════
+   UsuariosPage.css — Gestión de Usuarios Módulo UI Premium
+   Refero design reference: Full width workspace, elastic search focus rings,
+   monospace IDs, sutil alpha status badges, ghost actions.
+   ═══════════════════════════════════════════════════════════════ */
+
+.usuarios-workspace {
+  --usr-bg:              #f8fafc;
+  --usr-surface:         #ffffff;
+  --usr-border:          #e2e8f0;
+  --usr-border-strong:   #cbd5e1;
+  --usr-text:            #0f172a;
+  --usr-text-muted:      #64748b;
+  --usr-text-subtle:     #94a3b8;
+  --usr-accent:          #155dfc;
+
+  --usr-radius-card:     16px;
+  --usr-radius-btn:      8px;
+  --usr-radius-badge:    6px;
+
+  /* Motion */
+  --usr-ease-out:        cubic-bezier(0.16, 1, 0.3, 1);
+  --usr-dur-fast:        160ms;
+  --usr-dur-default:     220ms;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+/* CABECERA DE MÓDULO */
+.users-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--usr-surface);
+  padding: 1.5rem;
+  border-radius: var(--usr-radius-card);
+  border: 1px solid var(--usr-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.users-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--usr-text);
+}
+
+.users-header p {
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  color: var(--usr-text-muted);
+}
+
+/* PANEL ADAPTATIVO DE ACCIONES Y BÚSQUEDA */
+.users-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.users-actions-bar input[type="text"] {
+  flex: 1 1 240px;
+  height: 44px;
+  border-radius: var(--usr-radius-btn);
+  border: 1px solid var(--usr-border) !important;
+  background: var(--usr-bg) !important;
+  color: var(--usr-text) !important;
+  padding: 0 16px !important;
+  font-size: 0.9rem !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition:
+    background    var(--usr-dur-default) var(--usr-ease-out),
+    border-color  var(--usr-dur-default) var(--usr-ease-out),
+    box-shadow    var(--usr-dur-default) var(--usr-ease-out) !important;
+}
+
+.users-actions-bar input[type="text"]:focus {
+  background: #ffffff !important;
+  border-color: var(--usr-accent) !important;
+  box-shadow: 0 0 0 4px rgba(21, 93, 252, 0.12) !important;
+}
+
+.users-actions-bar .btn-filter-action {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--usr-radius-btn);
+  border: 1px solid var(--usr-border);
+  background: #ffffff;
+  color: var(--usr-text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background    var(--usr-dur-fast) var(--usr-ease-out),
+    border-color  var(--usr-dur-fast) var(--usr-ease-out),
+    color         var(--usr-dur-fast) var(--usr-ease-out);
+}
+
+.users-actions-bar .btn-filter-action:hover {
+  background: var(--usr-bg);
+  color: var(--usr-text);
+  border-color: var(--usr-border-strong);
+}
+
+.users-actions-bar .btn-create-user {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--usr-radius-btn);
+  border: none;
+  background: var(--usr-accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background var(--usr-dur-fast) var(--usr-ease-out);
+}
+
+.users-actions-bar .btn-create-user:hover {
+  background: #0d4ed9;
+}
+
+/* TABS ELEGANTES */
+.users-tabs-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--usr-border);
+  padding-bottom: 8px;
+  margin-bottom: 1.5rem;
+  white-space: nowrap !important;
+  overflow-x: auto !important;
+  scrollbar-width: none;
+}
+.users-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.users-tab-btn {
+  flex-shrink: 0 !important;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--usr-text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background    var(--usr-dur-fast) var(--usr-ease-out),
+    color         var(--usr-dur-fast) var(--usr-ease-out);
+}
+
+.users-tab-btn:hover {
+  background: var(--usr-bg);
+  color: var(--usr-text);
+}
+
+.users-tab-btn--active {
+  background: rgba(21, 93, 252, 0.08) !important;
+  color: var(--usr-accent) !important;
+}
+
+/* CONTENEDOR DE TABLA EXPANDIDO */
+.usuarios-table-container {
+  width: 100% !important;
+  max-width: none !important;
+  background: var(--usr-surface);
+  border-radius: var(--usr-radius-card);
+  border: 1px solid var(--usr-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.usuarios-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usuarios-table-container th {
+  background: #f8fafc;
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--usr-text-muted);
+  border-bottom: 1px solid var(--usr-border);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.usuarios-table-container td {
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  color: var(--usr-text);
+  border-bottom: 1px solid var(--usr-border);
+  vertical-align: middle;
+}
+
+.usuarios-table-container tr:last-child td {
+  border-bottom: none;
+}
+
+/* ID MONOSPACED */
+.usuarios-id-monospace {
+  font-family: ui-monospace, 'SF Mono', Cascadia, Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--usr-text-subtle);
+  font-weight: 600;
+}
+
+/* TRANSLUCENT BADGES */
+.status-badge-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--usr-radius-badge);
+  letter-spacing: 0.02em;
+}
+
+.status-badge-premium--active {
+  background: rgba(34, 197, 94, 0.08);
+  color: #16a34a;
+}
+
+.status-badge-premium--inactive {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+}
+
+/* BOTONES DE ACCIÓN GHOST */
+.usr-actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.usr-btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px !important;
+  min-height: 0 !important;
+  padding: 0 12px !important;
+  border-radius: var(--usr-radius-btn);
+  border: 1px solid var(--usr-border) !important;
+  background: transparent !important;
+  color: var(--usr-text-muted) !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition:
+    background    var(--usr-dur-fast) var(--usr-ease-out),
+    border-color  var(--usr-dur-fast) var(--usr-ease-out),
+    color         var(--usr-dur-fast) var(--usr-ease-out),
+    transform     90ms              var(--usr-ease-out);
+}
+
+.usr-btn-action:active {
+  transform: scale(0.95);
+}
+
+/* Acciones de cambio / key — azul sutil */
+.usr-btn-action--toggle:hover,
+.usr-btn-action--key:hover {
+  background: rgba(21, 93, 252, 0.08) !important;
+  border-color: rgba(21, 93, 252, 0.2) !important;
+  color: var(--usr-accent) !important;
+}
+
+/* Eliminar — rojo sutil */
+.usr-btn-action--delete:hover {
+  background: rgba(239, 68, 68, 0.06) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+}
+
+/* ── MÓVILES RESPONSIVE CARDS (Refero Design) ── */
+.usuarios-desktop-table-wrapper {
+  display: block;
+}
+
+.usuarios-mobile-cards-container {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.usuario-responsive-card {
+  background: var(--usr-surface);
+  border-radius: var(--usr-radius-card);
+  border: 1px solid var(--usr-border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.user-card-header {
+  border-bottom: 1px solid var(--usr-border);
+  padding-bottom: 8px;
+}
+
+.user-card-name {
+  font-weight: 700;
+  color: var(--usr-text);
+  font-size: 1.05rem;
+}
+
+.user-card-email {
+  color: var(--usr-text-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.user-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-card-label {
+  font-weight: 600;
+  color: var(--usr-text-muted);
+  font-size: 0.85rem;
+}
+
+.user-card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .usuarios-desktop-table-wrapper {
+    display: none !important;
+  }
+  .usuarios-mobile-cards-container {
+    display: flex !important;
+  }
+}

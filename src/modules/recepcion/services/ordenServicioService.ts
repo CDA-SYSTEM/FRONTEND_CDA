@@ -145,9 +145,7 @@ export const ordenServicioService = {
       formData.append('signature', adjuntos.signature)
     }
 
-    const response = await apiClient.post('/api/v1/inspections', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const response = await apiClient.post('/api/v1/inspections', formData)
     return extractItem(response.data) as OrdenServicioResponse
   },
 
@@ -173,9 +171,7 @@ export const ordenServicioService = {
 
   async actualizarOrdenServicio(id: string, data: FormData | Record<string, unknown>): Promise<void> {
     if (data instanceof FormData) {
-      await apiClient.patch(`/api/v1/inspections/${id}`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      await apiClient.patch(`/api/v1/inspections/${id}`, data)
     } else {
       await apiClient.patch(`/api/v1/inspections/${id}`, data)
     }

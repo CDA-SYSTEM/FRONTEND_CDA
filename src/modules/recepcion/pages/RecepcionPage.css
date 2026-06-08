@@ -702,20 +702,22 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: transparent;
-  color: var(--rc-text-subtle);
+  background: #f8fafc;
+  color: #64748b;
   cursor: pointer;
   transition:
-    background  var(--rc-dur-fast) var(--rc-ease-out),
-    color       var(--rc-dur-fast) var(--rc-ease-out),
-    transform   90ms              var(--rc-ease-out);
+    background      var(--rc-dur-fast) var(--rc-ease-out),
+    color           var(--rc-dur-fast) var(--rc-ease-out),
+    border-color    var(--rc-dur-fast) var(--rc-ease-out),
+    transform       90ms              var(--rc-ease-out);
 }
 
 .recepcion-actions-trigger:hover {
   background: #f1f5f9;
-  color: var(--rc-text);
+  border-color: #e2e8f0;
+  color: #0f172a;
 }
 
 .recepcion-actions-trigger:active {

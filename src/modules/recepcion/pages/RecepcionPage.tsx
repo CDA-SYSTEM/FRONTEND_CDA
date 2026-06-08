@@ -609,7 +609,7 @@ export function RecepcionPage() {
                               }}
                               title="Acciones"
                             >
-                              <MoreVertical size={16} />
+                              <MoreVertical size={20} strokeWidth={2.5} />
                             </button>
                             {openActionsId === insp.id && menuPos && (
                               <div

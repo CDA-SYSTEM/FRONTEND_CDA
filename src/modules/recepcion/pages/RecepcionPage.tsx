@@ -15,7 +15,13 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  Pencil
+  Pencil,
+  TrendingUp,
+  Users,
+  Activity,
+  CheckCircle2,
+  Camera,
+  Pen
 } from 'lucide-react'
 import { inspeccionService } from '@/modules/inspeccion/services/inspeccionService'
 import { RecepcionWizard } from '@/modules/recepcion/components/RecepcionWizard'
@@ -387,6 +393,64 @@ export function RecepcionPage() {
         </div>
       </div>
 
+      {/* ── Stats Cards ── */}
+      {!cargando && !error && inspecciones.length > 0 && (
+        <div className="recepcion-stats-grid">
+          <div className="recepcion-stat-card recepcion-stat-card--total">
+            <div className="recepcion-stat-body">
+              <span className="recepcion-stat-label">Total Recepciones</span>
+              <span className="recepcion-stat-value">{inspecciones.length}</span>
+              <span className="recepcion-stat-footer">
+                <TrendingUp size={12} />
+                Registros del sistema
+              </span>
+            </div>
+            <div className="recepcion-stat-icon">
+              <ClipboardList size={22} />
+            </div>
+          </div>
+          <div className="recepcion-stat-card recepcion-stat-card--espera">
+            <div className="recepcion-stat-body">
+              <span className="recepcion-stat-label">En Recepción</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label === 'En recepción').length}</span>
+              <span className="recepcion-stat-footer">
+                <Users size={12} />
+                Pendientes de asignar
+              </span>
+            </div>
+            <div className="recepcion-stat-icon">
+              <Clock size={22} />
+            </div>
+          </div>
+          <div className="recepcion-stat-card recepcion-stat-card--proceso">
+            <div className="recepcion-stat-body">
+              <span className="recepcion-stat-label">En Inspección</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => estadoBadge(i, statuses).label === 'En inspección').length}</span>
+              <span className="recepcion-stat-footer">
+                <Activity size={12} />
+                En proceso técnico
+              </span>
+            </div>
+            <div className="recepcion-stat-icon">
+              <Wrench size={22} />
+            </div>
+          </div>
+          <div className="recepcion-stat-card recepcion-stat-card--completado">
+            <div className="recepcion-stat-body">
+              <span className="recepcion-stat-label">Completadas</span>
+              <span className="recepcion-stat-value">{inspecciones.filter((i) => ['APROBADO', 'REPROBADO'].includes(i.result || '')).length}</span>
+              <span className="recepcion-stat-footer">
+                <CheckCircle2 size={12} />
+                Inspecciones finalizadas
+              </span>
+            </div>
+            <div className="recepcion-stat-icon">
+              <CheckCircle2 size={22} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Contenido Principal ── */}
       <div className="recepcion-table-card">
 
@@ -735,100 +799,95 @@ export function RecepcionPage() {
               ) : inspectionDetail ? (
                 <>
                   {/* Estado Principal */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 1rem',
-                    background: estadoBadge(inspectionDetail, statuses).bg,
-                    borderRadius: 8,
-                  }}>
-                    <span style={{ fontWeight: 600, color: estadoBadge(inspectionDetail, statuses).color, fontSize: '0.875rem' }}>
+                  <div
+                    className="recepcion-detail-status-bar"
+                    style={{ background: estadoBadge(inspectionDetail, statuses).bg }}
+                  >
+                    <span className="recepcion-detail-status-label" style={{ color: estadoBadge(inspectionDetail, statuses).color }}>
                       Estado del Vehículo
                     </span>
-                    <span style={{
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      background: estadoBadge(inspectionDetail, statuses).color,
-                      color: '#fff',
-                    }}>
+                    <span
+                      className="recepcion-detail-status-badge"
+                      style={{ background: estadoBadge(inspectionDetail, statuses).color }}
+                    >
                       {estadoBadge(inspectionDetail, statuses).label.toUpperCase()}
                     </span>
                   </div>
 
                   {/* Ficha técnica del Cliente */}
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                  <div className="recepcion-detail-info-card">
+                    <div className="recepcion-detail-info-card__header">
+                      <Users size={14} />
                       INFORMACIÓN DEL CLIENTE
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Nombre: </strong> {inspectionDetail.client ? `${inspectionDetail.client.nombre} ${inspectionDetail.client.apellido || ''}` : '—'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Identificación: </strong> {inspectionDetail.client ? `${inspectionDetail.client.documentType?.type || 'CC'}: ${inspectionDetail.client.identity}` : '—'}
                     </div>
                     {inspectionDetail.client?.celular && (
-                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <div className="recepcion-detail-info-card__row">
                         <strong>Celular: </strong> {inspectionDetail.client.celular}
                       </div>
                     )}
                     {inspectionDetail.client?.email && (
-                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <div className="recepcion-detail-info-card__row">
                         <strong>Email: </strong> {inspectionDetail.client.email}
                       </div>
                     )}
                   </div>
 
                   {/* Ficha técnica del Vehículo */}
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                  <div className="recepcion-detail-info-card">
+                    <div className="recepcion-detail-info-card__header">
+                      <Car size={14} />
                       INFORMACIÓN DEL VEHÍCULO
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Placa: </strong> {inspectionDetail.vehicle?.placa || '—'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Clase / Tipo: </strong> {inspectionDetail.vehicle?.tipoVehiculo?.nombre || inspectionDetail.vehicle_type || '—'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Marca: </strong> {typeof inspectionDetail.vehicle?.marca === 'object' && inspectionDetail.vehicle.marca ? (inspectionDetail.vehicle.marca as any).nombre : (inspectionDetail.vehicle?.marca || '—')}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Línea / Modelo: </strong> {inspectionDetail.vehicle ? `${typeof inspectionDetail.vehicle.linea === 'object' && inspectionDetail.vehicle.linea ? (inspectionDetail.vehicle.linea as any).nombre : (inspectionDetail.vehicle.linea || '—')} (${inspectionDetail.vehicle.modelo || '—'})` : '—'}
                     </div>
                     {inspectionDetail.vehicle?.tipoCombustible?.nombre && (
-                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <div className="recepcion-detail-info-card__row">
                         <strong>Combustible: </strong> {inspectionDetail.vehicle.tipoCombustible.nombre}
                       </div>
                     )}
                     {inspectionDetail.vehicle?.tipoServicio?.nombre && (
-                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <div className="recepcion-detail-info-card__row">
                         <strong>Servicio: </strong> {inspectionDetail.vehicle.tipoServicio.nombre}
                       </div>
                     )}
                   </div>
 
                   {/* Ficha técnica de la Recepción */}
-                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                  <div className="recepcion-detail-info-card">
+                    <div className="recepcion-detail-info-card__header">
+                      <ClipboardList size={14} />
                       CONDICIONES DE INGRESO
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Kilometraje: </strong> {inspectionDetail.mileage != null ? `${inspectionDetail.mileage.toLocaleString()} km` : '—'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Tipo Revisión: </strong> {formatRevisionType(inspectionDetail.revision_type)}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Vidrios Polarizados: </strong> {inspectionDetail.tinted_windows || 'NO'}
                     </div>
-                    <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                    <div className="recepcion-detail-info-card__row">
                       <strong>Vehículo Blindado: </strong> {inspectionDetail.armored_vehicle || 'NO'}
                     </div>
                     {inspectionDetail.brake_fluid_sight_glass && (
-                      <div style={{ fontSize: '0.85rem', color: '#334155' }}>
+                      <div className="recepcion-detail-info-card__row">
                         <strong>Líquido de frenos: </strong> {inspectionDetail.brake_fluid_sight_glass.replace(/_/g, ' ')}
                       </div>
                     )}
@@ -836,8 +895,9 @@ export function RecepcionPage() {
 
                   {/* Detalle de Llantas y Ejes */}
                   {((inspectionDetail.tires && inspectionDetail.tires.length > 0) || (inspectionDetail.axles && inspectionDetail.axles.length > 0)) && (
-                    <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px', background: '#fff', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ fontWeight: 600, color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: 6, fontSize: '0.85rem' }}>
+                    <div className="recepcion-detail-info-card">
+                      <div className="recepcion-detail-info-card__header">
+                        <Wrench size={14} />
                         CONFIGURACIÓN DE EJES Y LLANTAS
                       </div>
                       {inspectionDetail.axles && inspectionDetail.axles.length > 0 && (
@@ -868,19 +928,11 @@ export function RecepcionPage() {
                   )}
 
                   {/* Observaciones */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
+                  <div className="recepcion-detail-observations">
+                    <span className="recepcion-detail-observations__label">
                       Observaciones de Ingreso
                     </span>
-                    <div style={{
-                      background: '#f8fafc',
-                      padding: '0.85rem',
-                      borderRadius: 8,
-                      border: '1px solid #e2e8f0',
-                      fontSize: '0.85rem',
-                      color: '#334155',
-                      minHeight: '60px',
-                    }}>
+                    <div className="recepcion-detail-observations__text">
                       {inspectionDetail.observations || 'Sin observaciones registradas.'}
                     </div>
                   </div>
@@ -888,18 +940,19 @@ export function RecepcionPage() {
 
                   {/* Evidencias (Fotos y Firma) */}
                   {((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url || inspectionDetail.signature_url) && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <div className="recepcion-detail-evidence-grid">
                       {/* Foto */}
                       {((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url) && (
-                        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-                          <span style={{ display: 'block', background: '#f8fafc', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
+                        <div className="recepcion-detail-evidence-card">
+                          <span className="recepcion-detail-evidence-card__label">
+                            <Camera size={12} style={{ marginRight: 4 }} />
                             Evidencia Fotográfica
                           </span>
-                          <div style={{ padding: 10, display: 'flex', justifyContent: 'center', background: '#f8fafc' }}>
+                          <div className="recepcion-detail-evidence-card__image">
                             <img
                               src={getMediaUrl((inspectionDetail as any).photo_reception_url || (inspectionDetail as any).photo_url)}
                               alt="Evidencia vehículo"
-                              style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain', borderRadius: 6 }}
+                              className="recepcion-detail-evidence-image"
                               onError={(e) => {
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=300'
                               }}
@@ -910,15 +963,16 @@ export function RecepcionPage() {
 
                       {/* Firma */}
                       {inspectionDetail.signature_url && (
-                        <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
-                          <span style={{ display: 'block', background: '#f8fafc', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 600, color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
+                        <div className="recepcion-detail-evidence-card recepcion-detail-evidence-card--signature">
+                          <span className="recepcion-detail-evidence-card__label">
+                            <Pen size={12} style={{ marginRight: 4 }} />
                             Firma del Cliente
                           </span>
-                          <div style={{ padding: 10, display: 'flex', justifyContent: 'center', background: '#fff' }}>
+                          <div className="recepcion-detail-evidence-card__image">
                             <img
                               src={getMediaUrl(inspectionDetail.signature_url)}
                               alt="Firma del cliente"
-                              style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain' }}
+                              className="recepcion-detail-evidence-image"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none'
                               }}
@@ -930,16 +984,16 @@ export function RecepcionPage() {
                   )}
 
                   {/* Datos del Operario */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', background: '#f8fafc', padding: '0.85rem', borderRadius: 8 }}>
-                    <div>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Operador Asignado:</span>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
+                  <div className="recepcion-detail-operator-grid">
+                    <div className="recepcion-detail-operator-field">
+                      <span className="recepcion-detail-operator-field__label">Operador Asignado:</span>
+                      <p className="recepcion-detail-operator-field__value">
                         {inspectionDetail.operator_id ? `ID: ${inspectionDetail.operator_id}` : 'No asignado'}
                       </p>
                     </div>
-                    <div>
-                      <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Registrado el:</span>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '0.85rem', fontWeight: 500, color: '#334155' }}>
+                    <div className="recepcion-detail-operator-field">
+                      <span className="recepcion-detail-operator-field__label">Registrado el:</span>
+                      <p className="recepcion-detail-operator-field__value">
                         {formatDate(inspectionDetail.inspection_date || inspectionDetail.date || inspectionDetail.createdAt)}
                       </p>
                     </div>
@@ -951,24 +1005,10 @@ export function RecepcionPage() {
             </div>
 
             {/* Pie de Modal */}
-            <div style={{
-              padding: '1rem 1.5rem',
-              borderTop: '1px solid #f1f5f9',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              background: '#fafbfc',
-            }}>
+            <div className="recepcion-modal-footer">
               <button
                 onClick={() => setSelectedInspectionId(null)}
-                style={{
-                  background: '#155DFC',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                className="recepcion-modal-close-btn"
               >
                 Cerrar
               </button>

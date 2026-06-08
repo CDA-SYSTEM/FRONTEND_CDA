@@ -169,6 +169,107 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
+   1.5 STATS CARDS — cuadrícula de indicadores
+   ══════════════════════════════════════════════════════════════ */
+
+.recepcion-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .recepcion-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .recepcion-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recepcion-stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem;
+  border-radius: var(--rc-radius-card);
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-border);
+  box-shadow: var(--rc-shadow-card);
+  transition:
+    box-shadow var(--rc-dur-default) var(--rc-ease-out),
+    transform var(--rc-dur-default) var(--rc-ease-out);
+}
+
+.recepcion-stat-card:hover {
+  box-shadow: var(--rc-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.recepcion-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recepcion-stat-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--rc-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recepcion-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--rc-text);
+  line-height: 1.1;
+}
+
+.recepcion-stat-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--rc-text-subtle);
+  margin-top: 0.25rem;
+}
+
+.recepcion-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.recepcion-stat-card--total .recepcion-stat-icon {
+  background: rgba(21, 93, 252, 0.10);
+  color: #155dfc;
+}
+
+.recepcion-stat-card--espera .recepcion-stat-icon {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.recepcion-stat-card--proceso .recepcion-stat-icon {
+  background: rgba(59, 130, 246, 0.10);
+  color: #2563eb;
+}
+
+.recepcion-stat-card--completado .recepcion-stat-icon {
+  background: rgba(22, 163, 74, 0.10);
+  color: #16a34a;
+}
+
+/* ══════════════════════════════════════════════════════════════
    2. BARRA DE FILTROS — caja unificada card
    ══════════════════════════════════════════════════════════════ */
 .recepcion-filter-bar {
@@ -823,6 +924,175 @@
 
 .recepcion-modal-detail-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.16);
+}
+
+/* ── Status bar dentro del modal ── */
+.recepcion-detail-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.recepcion-detail-status-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.recepcion-detail-status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── Info Card reutilizable ── */
+.recepcion-detail-info-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recepcion-detail-info-card__header {
+  font-weight: 600;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 6px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recepcion-detail-info-card__row {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.recepcion-detail-info-card__row strong {
+  color: #1e293b;
+}
+
+/* ── Observaciones ── */
+.recepcion-detail-observations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recepcion-detail-observations__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--rc-text-muted);
+}
+
+.recepcion-detail-observations__text {
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #334155;
+  min-height: 60px;
+}
+
+/* ── Grid de evidencias (foto + firma) ── */
+.recepcion-detail-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.recepcion-detail-evidence-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.recepcion-detail-evidence-card__label {
+  display: block;
+  background: #f8fafc;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.recepcion-detail-evidence-card__image {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.recepcion-detail-evidence-card--signature .recepcion-detail-evidence-card__image {
+  background: #fff;
+}
+
+.recepcion-detail-evidence-image {
+  max-height: 150px;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* ── Datos del operario ── */
+.recepcion-detail-operator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  background: #f8fafc;
+  padding: 0.85rem;
+  border-radius: 8px;
+}
+
+.recepcion-detail-operator-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.recepcion-detail-operator-field__label {
+  font-size: 0.7rem;
+  color: var(--rc-text-muted);
+  font-weight: 600;
+}
+
+.recepcion-detail-operator-field__value {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* ── Modal footer ── */
+.recepcion-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  background: #fafbfc;
+}
+
+.recepcion-modal-close-btn {
+  background: var(--rc-accent);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--rc-dur-fast) var(--rc-ease-out);
+}
+
+.recepcion-modal-close-btn:hover {
+  background: var(--rc-accent-hover);
 }
 
 @keyframes modalFadeIn {

@@ -12,6 +12,18 @@ export function AppLayout() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebar-collapsed', String(next))
+      return next
+    })
+  }
+
   const [showConfirm, setShowConfirm] = useState(false)
 
   const openConfirm = () => setShowConfirm(true)
@@ -94,9 +106,9 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <Navigation />
+      <Navigation collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       
-      <div className="app-shell__main">
+      <div className={`app-shell__main${sidebarCollapsed ? ' app-shell__main--collapsed' : ''}`}>
         <header className="topbar">
           <div className="topbar-left">
             <strong>CDA Putumayo</strong>

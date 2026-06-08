@@ -57,6 +57,21 @@ export function FacturacionPage() {
   const [showReceptionDetail, setShowReceptionDetail] = useState<string | null>(null)
   const [receptionPaymentStatus, setReceptionPaymentStatus] = useState<string>('')
 
+  // Descargar documento PDF
+  const [cargandoDocumento, setCargandoDocumento] = useState(false)
+  const handleDescargarDocumento = async () => {
+    if (!selectedInvoice) return
+    setCargandoDocumento(true)
+    try {
+      const url = await facturaService.obtenerDocumento(selectedInvoice.id)
+      window.open(url, '_blank')
+    } catch {
+      console.error('Error al obtener documento')
+    } finally {
+      setCargandoDocumento(false)
+    }
+  }
+
   // ID de inspección para autogeneración
   const [inspectionIdToGen, setInspectionIdToGen] = useState('')
 
@@ -659,16 +674,28 @@ export function FacturacionPage() {
               )}
             </div>
             <div className="factura-modal-footer">
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setReceptionPaymentStatus(selectedInvoice.statusName || '')
-                  setShowReceptionDetail(selectedInvoice.inspection_id)
-                }}
-                style={{ fontSize: '0.85rem', marginRight: 'auto' }}
-              >
-                Ver Recepción
-              </button>
+              <div style={{ display: 'flex', gap: '8px', marginRight: 'auto' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setReceptionPaymentStatus(selectedInvoice.statusName || '')
+                    setShowReceptionDetail(selectedInvoice.inspection_id)
+                  }}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Ver Recepción
+                </button>
+                {selectedInvoice.statusName === 'Pagado' && (
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleDescargarDocumento}
+                    disabled={cargandoDocumento}
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    {cargandoDocumento ? 'Generando...' : 'Ver Factura PDF'}
+                  </button>
+                )}
+              </div>
               <button
                 className="btn btn-secondary"
                 onClick={() => setSelectedInvoice(null)}

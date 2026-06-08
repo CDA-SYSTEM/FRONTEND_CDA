@@ -99,6 +99,7 @@ export function AppLayout() {
       <div className="app-shell__main">
         <header className="topbar">
           <div className="topbar-left">
+            <img src="/logo_cda.svg" alt="Logo" style={{ height: 28, width: 'auto' }} />
             <strong>CDA Putumayo</strong>
           </div>
           <div className="topbar-right">

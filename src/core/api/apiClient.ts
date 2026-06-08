@@ -177,6 +177,10 @@ apiClient.interceptors.response.use(
         processQueue(error, null)
         authStore.logout()
         isRefreshing = false
+        if (!window.location.pathname.startsWith('/login')) {
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?onreturn=${returnTo}`
+        }
         return Promise.reject(error)
       }
 
@@ -211,6 +215,10 @@ apiClient.interceptors.response.use(
       } catch (err) {
         processQueue(err, null)
         authStore.logout()
+        if (!window.location.pathname.startsWith('/login')) {
+          const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = `/login?onreturn=${returnTo}`
+        }
         return Promise.reject(err)
       } finally {
         isRefreshing = false

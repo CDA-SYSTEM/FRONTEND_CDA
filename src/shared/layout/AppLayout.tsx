@@ -66,8 +66,8 @@ export function AppLayout() {
     try {
       await logout()
     } finally {
-      navigate('/login', { replace: true })
-      window.location.replace('/login')
+      const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
+      window.location.href = `/login?onreturn=${returnTo}`
     }
   }
 

@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Suppress warnings from missing Kotlin coroutines classes in R8/shrinkers
+-dontwarn kotlin.coroutines.jvm.internal.SpillingKt

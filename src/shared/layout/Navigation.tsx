@@ -25,7 +25,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: <Home size={20} /> },
+  { to: '/', label: 'Dashboard', icon: <Home size={20} />, roles: ['admin', 'manager', 'facturador'] },
   { to: '/usuarios', label: 'Usuarios', icon: <Users size={20} />, roles: ['admin'] },
   { to: '/recepcion', label: 'Recepción', icon: <LayoutDashboard size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },
   { to: '/clientes', label: 'Clientes', icon: <Users size={20} />, roles: ['admin', 'recepcionista', 'manager', 'operario'] },

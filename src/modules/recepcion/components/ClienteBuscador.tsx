@@ -16,8 +16,6 @@ interface Props {
   onLimitChange: (l: number) => void
   totalElementos: number
   totalPages: number
-  incluirInactivos: boolean
-  onIncluirInactivosChange: (inc: boolean) => void
 }
 
 export function ClienteBuscador({
@@ -34,8 +32,6 @@ export function ClienteBuscador({
   onLimitChange,
   totalElementos,
   totalPages,
-  incluirInactivos,
-  onIncluirInactivosChange,
 }: Props) {
   const { user } = useAuthStore()
   const puedeEliminar =
@@ -65,17 +61,6 @@ export function ClienteBuscador({
           />
         </div>
 
-        <div className="cl-checkbox-row">
-          <input
-            type="checkbox"
-            id="inc-inactivos"
-            checked={incluirInactivos}
-            onChange={(e) => onIncluirInactivosChange(e.target.checked)}
-          />
-          <label className="cl-checkbox-label" htmlFor="inc-inactivos">
-            Incluir clientes eliminados o inactivos
-          </label>
-        </div>
       </div>
 
       {/* Error */}

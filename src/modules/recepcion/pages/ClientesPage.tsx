@@ -175,8 +175,6 @@ export function ClientesPage() {
           onLimitChange={buscador.setLimite}
           totalElementos={buscador.totalElementos}
           totalPages={buscador.totalPages}
-          incluirInactivos={buscador.incluirInactivos}
-          onIncluirInactivosChange={buscador.setIncluirInactivos}
         />
       )}
 

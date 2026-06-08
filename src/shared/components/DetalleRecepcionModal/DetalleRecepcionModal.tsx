@@ -50,11 +50,12 @@ function getMediaUrl(path?: string) {
 interface Props {
   inspectionId: string | null
   onClose: () => void
+  paymentStatusName?: string
 }
 
 /* ── Componente ──────────────────────────────────────────────────────────── */
 
-export function DetalleRecepcionModal({ inspectionId, onClose }: Props) {
+export function DetalleRecepcionModal({ inspectionId, onClose, paymentStatusName }: Props) {
   const [detail, setDetail] = useState<InspectionDetail | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -162,7 +163,37 @@ export function DetalleRecepcionModal({ inspectionId, onClose }: Props) {
             </div>
           ) : detail ? (
             <>
-              {/* Estado */}
+              {/* Estado de Pago (desde factura) */}
+              {paymentStatusName && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 1rem',
+                    background: paymentStatusName === 'Pagado' ? '#d1fae5' : '#fef3c7',
+                    borderRadius: 8,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: paymentStatusName === 'Pagado' ? '#059669' : '#d97706', fontSize: '0.875rem' }}>
+                    Estado de Pago
+                  </span>
+                  <span
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      background: paymentStatusName === 'Pagado' ? '#059669' : '#d97706',
+                      color: '#fff',
+                    }}
+                  >
+                    {paymentStatusName.toUpperCase()}
+                  </span>
+                </div>
+              )}
+
+              {/* Estado del Vehículo */}
               {badge && (
                 <div
                   style={{

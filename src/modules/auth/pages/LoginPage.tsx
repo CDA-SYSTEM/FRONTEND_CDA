@@ -32,15 +32,12 @@ declare global {
 }
 
 
-/**
- * Mapeo de rutas por rol del usuario
- */
 const DASHBOARD_ROUTES: Record<string, string> = {
-  ADMIN: '/admin/dashboard',
-  MANAGER: '/recepcion',
-  OPERARIO: '/recepcion',
-  INSPECTOR: '/inspeccion/asignacion',
-  FACTURADOR: '/facturacion',
+  admin: '/admin/dashboard',
+  manager: '/recepcion',
+  operario: '/recepcion',
+  inspector: '/inspeccion/asignacion',
+  facturador: '/facturacion',
 }
 
 const LOGIN_TITLE = 'CDA del Putumayo'

@@ -155,7 +155,10 @@ export function PreciosPage() {
   }
 
   const user = useAuthStore((state) => state.user)
-  const isAdmin = user?.role === 'ADMIN'
+  const isAdmin =
+    user?.role === 'SUPERADMIN' ||
+    user?.role === 'ROLE_SUPERADMIN' ||
+    user?.role === 'ADMIN'
 
   const formatCOP = (val: number) => {
     return new Intl.NumberFormat('es-CO', {

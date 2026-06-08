@@ -34,6 +34,8 @@ function RoleBasedRedirect() {
   // Backend: ADMIN | MANAGER | OPERARIO | INSPECTOR | FACTURADOR
   const roleRoutes: Record<string, string> = {
     ADMIN: '/admin/dashboard',
+    SUPERADMIN: '/admin/dashboard',
+    ROLE_SUPERADMIN: '/admin/dashboard',
     MANAGER: '/recepcion',
     OPERARIO: '/recepcion',
     INSPECTOR: '/inspeccion/asignacion',

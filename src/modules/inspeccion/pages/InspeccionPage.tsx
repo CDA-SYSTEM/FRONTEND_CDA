@@ -45,7 +45,10 @@ function resultadoEstilo(result?: InspectionResult) {
 
 export function InspeccionPage() {
   const user = useAuthStore((state) => state.user)
-  const esLectura = user?.role !== 'ADMIN'
+  const esLectura =
+    user?.role !== 'ADMIN' &&
+    user?.role !== 'SUPERADMIN' &&
+    user?.role !== 'ROLE_SUPERADMIN'
 
   const [placa, setPlaca] = useState('')
   const [cargando, setCargando] = useState(false)

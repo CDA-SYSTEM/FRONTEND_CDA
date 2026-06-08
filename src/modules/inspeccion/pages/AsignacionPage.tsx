@@ -162,7 +162,10 @@ export function AsignacionPage() {
   const [errorLabrado, setErrorLabrado] = useState<string | null>(null)
   const labradoRequestSeq = useRef(0)
 
-  const tieneAcceso = ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
+  const tieneAcceso =
+    user?.role === 'SUPERADMIN' ||
+    user?.role === 'ROLE_SUPERADMIN' ||
+    ROLES_PERMITIDOS.includes(user?.role ?? ('' as UserRole))
 
   const selectedInspection = useMemo(
     () => inspecciones.find((i) => i.id === selectedInspectionId) ?? null,

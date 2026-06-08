@@ -44,7 +44,12 @@ export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const filteredItems = navItems.filter(
-    (item) => !item.roles || (user?.role && item.roles.includes(user.role))
+    (item) =>
+      !item.roles ||
+      (user?.role &&
+        (user.role === 'SUPERADMIN' ||
+          user.role === 'ROLE_SUPERADMIN' ||
+          item.roles.includes(user.role))),
   )
 
   return (

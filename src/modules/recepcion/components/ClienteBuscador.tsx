@@ -38,7 +38,12 @@ export function ClienteBuscador({
   onIncluirInactivosChange,
 }: Props) {
   const { user } = useAuthStore()
-  const puedeEliminar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
+  const puedeEliminar =
+    user?.role === 'SUPERADMIN' ||
+    user?.role === 'ROLE_SUPERADMIN' ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'MANAGER' ||
+    user?.role === 'OPERARIO'
 
   return (
     <div>

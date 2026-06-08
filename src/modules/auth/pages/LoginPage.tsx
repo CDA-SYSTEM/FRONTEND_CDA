@@ -333,10 +333,10 @@ export function LoginPage() {
                 {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
               </button>
 
-              <div className="form-demo-creds">
-                <span className="demo-label">Credenciales de demostración</span>
+              <details className="form-demo-creds">
+                <summary className="demo-label">Credenciales de demostración</summary>
                 <code>admin@cdaputumayo.com / admin123</code>
-              </div>
+              </details>
 
               <div className="auth-divider">
                 <span>o continúa con</span>
@@ -358,6 +358,11 @@ export function LoginPage() {
                   <span>Ingresar con Google</span>
                 </button>
                 <div id="google-signin-btn-container" className="google-signin-overlay"></div>
+              </div>
+
+              <div className="form-support">
+                <span>¿Necesitas ayuda?</span>
+                <a href="#" onClick={(e) => e.preventDefault()}>Soporte técnico</a>
               </div>
             </form>
           </section>

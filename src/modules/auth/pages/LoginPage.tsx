@@ -34,6 +34,7 @@ declare global {
 
 const DASHBOARD_ROUTES: Record<string, string> = {
   admin: '/admin/dashboard',
+  superadmin: '/admin/dashboard',
   manager: '/recepcion',
   operario: '/recepcion',
   inspector: '/inspeccion/asignacion',
@@ -101,7 +102,8 @@ export function LoginPage() {
       } else if (fromState && !fromState.startsWith('/login')) {
         navigate(fromState, { replace: true })
       } else {
-        const dashboardRoute = DASHBOARD_ROUTES[user.role] || '/dashboard'
+        const roleKey = (user.role || '').toLowerCase()
+        const dashboardRoute = DASHBOARD_ROUTES[roleKey] || '/dashboard'
         navigate(dashboardRoute, { replace: true })
       }
     }

@@ -103,10 +103,13 @@
   justify-content: center;
   width: 36px;
   height: 36px;
+  min-height: unset !important;
+  padding: 0 !important;
+  box-shadow: none !important;
   border: none;
   border-radius: 10px;
-  background: #f1f5f9;
-  color: #475569;
+  background: #f1f5f9 !important;
+  color: #475569 !important;
   cursor: pointer;
   transition:
     background 120ms ease,
@@ -115,9 +118,18 @@
   flex-shrink: 0;
 }
 
+.topbar-toggle svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor !important;
+  stroke-width: 2.5px !important;
+  fill: none !important;
+  flex-shrink: 0;
+}
+
 .topbar-toggle:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .topbar-toggle:active {

@@ -89,9 +89,7 @@ export const inspeccionService = {
   async asignarInspector(inspectionId: string, operatorId: string): Promise<void> {
     const formData = new FormData()
     formData.append('data', JSON.stringify({ operator_id: operatorId }))
-    await apiClient.patch(`/api/v1/inspections/${inspectionId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    await apiClient.patch(`/api/v1/inspections/${inspectionId}`, formData)
   },
 
   async eliminar(id: string): Promise<void> {
@@ -100,9 +98,9 @@ export const inspeccionService = {
 
   async actualizar(id: string, data: FormData | Record<string, unknown>): Promise<void> {
     if (data instanceof FormData) {
-      await apiClient.patch(`/api/v1/inspections/${id}`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      // NOTA: axios detecta FormData y asigna Content-Type con boundary automáticamente.
+      // No establecer manualmente o se pierde el boundary.
+      await apiClient.patch(`/api/v1/inspections/${id}`, data)
     } else {
       await apiClient.patch(`/api/v1/inspections/${id}`, data)
     }

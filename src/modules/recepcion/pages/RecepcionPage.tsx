@@ -138,6 +138,7 @@ export function RecepcionPage() {
   const [editSignatureBlob, setEditSignatureBlob] = useState<Blob | null>(null)
   const [guardandoEdicion, setGuardandoEdicion] = useState(false)
   const [editStatusId, setEditStatusId] = useState('')
+  const [editError, setEditError] = useState<string | null>(null)
 
   // Modal de Eliminación
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -227,27 +228,29 @@ export function RecepcionPage() {
   // Cargar datos en el formulario de edición al seleccionar
   const iniciarEdicion = async (insp: InspectionSummary) => {
     setEditInspectionId(insp.id)
-    setEditMileage(insp.mileage || '')
-    setEditObservations('')
+    setEditMileage(insp.mileage ?? '')
+    setEditObservations(insp.observations ?? insp.observations_text ?? '')
     setEditPhoto(null)
     setEditSignatureBlob(null)
     setEditStatusId('')
-    
+    setEditError(null)
+
+    const statusId = (insp as any).statusId || insp.status_id || (insp as any).status?.id
+    if (statusId) setEditStatusId(String(statusId))
+
     try {
       const detail = await inspeccionService.obtenerDetalle(insp.id)
       if (detail) {
-        setEditMileage(detail.mileage || '')
-        setEditObservations(detail.observations || '')
-        if ((detail as any).statusId) {
-          setEditStatusId(String((detail as any).statusId))
-        } else if (detail.status_id) {
-          setEditStatusId(String(detail.status_id))
-        } else if ((detail as any).status?.id) {
-          setEditStatusId(String((detail as any).status.id))
-        }
+        setEditMileage(detail.mileage ?? '')
+        setEditObservations(detail.observations ?? detail.observations_text ?? '')
+        const detailStatusId = (detail as any).statusId || detail.status_id || (detail as any).status?.id
+        if (detailStatusId) setEditStatusId(String(detailStatusId))
+      } else {
+        setEditError('No se pudo cargar el detalle de la inspección.')
       }
     } catch (err) {
       console.error('Error al precargar observaciones para edición', err)
+      setEditError('Error al conectar con el servidor.')
     }
   }
 
@@ -257,23 +260,25 @@ export function RecepcionPage() {
     if (!editInspectionId) return
     setGuardandoEdicion(true)
     try {
-      const payload: Record<string, unknown> = {
-        mileage: Number(editMileage),
-        observations: editObservations,
-      }
-      
-      const formData = new FormData()
-      formData.append('data', JSON.stringify(payload))
-      
-      if (editPhoto) {
-        formData.append('photo', editPhoto)
-      }
-      if (editSignatureBlob) {
-        formData.append('signature', editSignatureBlob, 'signature.png')
-      }
-      
-      // Actualizar datos de inspección
-      await inspeccionService.actualizar(editInspectionId, formData)
+        const mileageVal = editMileage === '' || editMileage === null || editMileage === undefined ? 0 : Number(editMileage)
+
+        const payload: Record<string, unknown> = {
+          mileage: mileageVal,
+          observations: editObservations,
+        }
+        
+        const formData = new FormData()
+        formData.append('data', JSON.stringify(payload))
+        
+        if (editPhoto) {
+          formData.append('photo', editPhoto)
+        }
+        if (editSignatureBlob) {
+          formData.append('signature', editSignatureBlob, 'signature.png')
+        }
+        
+        // Actualizar datos de inspección
+        await inspeccionService.actualizar(editInspectionId, formData)
 
       // Actualizar estado si fue seleccionado uno válido
       if (editStatusId) {
@@ -1111,7 +1116,21 @@ export function RecepcionPage() {
 
             {/* Contenido Formulario */}
             <div className="recepcion-modal-edit-body">
-              
+
+              {editError && (
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                }}>
+                  {editError}
+                </div>
+              )}
+
               {/* Kilometraje */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>

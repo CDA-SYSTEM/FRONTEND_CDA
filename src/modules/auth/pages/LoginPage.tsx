@@ -92,7 +92,8 @@ export function LoginPage() {
    */
   useEffect(() => {
     if (user) {
-      const dashboardRoute = DASHBOARD_ROUTES[user.role] || '/dashboard'
+      const roleKey = (user.role || '').toLowerCase()
+      const dashboardRoute = DASHBOARD_ROUTES[roleKey] || '/dashboard'
       navigate(dashboardRoute, { replace: true })
     }
   }, [user, navigate])

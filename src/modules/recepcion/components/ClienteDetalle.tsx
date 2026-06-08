@@ -12,7 +12,7 @@ import { CustomSelect } from '@/shared/components/CustomSelect'
 interface Props {
   clienteInicial: ClientePersonaNatural
   onVolver: () => void
-  onActualizado: () => void
+  onActualizado: (keepOpen?: boolean) => void
 }
 
 // Grid layout helper
@@ -221,7 +221,7 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
       await clienteService.activarCliente(cliente.id)
       showToast('Cliente reactivado correctamente.', 'success')
       setCliente((prev) => ({ ...prev, active: true }))
-      onActualizado()
+      onActualizado(true)
     } catch (err) {
       showToast('No se pudo reactivar el cliente.', 'error')
     } finally {

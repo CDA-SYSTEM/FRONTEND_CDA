@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Loader2, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'
@@ -102,6 +102,10 @@ function Flex({ justify = 'start', align = 'center', gap = '0.75rem', children, 
 
 export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Props) {
   const { user } = useAuthStore()
+  const [cliente, setCliente] = useState<ClientePersonaNatural>(clienteInicial)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
   const [cargandoVehiculos, setCargandoVehiculos] = useState(true)
   const [actualizando, setActualizando] = useState(false)
@@ -113,6 +117,17 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
 
   const puedeEditar = user?.role === 'ADMIN' || user?.role === 'MANAGER' || user?.role === 'OPERARIO'
 
+  useEffect(() => {
+    setCliente(clienteInicial)
+  }, [clienteInicial])
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    setTimeout(() => {
+      setToast(null)
+    }, 3000)
+  }
+
   const {
     register,
     handleSubmit,
@@ -123,15 +138,15 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   } = useForm<ClienteSchema>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
-      nombre: clienteInicial.nombre,
-      apellido: clienteInicial.apellido,
-      identity: clienteInicial.identity,
-      celular: clienteInicial.celular,
-      email: clienteInicial.email ?? '',
-      direccion: clienteInicial.direccion ?? '',
-      birthDate: clienteInicial.birthDate ?? '',
-      documentTypeId: clienteInicial.documentTypeId,
-      personTypeId: clienteInicial.personTypeId,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      identity: cliente.identity,
+      celular: cliente.celular,
+      email: cliente.email ?? '',
+      direccion: cliente.direccion ?? '',
+      birthDate: cliente.birthDate ?? '',
+      documentTypeId: cliente.documentTypeId,
+      personTypeId: cliente.personTypeId,
     },
   })
 
@@ -143,7 +158,7 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     async function load() {
       try {
         const [v, docs, personas] = await Promise.all([
-          vehiculoService.obtenerVehiculosCliente(clienteInicial.id),
+          vehiculoService.obtenerVehiculosCliente(cliente.id),
           clienteService.obtenerTiposDocumento(),
           clienteService.obtenerTiposPersona(),
         ])
@@ -162,38 +177,53 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     return () => {
       mounted = false
     }
-  }, [clienteInicial.id])
+  }, [cliente.id])
 
-  // Reset form when clienteInicial changes
+  // Reset form when cliente changes
   useEffect(() => {
     reset({
-      nombre: clienteInicial.nombre,
-      apellido: clienteInicial.apellido,
-      identity: clienteInicial.identity,
-      celular: clienteInicial.celular,
-      email: clienteInicial.email ?? '',
-      direccion: clienteInicial.direccion ?? '',
-      birthDate: clienteInicial.birthDate ?? '',
-      documentTypeId: clienteInicial.documentTypeId,
-      personTypeId: clienteInicial.personTypeId,
+      nombre: cliente.nombre,
+      apellido: cliente.apellido,
+      identity: cliente.identity,
+      celular: cliente.celular,
+      email: cliente.email ?? '',
+      direccion: cliente.direccion ?? '',
+      birthDate: cliente.birthDate ?? '',
+      documentTypeId: cliente.documentTypeId,
+      personTypeId: cliente.personTypeId,
     })
-  }, [clienteInicial, reset])
+  }, [cliente, reset])
 
-  const docTipoNombre = tiposDocumento.find((d) => d.id === clienteInicial.documentTypeId)?.nombre || '—'
-  const persTipoNombre = tiposPersona.find((p) => p.id === clienteInicial.personTypeId)?.nombre || '—'
+  const docTipoNombre = tiposDocumento.find((d) => d.id === cliente.documentTypeId)?.nombre || '—'
+  const persTipoNombre = tiposPersona.find((p) => p.id === cliente.personTypeId)?.nombre || '—'
 
   const onSubmit = async (data: ClienteSchema) => {
     if (!puedeEditar) return
     setActualizando(true)
     setError(null)
     try {
-      await clienteService.actualizarCliente(clienteInicial.id, data)
-      alert('Cliente actualizado con éxito')
+      await clienteService.actualizarCliente(cliente.id, data)
+      showToast('Cliente actualizado con éxito', 'success')
       setIsEditing(false)
       onActualizado()
     } catch (err) {
       console.error(err)
       setError('No se pudo actualizar el cliente.')
+    } finally {
+      setActualizando(false)
+    }
+  }
+
+  const handleReactivar = async () => {
+    setIsConfirmOpen(false)
+    setActualizando(true)
+    try {
+      await clienteService.activarCliente(cliente.id)
+      showToast('Cliente reactivado correctamente.', 'success')
+      setCliente((prev) => ({ ...prev, active: true }))
+      onActualizado()
+    } catch (err) {
+      showToast('No se pudo reactivar el cliente.', 'error')
     } finally {
       setActualizando(false)
     }
@@ -232,13 +262,13 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
             <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--cl-text)' }}>Detalles del Cliente</h2>
           </Flex>
           
-          <span className={`cl-badge ${(clienteInicial as any).active !== false ? 'cl-badge--active' : 'cl-badge--inactive'}`}>
-            {(clienteInicial as any).active !== false ? 'Activo' : 'Inactivo'}
+          <span className={`cl-badge ${(cliente as any).active !== false ? 'cl-badge--active' : 'cl-badge--inactive'}`}>
+            {(cliente as any).active !== false ? 'Activo' : 'Inactivo'}
           </span>
         </Flex>
 
         {/* Estado y Reactivación */}
-        {clienteInicial && !(clienteInicial as any).active && (
+        {cliente && !(cliente as any).active && (
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -255,19 +285,7 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
             {puedeEditar && (
               <button
                 type="button"
-                onClick={async () => {
-                  if (!window.confirm('¿Desea reactivar este cliente?')) return
-                  setActualizando(true)
-                  try {
-                    await clienteService.activarCliente(clienteInicial.id)
-                    alert('Cliente reactivado correctamente.')
-                    onActualizado()
-                  } catch (err) {
-                    alert('No se pudo reactivar el cliente.')
-                  } finally {
-                    setActualizando(false)
-                  }
-                }}
+                onClick={() => setIsConfirmOpen(true)}
                 disabled={actualizando}
                 className="btn btn-primary"
                 style={{ minHeight: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
@@ -367,21 +385,21 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
           <>
             <DataDisplayGroup>
               <Grid columns={2} gap="1.75rem">
-                <InfoField label="Nombre" value={clienteInicial.nombre} />
-                <InfoField label="Apellido" value={clienteInicial.apellido} />
+                <InfoField label="Nombre" value={cliente.nombre} />
+                <InfoField label="Apellido" value={cliente.apellido} />
                 
-                <InfoField label="Documento" value={clienteInicial.identity} />
-                <InfoField label="Celular" value={clienteInicial.celular} />
+                <InfoField label="Documento" value={cliente.identity} />
+                <InfoField label="Celular" value={cliente.celular} />
                 
                 <InfoField label="Tipo de documento" value={docTipoNombre} />
                 <InfoField label="Tipo de persona" value={persTipoNombre} />
                 
-                <InfoField label="Correo electrónico" value={clienteInicial.email} />
-                <InfoField label="Dirección" value={clienteInicial.direccion} />
+                <InfoField label="Correo electrónico" value={cliente.email} />
+                <InfoField label="Dirección" value={cliente.direccion} />
               </Grid>
             </DataDisplayGroup>
 
-            {puedeEditar && clienteInicial && (clienteInicial as any).active !== false && (
+            {puedeEditar && cliente && (cliente as any).active !== false && (
               <Flex justify="between" style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--cl-border)' }}>
                 <button
                   type="button"
@@ -390,8 +408,8 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                     setActualizando(true)
                     setError(null)
                     try {
-                      await clienteService.eliminarCliente(clienteInicial.id)
-                      alert('Cliente eliminado con éxito')
+                      await clienteService.eliminarCliente(cliente.id)
+                      showToast('Cliente eliminado con éxito', 'success')
                       onActualizado()
                     } catch (err) {
                       console.error(err)
@@ -474,6 +492,49 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
           </div>
         )}
       </article>
+
+      {/* Modal de Confirmación de Reactivación */}
+      {isConfirmOpen && (
+        <div className="reactivate-modal-overlay">
+          <div className="reactivate-modal-window">
+            <div className="reactivate-modal-header">
+              <h3>Reactivar Cliente</h3>
+              <button className="reactivate-modal-close" onClick={() => setIsConfirmOpen(false)} type="button">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="reactivate-modal-body">
+              <p>¿Desea reactivar este cliente? Al hacerlo, volverá a estar activo en el sistema.</p>
+            </div>
+            <div className="reactivate-modal-footer">
+              <button
+                type="button"
+                className="cl-btn-view"
+                onClick={() => setIsConfirmOpen(false)}
+                style={{ margin: 0 }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="cl-btn-primary"
+                onClick={handleReactivar}
+                style={{ background: '#0b224e', borderColor: '#0b224e', color: '#fff', margin: 0 }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notificación Toast */}
+      {toast && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   )
 }

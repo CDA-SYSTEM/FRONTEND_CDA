@@ -127,6 +127,7 @@ export const clienteService = {
     personTypeId?: number
     page?: number
     size?: number
+    active?: boolean
   }): Promise<{
     content: ClientePersonaNatural[]
     totalElements: number
@@ -139,6 +140,7 @@ export const clienteService = {
         personTypeId: params.personTypeId || undefined,
         page: params.page ?? 0,
         size: params.size ?? 10,
+        active: params.active,
       },
     })
     const body = response.data as Record<string, any>

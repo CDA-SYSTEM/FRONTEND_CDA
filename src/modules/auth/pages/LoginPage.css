@@ -359,7 +359,7 @@
 .form-grid input {
   padding: 0;
   height: var(--touch-target);
-  padding-inline: 2.75rem 3rem;
+  padding-inline: 2.75rem 0.75rem;
   border: 1px solid var(--border-input);
   border-radius: var(--radius-input);
   font-size: 0.9375rem;
@@ -373,6 +373,8 @@
     background   0.22s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   width: 100%;
+  min-width: 0;
+  flex: 1;
   -webkit-text-fill-color: var(--text-primary);
   touch-action: manipulation;
   outline: none;
@@ -412,36 +414,29 @@
 
 /* Password toggle */
 .input-toggle {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
   border: none;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.65);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   border-radius: 8px;
-  transition: color 0.15s, background 0.15s, box-shadow 0.15s;
-  z-index: 2;
+  transition: color 0.15s, background 0.15s;
   padding: 0;
-  box-shadow: 0 0 0 transparent;
   flex-shrink: 0;
+  margin-inline: 0 0.125rem;
 }
 
 .input-toggle:hover {
   color: #ffffff;
-  background: rgba(21, 93, 252, 0.25);
-  box-shadow: 0 0 12px rgba(21, 93, 252, 0.20);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .input-toggle:active {
-  background: rgba(21, 93, 252, 0.35);
-  box-shadow: 0 0 8px rgba(21, 93, 252, 0.15);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .input-toggle svg {
@@ -475,10 +470,10 @@
 .checkbox-label input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 0.85rem;
+  height: 0.85rem;
   border: 1.5px solid var(--border-input);
-  border-radius: 4px;
+  border-radius: 3px;
   background: transparent;
   cursor: pointer;
   flex-shrink: 0;
@@ -497,10 +492,10 @@
   position: absolute;
   top: 45%;
   left: 50%;
-  width: 5px;
-  height: 9px;
+  width: 4px;
+  height: 7px;
   border: solid #fff;
-  border-width: 0 2px 2px 0;
+  border-width: 0 1.5px 1.5px 0;
   transform: translate(-50%, -50%) rotate(45deg);
 }
 

@@ -146,7 +146,7 @@ export function LoginPage() {
     const initializeGoogle = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '1060935515286-a2a3cl12n6csmg2tksac22c0m8r7mcl5.apps.googleusercontent.com',
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
           callback: (res) => handleGoogleLoginRef.current(res),
         })
 

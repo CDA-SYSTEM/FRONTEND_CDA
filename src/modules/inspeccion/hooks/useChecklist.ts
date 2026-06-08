@@ -64,6 +64,7 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
   useEffect(() => {
     let mounted = true
+    let draftRestored = false
 
     async function inicializar() {
       setEstado('cargando')
@@ -84,6 +85,16 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
         setVehicleType(tipo)
         setResponses(responsesFromChecklist(detalle))
         setInspectorId(detalle.inspector_id || '')
+
+        /* HU-037b: Sobrescribir con borrador local síncrono si existe (post-401 / F5) */
+        const draftKey = vehicleTypeFromUrl ? getDraftKey(vehicleTypeFromUrl, inspectionId) : null
+        const draftData = draftKey ? loadDraft(draftKey) : null
+        if (draftData) {
+          draftRestored = true
+          if (draftData.responses?.length) setResponses(new Map(draftData.responses))
+          if (typeof draftData.observaciones === 'string') setObservaciones(draftData.observaciones)
+          if (draftData.inspectorId) setInspectorId(draftData.inspectorId)
+        }
 
         // Cargar inspectores
         setCargandoInspectores(true)
@@ -129,8 +140,9 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
 
     inicializar()
 
-    /* HU-037: Restaurar datos offline guardados para esta inspección */
+    /* HU-037: Restaurar datos offline guardados para esta inspección (solo si no hay borrador local) */
     ;(async () => {
+      if (draftRestored) return
       try {
         const savedInspection = await offlineStorage.obtenerMetadata(`inspection:${inspectionId}`)
         if (savedInspection === inspectionId) {
@@ -140,16 +152,6 @@ export function useChecklist(inspectionId: string, vehicleTypeFromUrl?: VehicleT
           if (savedFotos.size > 0) setItemPhotos(savedFotos)
           const savedObs = await offlineStorage.obtenerMetadata(`observaciones:${inspectionId}`)
           if (savedObs) setObservaciones(savedObs)
-        }
-
-        /* HU-037b: Restaurar borrador local síncrono (post-401 recovery) —
-           tiene prioridad sobre IndexedDB porque localStorage es más reciente */
-        const key = getDraftKey(tipo, inspectionId)
-        const draft = loadDraft(key)
-        if (draft) {
-          if (draft.responses && draft.responses.length > 0) setResponses(new Map(draft.responses))
-          if (typeof draft.observaciones === 'string') setObservaciones(draft.observaciones)
-          if (draft.inspectorId) setInspectorId(draft.inspectorId)
         }
       } catch {
         // Silencioso

@@ -62,10 +62,10 @@ export function AppLayout() {
   }
 
   const handleConfirmLogout = async () => {
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
     try {
       await logout()
     } finally {
-      const returnTo = encodeURIComponent(window.location.pathname + window.location.search)
       window.location.href = `/login?onreturn=${returnTo}`
     }
   }

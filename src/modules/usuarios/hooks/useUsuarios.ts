@@ -111,7 +111,11 @@ export function useUsuarios() {
     if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
     try {
       clearFeedback()
-      await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
+      if (tab === 'cuentas') {
+        await usuarioService.cambiarRolAuthAccount(id, { role: nuevoRol })
+      } else {
+        await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
+      }
       setMensaje('Rol actualizado correctamente.')
       if (tab === 'usuarios') {
         cargarUsuarios()

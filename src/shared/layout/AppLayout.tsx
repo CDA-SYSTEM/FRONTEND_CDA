@@ -119,7 +119,6 @@ export function AppLayout() {
             >
               {sidebarCollapsed ? <PanelLeftOpen size={20} strokeWidth={2.5} /> : <PanelLeftClose size={20} strokeWidth={2.5} />}
             </button>
-            <img src="/logo_cda.svg" alt="Logo" style={{ height: 28, width: 'auto' }} />
             <strong>CDA Putumayo</strong>
           </div>
           <div className="topbar-right">

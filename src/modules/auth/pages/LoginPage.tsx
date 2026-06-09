@@ -113,6 +113,11 @@ export function LoginPage() {
   }, [user, navigate, location])
 
   useEffect(() => {
+    // Only set fallback if Capacitor is present (on web, standard GoogleLogin is used)
+    if (typeof window === 'undefined' || !(window as any).Capacitor) {
+      return
+    }
+
     // 1. OAUTH FALLBACK INJECTION AND ERROR HANDLING
     const SCRIPT_URL = 'https://accounts.google.com/gsi/client'
     let script = document.querySelector(`script[src="${SCRIPT_URL}"]`) as HTMLScriptElement

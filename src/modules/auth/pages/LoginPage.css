@@ -660,6 +660,7 @@
   border-radius: var(--radius-input) !important;
 }
 
+.btn-google-custom,
 .btn-google-oauth {
   width: 100% !important;
   box-sizing: border-box !important;
@@ -678,11 +679,13 @@
   padding: 0 16px !important;
 }
 
+.btn-google-custom:hover,
 .btn-google-oauth:hover {
   background-color: #f8f9fa !important;
   border-color: #c3d7f7 !important;
 }
 
+.btn-google-custom:active,
 .btn-google-oauth:active {
   background-color: #f1f3f4 !important;
 }

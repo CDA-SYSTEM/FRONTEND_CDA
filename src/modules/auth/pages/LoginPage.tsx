@@ -65,7 +65,7 @@ export function LoginPage() {
     return typeof window !== 'undefined' && window.innerWidth < 480 ? 300 : 380
   })
   const [useGoogleFallback, setUseGoogleFallback] = useState(() => {
-    return typeof window !== 'undefined' && !!(window as any).Capacitor
+    return typeof window !== 'undefined' && window.location.hostname === 'localhost' && !!(window as any).Capacitor
   })
 
   useEffect(() => {
@@ -113,8 +113,9 @@ export function LoginPage() {
   }, [user, navigate, location])
 
   useEffect(() => {
-    // Only set fallback if Capacitor is present (on web, standard GoogleLogin is used)
-    if (typeof window === 'undefined' || !(window as any).Capacitor) {
+    const isAndroidAPK = typeof window !== 'undefined' && window.location.hostname === 'localhost' && !!(window as any).Capacitor
+
+    if (!isAndroidAPK) {
       return
     }
 
@@ -122,16 +123,42 @@ export function LoginPage() {
     const SCRIPT_URL = 'https://accounts.google.com/gsi/client'
     let script = document.querySelector(`script[src="${SCRIPT_URL}"]`) as HTMLScriptElement
 
+    const initGoogle = () => {
+      const g = (window as any).google
+      if (g?.accounts?.id) {
+        try {
+          g.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim(),
+            callback: (res: any) => {
+              if (res.credential) {
+                handleGoogleLogin({ credential: res.credential })
+              }
+            },
+            ux_mode: 'popup', // Forzar siempre popup para evitar el escape al navegador externo
+            context: 'signin'
+          })
+        } catch (err) {
+          console.error('Error initializing Google Accounts GSI:', err)
+        }
+      }
+    }
+
     if (!script) {
       script = document.createElement('script')
       script.src = SCRIPT_URL
       script.async = true
       script.defer = true
+      script.onload = initGoogle
       script.onerror = () => {
         setUseGoogleFallback(true)
       }
       document.body.appendChild(script)
     } else {
+      if ((window as any).google?.accounts?.id) {
+        initGoogle()
+      } else {
+        script.addEventListener('load', initGoogle)
+      }
       script.addEventListener('error', () => setUseGoogleFallback(true))
     }
 
@@ -341,9 +368,24 @@ export function LoginPage() {
                 {useGoogleFallback ? (
                   <button
                     type="button"
-                    className="btn-google-oauth"
-                    onClick={() => {
-                      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+                    className="btn-google-custom"
+                    onClick={async () => {
+                      const Capacitor = (window as any).Capacitor
+                      const GoogleAuth = Capacitor?.Plugins?.GoogleAuth
+                      if (GoogleAuth) {
+                        try {
+                          const user = await GoogleAuth.signIn()
+                          if (user?.authentication?.idToken) {
+                            handleGoogleLogin({ credential: user.authentication.idToken })
+                            return
+                          }
+                        } catch (err) {
+                          console.error('Capacitor GoogleAuth error:', err)
+                        }
+                      }
+                      
+                      // Fallback implicit OAuth redirect
+                      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim()
                       const redirectUri = window.location.origin
                       const nonce = Math.random().toString(36).substring(2)
                       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20email%20profile&nonce=${nonce}`

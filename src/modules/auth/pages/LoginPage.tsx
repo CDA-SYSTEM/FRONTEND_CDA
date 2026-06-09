@@ -281,7 +281,7 @@ export function LoginPage() {
 
               <div className="google-btn-wrapper">
                 <GoogleLogin
-                  onSuccess={(credentialResponse) => {
+                  onSuccess={(credentialResponse: any) => {
                     if (credentialResponse.credential) {
                       handleGoogleLogin({ credential: credentialResponse.credential })
                     }

@@ -168,6 +168,12 @@ export const usuarioService = {
     })
   },
 
+  async cambiarRolAuthAccount(id: string, payload: { role: string }): Promise<void> {
+    await apiClient.patch(`/auth/admin/personnel/${id}/role`, {
+      role: payload.role,
+    })
+  },
+
   async obtenerCuentasAutenticacion(): Promise<AuthAccount[]> {
     try {
       const response = await apiClient.get('/auth/admin/personnel/auth-accounts')

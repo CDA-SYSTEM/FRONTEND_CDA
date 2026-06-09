@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, Loader2, Save, Trash2, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Trash2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/core/store/authStore'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import { vehiculoService } from '@/modules/recepcion/services/vehiculoService'
 import { clienteSchema, type ClienteSchema } from '@/modules/recepcion/domain/recepcion.schema'
 import type { ClientePersonaNatural, Vehiculo, DocumentType, PersonType } from '@/modules/recepcion/domain/recepcion.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { useConfirm } from '@/shared/hooks/useConfirm'
 
 interface Props {
   clienteInicial: ClientePersonaNatural
@@ -103,8 +104,8 @@ function Flex({ justify = 'start', align = 'center', gap = '0.75rem', children, 
 export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Props) {
   const { user } = useAuthStore()
   const [cliente, setCliente] = useState<ClientePersonaNatural>(clienteInicial)
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm()
 
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
   const [cargandoVehiculos, setCargandoVehiculos] = useState(true)
@@ -219,7 +220,6 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
   }
 
   const handleReactivar = async () => {
-    setIsConfirmOpen(false)
     setActualizando(true)
     try {
       await clienteService.activarCliente(cliente.id)
@@ -289,7 +289,14 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
             {puedeEditar && (
               <button
                 type="button"
-                onClick={() => setIsConfirmOpen(true)}
+                onClick={async () => {
+                  const verificado = await confirm({
+                    title: 'Reactivar Cliente',
+                    message: '¿Desea reactivar este cliente? Al hacerlo, volverá a estar activo en el sistema.',
+                  })
+                  if (!verificado) return
+                  await handleReactivar()
+                }}
                 disabled={actualizando}
                 className="btn btn-primary"
                 style={{ minHeight: 'auto', padding: '6px 12px', fontSize: '0.8rem' }}
@@ -414,7 +421,11 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                 <button
                   type="button"
                   onClick={async () => {
-                    if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) return
+                    const verificado = await confirm({
+                      title: 'Confirmar Acción',
+                      message: '¿Estás seguro de que deseas eliminar este cliente?',
+                    })
+                    if (!verificado) return
                     setActualizando(true)
                     setError(null)
                     try {
@@ -503,34 +514,27 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
         )}
       </article>
 
-      {/* Modal de Confirmación de Reactivación */}
-      {isConfirmOpen && (
-        <div className="reactivate-modal-overlay">
-          <div className="reactivate-modal-window">
-            <div className="reactivate-modal-header">
-              <h3>Reactivar Cliente</h3>
-              <button className="reactivate-modal-close" onClick={() => setIsConfirmOpen(false)} type="button">
-                <X size={18} />
-              </button>
+      {isOpen && options && (
+        <div className="confirm-modal-overlay" role="presentation" onClick={handleCancel}>
+          <div
+            className="confirm-modal-window"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-modal-title"
+            aria-describedby="confirm-modal-message"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="confirm-modal-header">
+              <h3 id="confirm-modal-title" className="confirm-modal-title">{options.title}</h3>
             </div>
-            <div className="reactivate-modal-body">
-              <p>¿Desea reactivar este cliente? Al hacerlo, volverá a estar activo en el sistema.</p>
+            <div className="confirm-modal-body">
+              <p id="confirm-modal-message" className="confirm-modal-message">{options.message}</p>
             </div>
-            <div className="reactivate-modal-footer">
-              <button
-                type="button"
-                className="cl-btn-view"
-                onClick={() => setIsConfirmOpen(false)}
-                style={{ margin: 0 }}
-              >
+            <div className="confirm-modal-footer">
+              <button type="button" className="confirm-modal-cancel" onClick={handleCancel}>
                 Cancelar
               </button>
-              <button
-                type="button"
-                className="cl-btn-primary"
-                onClick={handleReactivar}
-                style={{ background: '#0b224e', borderColor: '#0b224e', color: '#fff', margin: 0 }}
-              >
+              <button type="button" className="confirm-modal-confirm" onClick={handleConfirm}>
                 Confirmar
               </button>
             </div>

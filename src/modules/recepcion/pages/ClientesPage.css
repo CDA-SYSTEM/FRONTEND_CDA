@@ -463,6 +463,112 @@
   transform: scale(0.94);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   4B. CONFIRM MODAL — premium async flow
+   ══════════════════════════════════════════════════════════════ */
+.confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.confirm-modal-window {
+  width: min(100%, 420px);
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.18),
+    0 8px 18px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.confirm-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.confirm-modal-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cl-text);
+  letter-spacing: -0.01em;
+}
+
+.confirm-modal-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-modal-message {
+  margin: 0;
+  color: var(--cl-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.confirm-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.confirm-modal-cancel,
+.confirm-modal-confirm {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--cl-ease-out),
+    box-shadow 120ms var(--cl-ease-out),
+    background 120ms var(--cl-ease-out),
+    border-color 120ms var(--cl-ease-out);
+}
+
+.confirm-modal-cancel {
+  background: #f8fafc;
+  color: var(--cl-text);
+  border-color: var(--cl-border);
+}
+
+.confirm-modal-cancel:hover {
+  background: #eef2f7;
+}
+
+.confirm-modal-confirm {
+  background: #0b224e;
+  color: #ffffff;
+  border-color: #0b224e;
+  box-shadow: 0 8px 18px rgba(11, 34, 78, 0.22);
+}
+
+.confirm-modal-confirm:hover {
+  background: #102d65;
+  border-color: #102d65;
+}
+
+.confirm-modal-cancel:active,
+.confirm-modal-confirm:active {
+  transform: translateY(1px);
+}
+
 
 /* ══════════════════════════════════════════════════════════════
    5. PIE DE TABLA — paginación + selector + contador
@@ -969,6 +1075,12 @@
     right: 16px;
     left: 16px;
     width: auto;
+  }
+
+  .confirm-modal-window {
+    width: calc(100% - 32px);
+    max-width: 340px;
+    box-sizing: border-box !important;
   }
 }
 

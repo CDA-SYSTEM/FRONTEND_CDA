@@ -8,6 +8,7 @@ import { useRegistrarCliente } from '@/modules/recepcion/hooks/useRegistrarClien
 import { useBuscarCliente } from '@/modules/recepcion/hooks/useBuscarCliente'
 import { inferirCodigo } from '@/modules/recepcion/domain/recepcion.schema'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { useConfirm } from '@/shared/hooks/useConfirm'
 import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion.types'
 import { clienteService } from '@/modules/recepcion/services/clienteService'
 import './ClientesPage.css'
@@ -16,6 +17,7 @@ export function ClientesPage() {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClientePersonaNatural | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirm()
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
@@ -25,7 +27,11 @@ export function ClientesPage() {
   }
 
   const handleEliminarCliente = async (cliente: ClientePersonaNatural) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar al cliente ${cliente.nombre} ${cliente.apellido}?`)) return
+    const verificado = await confirm({
+      title: 'Confirmar Acción',
+      message: `¿Estás seguro de que deseas eliminar al cliente ${cliente.nombre} ${cliente.apellido}?`,
+    })
+    if (!verificado) return
     try {
       await clienteService.eliminarCliente(cliente.id)
       showToast('Cliente eliminado con éxito', 'success')
@@ -388,6 +394,34 @@ export function ClientesPage() {
         </div>
       </form>
       </Modal>
+
+      {isOpen && options && (
+        <div className="confirm-modal-overlay" role="presentation" onClick={handleCancel}>
+          <div
+            className="confirm-modal-window"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-modal-title"
+            aria-describedby="confirm-modal-message"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="confirm-modal-header">
+              <h3 id="confirm-modal-title" className="confirm-modal-title">{options.title}</h3>
+            </div>
+            <div className="confirm-modal-body">
+              <p id="confirm-modal-message" className="confirm-modal-message">{options.message}</p>
+            </div>
+            <div className="confirm-modal-footer">
+              <button type="button" className="confirm-modal-cancel" onClick={handleCancel}>
+                Cancelar
+              </button>
+              <button type="button" className="confirm-modal-confirm" onClick={handleConfirm}>
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notificación Toast */}
       {toast && (

@@ -8,6 +8,7 @@ interface Props {
 
 export function SignaturePad({ onSave, height = 160 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const firmoRef = useRef(false)
   const [dibujando, setDibujando] = useState(false)
   const [tieneFirma, setTieneFirma] = useState(false)
 
@@ -53,11 +54,13 @@ export function SignaturePad({ onSave, height = 160 }: Props) {
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.stroke()
+    firmoRef.current = true
     setTieneFirma(true)
   }
 
   const terminar = () => {
     setDibujando(false)
+    guardarFirma()
   }
 
   const limpiar = () => {
@@ -66,20 +69,21 @@ export function SignaturePad({ onSave, height = 160 }: Props) {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    firmoRef.current = false
     setTieneFirma(false)
     onSave(null)
   }
 
   const guardarFirma = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas || !tieneFirma) {
+    if (!canvas || !firmoRef.current) {
       onSave(null)
       return
     }
     canvas.toBlob((blob) => {
       if (blob) onSave(blob)
     }, 'image/png')
-  }, [tieneFirma, onSave])
+  }, [onSave])
 
   useEffect(() => {
     const canvas = canvasRef.current

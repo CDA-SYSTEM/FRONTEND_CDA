@@ -638,85 +638,18 @@
 }
 
 .google-btn-wrapper {
-  position: relative !important;
   width: 100% !important;
   box-sizing: border-box !important;
   display: flex !important;
   justify-content: center !important;
 }
 
-.btn-google-oauth {
-  height: var(--touch-target) !important;
-  padding-inline: 1.5rem !important;
-  background: var(--surface-input) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border-input) !important;
+.google-btn-wrapper > div {
+  width: 100% !important;
+}
+
+.google-btn-wrapper iframe {
   border-radius: var(--radius-input) !important;
-  font-size: 0.9375rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.75rem !important;
-  position: relative !important;
-  overflow: hidden !important;
-  transition:
-    background   0.20s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.20s cubic-bezier(0.4, 0, 0.2, 1),
-    transform    0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow   0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.05) inset,
-    0 2px 4px rgba(0, 0, 0, 0.2) !important;
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-.btn-google-oauth:hover:not(:disabled) {
-  background: var(--surface-input-hover) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-2px) !important;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.1) inset,
-    0 6px 20px rgba(0, 0, 0, 0.4) !important;
-}
-
-.btn-google-oauth:active:not(:disabled) {
-  transform: translateY(0px) scale(0.98) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-}
-
-.btn-google-oauth:disabled {
-  opacity: 0.4 !important;
-  cursor: not-allowed !important;
-}
-
-.google-icon {
-  flex-shrink: 0 !important;
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.google-signin-overlay {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  opacity: 0 !important;
-  cursor: pointer !important;
-  z-index: 10 !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-}
-
-.google-signin-overlay iframe {
-  width: 100% !important;
-  height: 100% !important;
-  cursor: pointer !important;
 }
 
 /* ── Support Link ── */
@@ -849,8 +782,7 @@
   .logo-circle,
   .form-grid input,
   .form-grid button[type="submit"],
-  .form-grid button[type="submit"]::before,
-  .btn-google-oauth {
+  .form-grid button[type="submit"]::before {
     transition: none;
   }
 }

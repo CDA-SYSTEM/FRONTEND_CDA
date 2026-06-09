@@ -245,22 +245,24 @@ export function LoginPage() {
                 Contraseña
                 <div className="input-wrapper">
                   <Lock size={18} className="input-icon" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    {...register('password')}
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    className="input-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    tabIndex={-1}
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      {...register('password')}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      className="btn-toggle-password"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 {errors.password ? (
                   <span className="field-error">{errors.password.message}</span>

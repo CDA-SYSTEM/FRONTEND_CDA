@@ -61,6 +61,17 @@ export function LoginPage() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [googleBtnWidth, setGoogleBtnWidth] = useState(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 480 ? 300 : 380
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setGoogleBtnWidth(window.innerWidth < 480 ? 300 : 380)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
     setTimeout(() => {
@@ -289,7 +300,7 @@ export function LoginPage() {
                   onError={() => showToast('Error al iniciar sesión con Google.', 'error')}
                   shape="rectangular"
                   size="large"
-                  width={380}
+                  width={googleBtnWidth}
                   theme="outline"
                   text="signin_with"
                 />

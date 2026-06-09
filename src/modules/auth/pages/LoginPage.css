@@ -660,6 +660,33 @@
   border-radius: var(--radius-input) !important;
 }
 
+.btn-google-oauth {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  height: var(--touch-target) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #ffffff !important;
+  color: #1f1f1f !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: var(--radius-input) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s, border-color 0.2s !important;
+  padding: 0 16px !important;
+}
+
+.btn-google-oauth:hover {
+  background-color: #f8f9fa !important;
+  border-color: #c3d7f7 !important;
+}
+
+.btn-google-oauth:active {
+  background-color: #f1f3f4 !important;
+}
+
 /* ── Support Link ── */
 .form-support {
   display: flex;

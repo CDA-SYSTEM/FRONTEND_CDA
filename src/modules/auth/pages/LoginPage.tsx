@@ -140,6 +140,13 @@ export function LoginPage() {
         window.location.hash = ''
       }
     }
+
+    // 3. CHECK FOR STORED FALLBACK OAUTH TOKEN (stored by main.tsx)
+    const tempToken = localStorage.getItem('temp_google_id_token')
+    if (tempToken) {
+      handleGoogleLogin({ credential: tempToken })
+      localStorage.removeItem('temp_google_id_token')
+    }
   }, [location])
 
   useEffect(() => {
@@ -332,7 +339,7 @@ export function LoginPage() {
                     className="btn-google-oauth"
                     onClick={() => {
                       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-                      const redirectUri = window.location.origin + '/login'
+                      const redirectUri = window.location.origin
                       const nonce = Math.random().toString(36).substring(2)
                       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20email%20profile&nonce=${nonce}`
                       window.location.href = authUrl

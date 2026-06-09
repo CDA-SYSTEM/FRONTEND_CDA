@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { animate, stagger } from 'animejs'
@@ -370,26 +371,29 @@ export function LoginPage() {
                     type="button"
                     className="btn-google-custom"
                     onClick={async () => {
-                      const Capacitor = (window as any).Capacitor
-                      const GoogleAuth = Capacitor?.Plugins?.GoogleAuth
-                      if (GoogleAuth) {
-                        try {
-                          const user = await GoogleAuth.signIn()
-                          if (user?.authentication?.idToken) {
-                            handleGoogleLogin({ credential: user.authentication.idToken })
-                            return
-                          }
-                        } catch (err) {
-                          console.error('Capacitor GoogleAuth error:', err)
+                      try {
+                        // Plugin nativo: abre el selector de cuentas de Google en Android
+                        // sin salir de la app ni usar redirect_uri
+                        await GoogleAuth.initialize({
+                          clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim(),
+                          scopes: ['profile', 'email'],
+                          grantOfflineAccess: false,
+                        })
+                        const result = await GoogleAuth.signIn()
+                        const idToken = result?.authentication?.idToken
+                        if (idToken) {
+                          handleGoogleLogin({ credential: idToken })
+                        } else {
+                          showToast('No se pudo obtener el token de Google.', 'error')
                         }
+                      } catch (err: any) {
+                        // El usuario canceló la selección — no es un error real
+                        if (err?.message?.includes('cancel') || err?.message?.includes('Cancel') || err?.code === 12501) {
+                          return
+                        }
+                        console.error('GoogleAuth.signIn error:', err)
+                        showToast('Error al iniciar sesión con Google. Intenta de nuevo.', 'error')
                       }
-                      
-                      // Fallback implicit OAuth redirect
-                      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim()
-                      const redirectUri = window.location.origin
-                      const nonce = Math.random().toString(36).substring(2)
-                      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=id_token&scope=openid%20email%20profile&nonce=${nonce}`
-                      window.location.href = authUrl
                     }}
                   >
                     <svg viewBox="0 0 48 48" className="google-icon-svg" style={{ width: '18px', height: '18px', marginRight: '10px', display: 'block', flexShrink: 0 }}>

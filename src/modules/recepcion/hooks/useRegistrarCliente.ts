@@ -161,7 +161,6 @@ export function useRegistrarCliente() {
 
       setClienteGuardado(cliente)
       setEstado('exito')
-      form.reset()
     } catch (error: unknown) {
       const e = error as {
         response?: { status?: number; data?: { message?: string } }

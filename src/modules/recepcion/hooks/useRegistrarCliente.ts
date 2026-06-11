@@ -143,14 +143,18 @@ export function useRegistrarCliente() {
     setErrorServidor(null)
 
     try {
+      const emailVal = data.email?.trim()
+      const direccionVal = data.direccion?.trim()
+      const birthDateVal = data.birthDate?.trim()
+
       const cliente = await clienteService.crearCliente({
         nombre: data.nombre.trim(),
         apellido: data.apellido.trim(),
         identity: data.identity.trim().toUpperCase(),
         celular: data.celular.trim(),
-        email: data.email?.trim() || undefined,
-        direccion: data.direccion?.trim() || undefined,
-        birthDate: data.birthDate?.trim() || undefined,
+        email: emailVal !== '' ? emailVal : undefined,
+        direccion: direccionVal !== '' ? direccionVal : undefined,
+        birthDate: birthDateVal !== '' ? birthDateVal : undefined,
         documentTypeId: data.documentTypeId,
         personTypeId: data.personTypeId,
       })

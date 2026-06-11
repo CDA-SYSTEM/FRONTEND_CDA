@@ -207,7 +207,21 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
     setActualizando(true)
     setError(null)
     try {
-      await clienteService.actualizarCliente(cliente.id, data)
+      const emailVal = data.email?.trim()
+      const direccionVal = data.direccion?.trim()
+      const birthDateVal = data.birthDate?.trim()
+
+      await clienteService.actualizarCliente(cliente.id, {
+        nombre: data.nombre.trim(),
+        apellido: data.apellido.trim(),
+        identity: data.identity.trim(),
+        celular: data.celular.trim(),
+        email: emailVal !== '' ? emailVal : undefined,
+        direccion: direccionVal !== '' ? direccionVal : undefined,
+        birthDate: birthDateVal !== '' ? birthDateVal : undefined,
+        documentTypeId: data.documentTypeId,
+        personTypeId: data.personTypeId,
+      })
       showToast('Cliente actualizado con éxito', 'success')
       setIsEditing(false)
       onActualizado()

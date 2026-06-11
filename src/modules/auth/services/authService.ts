@@ -208,9 +208,11 @@ export const authService = {
 
   async logout(refreshToken?: string | null): Promise<void> {
     try {
-      await apiClient.post('/auth/logout', {
-        refreshToken: refreshToken ?? '',
-      })
+      if (refreshToken && refreshToken.trim() !== '') {
+        await apiClient.post('/auth/logout', {
+          refreshToken: refreshToken,
+        })
+      }
     } catch {
       // logout local siempre procede
     }

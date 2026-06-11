@@ -150,8 +150,8 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
       email: cliente.email ?? '',
       direccion: cliente.direccion ?? '',
       birthDate: cliente.birthDate ?? '',
-      documentTypeId: cliente.documentTypeId,
-      personTypeId: cliente.personTypeId,
+      documentTypeId: cliente.documentTypeId || (cliente as any).documentType?.id,
+      personTypeId: cliente.personTypeId || (cliente as any).personType?.id,
     },
   })
 
@@ -194,13 +194,23 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
       email: cliente.email ?? '',
       direccion: cliente.direccion ?? '',
       birthDate: cliente.birthDate ?? '',
-      documentTypeId: cliente.documentTypeId,
-      personTypeId: cliente.personTypeId,
+      documentTypeId: cliente.documentTypeId || (cliente as any).documentType?.id,
+      personTypeId: cliente.personTypeId || (cliente as any).personType?.id,
     })
   }, [cliente, reset])
 
-  const docTipoNombre = tiposDocumento.find((d) => d.id === cliente.documentTypeId)?.nombre || '—'
-  const persTipoNombre = tiposPersona.find((p) => p.id === cliente.personTypeId)?.nombre || '—'
+  const docTipoNombre = 
+    (cliente as any).documentType?.type || 
+    (cliente as any).documentType?.nombre || 
+    (cliente as any).documentType?.name || 
+    tiposDocumento.find((d) => d.id === cliente.documentTypeId)?.nombre || 
+    '—'
+  const persTipoNombre = 
+    (cliente as any).personType?.type || 
+    (cliente as any).personType?.nombre || 
+    (cliente as any).personType?.name || 
+    tiposPersona.find((p) => p.id === cliente.personTypeId)?.nombre || 
+    '—'
 
   const onSubmit = async (data: ClienteSchema) => {
     if (!puedeEditar) return

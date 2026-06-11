@@ -602,13 +602,10 @@ function PasoCliente({
                 )}
               </div>
 
-              {/* Correo (opcional) */}
+              {/* Correo */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                  Correo electrónico{' '}
-                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                    (opcional)
-                  </span>
+                  Correo electrónico <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
                 <input
                   type="email"
@@ -628,13 +625,10 @@ function PasoCliente({
                 )}
               </div>
 
-              {/* Dirección (opcional) */}
+              {/* Dirección */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                  Dirección{' '}
-                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                    (opcional)
-                  </span>
+                  Dirección <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
                 <input
                   placeholder="Ej: Cra 5 # 12-34, Mocoa"
@@ -650,6 +644,28 @@ function PasoCliente({
                 />
                 {errors.direccion && (
                   <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
+                )}
+              </div>
+
+              {/* Fecha de nacimiento */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Fecha de nacimiento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                </span>
+                <input
+                  type="date"
+                  {...register('birthDate')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.birthDate && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.birthDate.message}</span>
                 )}
               </div>
             </div>

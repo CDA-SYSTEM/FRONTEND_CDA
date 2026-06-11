@@ -375,15 +375,17 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                   {errors.personTypeId && <span className="cl-field-error">{errors.personTypeId.message}</span>}
                 </div>
                 <div className="cl-field">
-                  <span className="cl-field-label">Correo electrónico</span>
+                  <span className="cl-field-label">Correo electrónico <span className="cl-field-required">*</span></span>
                   <input className="cl-input" type="email" {...register('email')} disabled={actualizando} />
+                  {errors.email && <span className="cl-field-error">{errors.email.message}</span>}
                 </div>
                 <div className="cl-field">
-                  <span className="cl-field-label">Dirección</span>
+                  <span className="cl-field-label">Dirección <span className="cl-field-required">*</span></span>
                   <input className="cl-input" {...register('direccion')} disabled={actualizando} />
+                  {errors.direccion && <span className="cl-field-error">{errors.direccion.message}</span>}
                 </div>
                 <div className="cl-field form-group-fecha">
-                  <span className="cl-field-label">Fecha de nacimiento</span>
+                  <span className="cl-field-label">Fecha de nacimiento <span className="cl-field-required">*</span></span>
                   <input className="cl-input" type="date" {...register('birthDate')} disabled={actualizando} />
                   {errors.birthDate && <span className="cl-field-error">{errors.birthDate.message}</span>}
                 </div>

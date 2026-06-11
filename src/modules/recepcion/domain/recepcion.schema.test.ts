@@ -15,9 +15,12 @@ describe('clienteSchema', () => {
     documentTypeId: 1,
     personTypeId: 1,
     celular: '3001234567',
+    email: 'juan@correo.com',
+    direccion: 'Cra 5 # 12-34, Mocoa',
+    birthDate: '1990-05-15',
   }
 
-  it('acepta un payload mínimo válido', () => {
+  it('acepta un payload mínimo válido con campos obligatorios', () => {
     expect(clienteSchema.safeParse(base).success).toBe(true)
   })
 
@@ -67,8 +70,8 @@ describe('clienteSchema', () => {
     ).toBe(false)
   })
 
-  it('acepta email vacío como campo opcional', () => {
-    expect(clienteSchema.safeParse({ ...base, email: '' }).success).toBe(true)
+  it('rechaza email vacío ya que es campo obligatorio', () => {
+    expect(clienteSchema.safeParse({ ...base, email: '' }).success).toBe(false)
   })
 
   it('rechaza identity vacío', () => {
@@ -89,9 +92,9 @@ describe('clienteSchema', () => {
     ).toBe(false)
   })
 
-  it('acepta birthDate vacío como campo opcional', () => {
+  it('rechaza birthDate vacío ya que es campo obligatorio', () => {
     expect(clienteSchema.safeParse({ ...base, birthDate: '' }).success).toBe(
-      true,
+      false,
     )
   })
 })

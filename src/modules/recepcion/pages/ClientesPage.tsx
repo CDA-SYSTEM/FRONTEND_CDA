@@ -323,11 +323,10 @@ export function ClientesPage() {
             )}
           </div>
 
-          {/* ── Correo (opcional) ── */}
+          {/* ── Correo ── */}
           <div className="cl-field">
             <span className="cl-field-label">
-              Correo electrónico
-              <span className="cl-field-optional">(opcional)</span>
+              Correo electrónico <span className="cl-field-required">*</span>
             </span>
             <input
               className="cl-input"
@@ -341,11 +340,10 @@ export function ClientesPage() {
             )}
           </div>
 
-          {/* ── Dirección (opcional) ── */}
+          {/* ── Dirección ── */}
           <div className="cl-field">
             <span className="cl-field-label">
-              Dirección
-              <span className="cl-field-optional">(opcional)</span>
+              Dirección <span className="cl-field-required">*</span>
             </span>
             <input
               className="cl-input"
@@ -358,11 +356,10 @@ export function ClientesPage() {
             )}
           </div>
 
-          {/* ── Fecha de nacimiento (opcional) ── */}
+          {/* ── Fecha de nacimiento ── */}
           <div className="cl-field form-group-fecha">
             <span className="cl-field-label">
-              Fecha de nacimiento
-              <span className="cl-field-optional">(opcional)</span>
+              Fecha de nacimiento <span className="cl-field-required">*</span>
             </span>
             <input
               className="cl-input"

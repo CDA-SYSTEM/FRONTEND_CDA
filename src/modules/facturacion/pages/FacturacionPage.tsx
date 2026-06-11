@@ -20,6 +20,7 @@ import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import { DetalleRecepcionModal } from '@/shared/components/DetalleRecepcionModal/DetalleRecepcionModal'
+import { ConfirmModal } from '@/shared/components/ConfirmModal'
 
 export function FacturacionPage() {
   const [invoices, setInvoices] = useState<Factura[]>([])
@@ -43,6 +44,7 @@ export function FacturacionPage() {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null)
+  const [confirmState, setConfirmState] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
 
   // Datos para nueva/editar factura
   const [newInvoice, setNewInvoice] = useState<CreateInvoiceDTO>({
@@ -262,13 +264,18 @@ export function FacturacionPage() {
   }
 
   const handleDeleteInvoice = async (id: string) => {
-    if (!window.confirm('¿Está seguro de eliminar esta factura?')) return
-    try {
-      await facturaService.eliminarFactura(id)
-      fetchInvoices()
-    } catch (err: any) {
-      alert('Error al eliminar la factura.')
-    }
+    setConfirmState({
+      mensaje: '¿Está seguro de eliminar esta factura? Esta acción no se puede deshacer.',
+      onAceptar: async () => {
+        setConfirmState(null)
+        try {
+          await facturaService.eliminarFactura(id)
+          fetchInvoices()
+        } catch {
+          // error silenciado
+        }
+      },
+    })
   }
 
   const user = useAuthStore((state) => state.user)
@@ -998,6 +1005,13 @@ export function FacturacionPage() {
             </div>
           </form>
         </div>
+      )}
+      {confirmState && (
+        <ConfirmModal
+          mensaje={confirmState.mensaje}
+          onAceptar={confirmState.onAceptar}
+          onCancelar={() => setConfirmState(null)}
+        />
       )}
     </>
   )

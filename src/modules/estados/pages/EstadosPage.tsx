@@ -17,6 +17,7 @@ import type { Estado, CrearEstadoDTO } from '../domain/estado.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { ConfirmModal } from '@/shared/components/ConfirmModal'
 import './EstadosPage.css'
 
 export function EstadosPage() {
@@ -31,6 +32,7 @@ export function EstadosPage() {
   const [showFormModal, setShowFormModal] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<Estado | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [confirmState, setConfirmState] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
 
   // Datos para nuevo/editar estado
   const [formData, setFormData] = useState<CrearEstadoDTO>({
@@ -140,14 +142,18 @@ export function EstadosPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Está seguro de eliminar este estado?')) return
-    try {
-      await estadoService.eliminarEstado(id)
-      fetchStatuses()
-    } catch (err: any) {
-      console.error('Error eliminando estado:', err)
-      alert('No se pudo eliminar el estado.')
-    }
+    setConfirmState({
+      mensaje: '¿Está seguro de eliminar este estado? Esta acción no se puede deshacer.',
+      onAceptar: async () => {
+        setConfirmState(null)
+        try {
+          await estadoService.eliminarEstado(id)
+          fetchStatuses()
+        } catch (err: any) {
+          console.error('Error eliminando estado:', err)
+        }
+      },
+    })
   }
 
   const user = useAuthStore((state) => state.user)
@@ -427,6 +433,13 @@ export function EstadosPage() {
           </form>
         </div>,
         document.body
+      )}
+      {confirmState && (
+        <ConfirmModal
+          mensaje={confirmState.mensaje}
+          onAceptar={confirmState.onAceptar}
+          onCancelar={() => setConfirmState(null)}
+        />
       )}
     </div>
   )

@@ -248,9 +248,9 @@ export const authService = {
   /**
    * PATCH /auth/change-password
    */
-  async cambiarPassword(oldPassword: string, newPassword: string): Promise<void> {
+  async cambiarPassword(currentPassword: string, newPassword: string): Promise<void> {
     await apiClient.patch('/auth/change-password', {
-      oldPassword,
+      currentPassword,
       newPassword,
     })
   },

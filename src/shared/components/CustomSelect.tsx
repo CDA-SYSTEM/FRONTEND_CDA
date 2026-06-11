@@ -26,7 +26,7 @@ export function CustomSelect({
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const selectedOption = options.find((opt) => opt.value === value)
+  const selectedOption = options.find((opt) => String(opt.value) === String(value))
 
   // Cerrar al hacer clic fuera del componente
   useEffect(() => {
@@ -59,7 +59,7 @@ export function CustomSelect({
           borderRadius: '12px',
           padding: '0.7rem 0.85rem',
           minHeight: '44px',
-          color: disabled ? '#94a3b8' : (selectedOption ? '#0f172a' : '#64748b'),
+          color: disabled ? '#94a3b8' : (value && String(value) !== '0' && String(value) !== '' ? '#0f172a' : '#ef4444'),
           fontSize: '0.9rem',
           cursor: disabled ? 'not-allowed' : 'pointer',
           textAlign: 'left',
@@ -81,7 +81,7 @@ export function CustomSelect({
           e.currentTarget.style.boxShadow = 'none'
         }}
       >
-        <span>{selectedOption ? selectedOption.label : placeholder}</span>
+        <span style={{ color: 'inherit' }}>{selectedOption ? selectedOption.label : placeholder}</span>
         <ChevronDown 
           size={16} 
           style={{ 

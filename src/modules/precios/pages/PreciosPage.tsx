@@ -18,6 +18,7 @@ import type { Precio, CreatePrecioDTO } from '../domain/precio.types'
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { ConfirmModal } from '@/shared/components/ConfirmModal'
 import './TarifasPage.css'
 
 export function PreciosPage() {
@@ -35,6 +36,7 @@ export function PreciosPage() {
   const [selectedPrice, setSelectedPrice] = useState<Precio | null>(null)
   const [detailPrice, setDetailPrice] = useState<Precio | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [confirmState, setConfirmState] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
 
   // Datos para nuevo/editar precio
   const [formData, setFormData] = useState<CreatePrecioDTO>({
@@ -145,13 +147,18 @@ export function PreciosPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Está seguro de eliminar esta tarifa?')) return
-    try {
-      await precioService.eliminarPrecio(id)
-      fetchPrices()
-    } catch (err: any) {
-      alert('No se pudo eliminar la tarifa.')
-    }
+    setConfirmState({
+      mensaje: '¿Está seguro de eliminar esta tarifa? Esta acción no se puede deshacer.',
+      onAceptar: async () => {
+        setConfirmState(null)
+        try {
+          await precioService.eliminarPrecio(id)
+          fetchPrices()
+        } catch {
+          // error silenciado
+        }
+      },
+    })
   }
 
   const user = useAuthStore((state) => state.user)
@@ -525,6 +532,13 @@ export function PreciosPage() {
           </div>
         </div>,
         document.body
+      )}
+      {confirmState && (
+        <ConfirmModal
+          mensaje={confirmState.mensaje}
+          onAceptar={confirmState.onAceptar}
+          onCancelar={() => setConfirmState(null)}
+        />
       )}
     </div>
   )

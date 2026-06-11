@@ -125,6 +125,10 @@ export function ClientesPage() {
       <ClienteConfirmacion
         cliente={clienteGuardado}
         onNuevoRegistro={resetFormulario}
+        onVolver={() => {
+          resetFormulario()
+          buscador.refrescar()
+        }}
       />
     )
   }

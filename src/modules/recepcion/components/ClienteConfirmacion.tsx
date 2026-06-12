@@ -4,13 +4,14 @@ import type { ClientePersonaNatural } from '@/modules/recepcion/domain/recepcion
 interface Props {
   cliente: ClientePersonaNatural
   onNuevoRegistro: () => void
+  onVolver?: () => void
 }
 
 /**
  * Confirmación visual tras registrar exitosamente un cliente.
  * Criterio de aceptación HU-005: "Se muestra confirmación visual al guardar".
  */
-export function ClienteConfirmacion({ cliente, onNuevoRegistro }: Props) {
+export function ClienteConfirmacion({ cliente, onNuevoRegistro, onVolver }: Props) {
   return (
     <div
       className="panel"
@@ -66,21 +67,40 @@ export function ClienteConfirmacion({ cliente, onNuevoRegistro }: Props) {
         )}
       </div>
 
-      <button
-        onClick={onNuevoRegistro}
-        style={{
-          padding: '10px 28px',
-          background: '#2563eb',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          cursor: 'pointer',
-          fontWeight: 500,
-          fontSize: '0.95rem',
-        }}
-      >
-        Registrar otro cliente
-      </button>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {onVolver && (
+          <button
+            onClick={onVolver}
+            style={{
+              padding: '10px 28px',
+              background: '#f1f5f9',
+              color: '#334155',
+              border: '1px solid #cbd5e1',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 500,
+              fontSize: '0.95rem',
+            }}
+          >
+            Regresar a clientes
+          </button>
+        )}
+        <button
+          onClick={onNuevoRegistro}
+          style={{
+            padding: '10px 28px',
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            fontSize: '0.95rem',
+          }}
+        >
+          Registrar otro cliente
+        </button>
+      </div>
     </div>
   )
 }

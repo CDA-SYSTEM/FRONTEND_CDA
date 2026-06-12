@@ -20,6 +20,7 @@ import { Modal } from '@/core/components/Modal'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
+import { ConfirmModal } from '@/shared/components/ConfirmModal'
 import './VehiculosPage.css'
 
 export function RegistroVehiculoPage() {
@@ -72,6 +73,8 @@ export function RegistroVehiculoPage() {
     searchTerm,
     setSearchTerm,
     debouncedSearch,
+    confirmPendiente,
+    cancelarConfirm,
   } = useRegistrarVehiculo()
 
   const {
@@ -2147,6 +2150,13 @@ export function RegistroVehiculoPage() {
           </div>
         )}
       </Modal>
+      {confirmPendiente && (
+        <ConfirmModal
+          mensaje={confirmPendiente.mensaje}
+          onAceptar={confirmPendiente.onAceptar}
+          onCancelar={cancelarConfirm}
+        />
+      )}
     </div>
   )
 }

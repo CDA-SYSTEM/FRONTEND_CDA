@@ -57,6 +57,30 @@ export function useRegistrarVehiculo() {
 
   const lastFetchedRef = useRef({ page: -1, search: '____none____' })
 
+  // Confirmación personalizada (reemplaza window.confirm)
+  const [confirmPendiente, setConfirmPendiente] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
+  const confirmResolveRef = useRef<((v: boolean) => void) | null>(null)
+
+  const pedirConfirmacion = (mensaje: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      confirmResolveRef.current = resolve
+      setConfirmPendiente({
+        mensaje,
+        onAceptar: () => {
+          confirmResolveRef.current?.(true)
+          confirmResolveRef.current = null
+          setConfirmPendiente(null)
+        },
+      })
+    })
+  }
+
+  const cancelarConfirm = () => {
+    confirmResolveRef.current?.(false)
+    confirmResolveRef.current = null
+    setConfirmPendiente(null)
+  }
+
   const cargarVehiculos = useCallback(async (pageOverride?: number, searchOverride?: string) => {
     const pageToUse = pageOverride !== undefined ? pageOverride : pagina
     const searchToUse = searchOverride !== undefined ? searchOverride : debouncedSearch
@@ -109,13 +133,14 @@ export function useRegistrarVehiculo() {
   }, [pagina, debouncedSearch, cargarVehiculos])
 
   const eliminarVehiculo = useCallback(async (id: string | number) => {
-    if (!window.confirm('¿Seguro que desea eliminar este vehículo?')) return
+    const confirmado = await pedirConfirmacion('¿Seguro que desea eliminar este vehículo? Esta acción no se puede deshacer.')
+    if (!confirmado) return
     try {
       await vehiculoService.eliminarVehiculo(id)
       lastFetchedRef.current = { page: -1, search: '____none____' }
       await cargarVehiculos(pagina, debouncedSearch)
     } catch (err) {
-      alert('No se pudo eliminar el vehículo.')
+      console.error('No se pudo eliminar el vehículo.', err)
     }
   }, [cargarVehiculos, pagina, debouncedSearch])
 
@@ -330,5 +355,7 @@ export function useRegistrarVehiculo() {
     searchTerm,
     setSearchTerm,
     debouncedSearch,
+    confirmPendiente,
+    cancelarConfirm,
   }
 }

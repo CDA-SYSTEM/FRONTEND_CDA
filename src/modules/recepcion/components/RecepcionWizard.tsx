@@ -602,13 +602,10 @@ function PasoCliente({
                 )}
               </div>
 
-              {/* Correo (opcional) */}
+              {/* Correo */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                  Correo electrónico{' '}
-                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                    (opcional)
-                  </span>
+                  Correo electrónico <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
                 <input
                   type="email"
@@ -628,13 +625,10 @@ function PasoCliente({
                 )}
               </div>
 
-              {/* Dirección (opcional) */}
+              {/* Dirección */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-                  Dirección{' '}
-                  <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 400 }}>
-                    (opcional)
-                  </span>
+                  Dirección <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
                 </span>
                 <input
                   placeholder="Ej: Cra 5 # 12-34, Mocoa"
@@ -650,6 +644,28 @@ function PasoCliente({
                 />
                 {errors.direccion && (
                   <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.direccion.message}</span>
+                )}
+              </div>
+
+              {/* Fecha de nacimiento */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
+                  Fecha de nacimiento <span style={{ color: '#ef4444', display: 'inline' }}>*</span>
+                </span>
+                <input
+                  type="date"
+                  {...register('birthDate')}
+                  disabled={enviando}
+                  style={{
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                  }}
+                />
+                {errors.birthDate && (
+                  <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '2px' }}>{errors.birthDate.message}</span>
                 )}
               </div>
             </div>
@@ -2210,7 +2226,21 @@ function PasoCondiciones({
   vehiculo,
 }: PasoCondicionesProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const presionesInvalidas = tires.some((t) => !Number.isFinite(t.tire_pressure) || t.tire_pressure <= 0)
+
+  // Usamos strings para los inputs de presión: evita el "0 trabado" al borrar
+  const [presionRaw, setPresionRaw] = useState<string[]>(
+    () => tires.map((t) => (t.tire_pressure > 0 ? String(t.tire_pressure) : ''))
+  )
+
+  // Sincroniza el array de strings cuando cambia la cantidad de llantas (cambio de tipo de vehículo)
+  useEffect(() => {
+    setPresionRaw(tires.map((t) => (t.tire_pressure > 0 ? String(t.tire_pressure) : '')))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tires.length])
+
+  const presionesInvalidas = tires.some(
+    (_t, i) => !presionRaw[i] || Number(presionRaw[i]) <= 0
+  )
   const puedeFinalizar = confirmacionAcuerdo && !presionesInvalidas && estadoEnvio !== 'enviando'
 
   const esMoto = vehiculo?.tipoVehiculo ? (
@@ -2220,25 +2250,53 @@ function PasoCondiciones({
   ) : false
 
   const actualizarPresion = (index: number, value: string) => {
+    // Permitir solo dígitos, un punto decimal y cadena vacía (elasticidad al borrar)
+    if (value !== '' && !/^\d*\.?\d*$/.test(value)) return
+    const newRaw = [...presionRaw]
+    newRaw[index] = value
+    setPresionRaw(newRaw)
     setTires(
-      tires.map((tire, tireIndex) => (
+      tires.map((tire, tireIndex) =>
         tireIndex === index
-          ? { ...tire, tire_pressure: Number(value) || 0 }
+          ? { ...tire, tire_pressure: value === '' ? 0 : (parseFloat(value) || 0) }
           : tire
-      )),
+      ),
     )
   }
 
-  const etiquetaLlanta = (position: string) => {
-    switch (position) {
-      case 'FRONT_LEFT': return 'Delantera izquierda'
-      case 'FRONT_RIGHT': return 'Delantera derecha'
-      case 'REAR_LEFT': return 'Trasera izquierda'
-      case 'REAR_RIGHT': return 'Trasera derecha'
-      case 'FRONT': return 'Delantera'
-      case 'REAR': return 'Trasera'
-      default: return position
+  const etiquetaLlanta = (position: string): string => {
+    // Llantas de moto y carro estándar
+    const simpleLabels: Record<string, string> = {
+      'FRONT_LEFT':  'Delantera izquierda',
+      'FRONT_RIGHT': 'Delantera derecha',
+      'REAR_LEFT':   'Trasera izquierda',
+      'REAR_RIGHT':  'Trasera derecha',
+      'FRONT':       'Delantera',
+      'REAR':        'Trasera',
+      'REPUESTO_1':  'Repuesto 1',
+      'REPUESTO_2':  'Repuesto 2',
     }
+    if (simpleLabels[position]) return simpleLabels[position]
+
+    // Patrón para llantas de vehículos pesados: EJE{n}_{tipo}_{lado}
+    // Ej: EJE2_INT_IZQ -> Eje 2 – Interna izquierda
+    const match = position.match(/^EJE(\d+)(?:_(INT|EXT))?_(IZQ|DER)$/)
+    if (match) {
+      const [, ejeNum, intExt, lado] = match
+      const ladoLabel = lado === 'IZQ' ? 'Izquierda' : 'Derecha'
+      if (intExt === 'INT') return `Eje ${ejeNum} – Interna ${ladoLabel}`
+      if (intExt === 'EXT') return `Eje ${ejeNum} – Externa ${ladoLabel}`
+      return `Eje ${ejeNum} – ${ladoLabel}`
+    }
+
+    // Patrón simple: EJE{n}_{IZQ|DER}
+    const simpleEje = position.match(/^EJE(\d+)_(IZQ|DER)$/)
+    if (simpleEje) {
+      const [, ejeNum, lado] = simpleEje
+      return `Eje ${ejeNum} – ${lado === 'IZQ' ? 'Izquierda' : 'Derecha'}`
+    }
+
+    return position
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2336,7 +2394,7 @@ function PasoCondiciones({
 
           <div className="recepcion-llantas-grid">
             {tires.map((tire, index) => {
-              const invalida = !Number.isFinite(tire.tire_pressure) || tire.tire_pressure <= 0
+              const invalida = !presionRaw[index] || Number(presionRaw[index]) <= 0
               return (
                 <article
                   key={`${tire.position}-${index}`}
@@ -2361,23 +2419,21 @@ function PasoCondiciones({
                     </span>
                   </div>
 
-                  <label style={{ display: 'grid', gap: 6 }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Presión PSI</span>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.1"
-                        inputMode="decimal"
-                        value={tire.tire_pressure}
-                        onChange={(e) => actualizarPresion(index, e.target.value)}
-                        placeholder="Ej: 32.5"
-                        disabled={estadoEnvio === 'enviando'}
-                        style={{ paddingRight: 56, borderColor: invalida ? '#fca5a5' : undefined }}
-                      />
-                      <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.82rem', fontWeight: 700 }}>PSI</span>
-                    </div>
-                  </label>
+                    <label style={{ display: 'grid', gap: 6 }}>
+                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569' }}>Presión PSI</span>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={presionRaw[index] ?? ''}
+                          onChange={(e) => actualizarPresion(index, e.target.value)}
+                          placeholder="Ej: 32.5"
+                          disabled={estadoEnvio === 'enviando'}
+                          style={{ paddingRight: 56, borderColor: (!presionRaw[index] || Number(presionRaw[index]) <= 0) ? '#fca5a5' : undefined }}
+                        />
+                        <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.82rem', fontWeight: 700 }}>PSI</span>
+                      </div>
+                    </label>
                 </article>
               )
             })}

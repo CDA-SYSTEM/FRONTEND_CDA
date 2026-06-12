@@ -165,17 +165,30 @@ export function useCrearRecepcion() {
     }
   }, [cliente])
 
+  /**
+   * Devuelve el nombre normalizado del tipo de vehículo (uppercase, sin espacios extra).
+   * El backend puede enviar el objeto `{ nombre, name }` o directamente un string.
+   */
+  const resolverTipoVehiculo = (v: Vehiculo): string => {
+    if (!v.tipoVehiculo) return ''
+    const raw = typeof v.tipoVehiculo === 'object'
+      ? (v.tipoVehiculo.nombre || v.tipoVehiculo.name || '')
+      : String(v.tipoVehiculo)
+    return raw.trim().toUpperCase().replace(/\s+/g, '_')
+  }
+
   const seleccionarVehiculo = useCallback((v: Vehiculo) => {
     setVehiculo(v)
 
-    // Configurar ejes y llantas según tipo de vehículo (moto, etc.)
-    const isMotorcycle = v.tipoVehiculo ? (
-      typeof v.tipoVehiculo === 'object'
-        ? (v.tipoVehiculo.nombre || v.tipoVehiculo.name || '').toLowerCase().includes('moto')
-        : String(v.tipoVehiculo).toLowerCase().includes('moto')
-    ) : false
+    const tipo = resolverTipoVehiculo(v)
+    const isMoto = tipo.includes('MOTO') || tipo.includes('MOTOCICLETA')
+    const isPesado2 = tipo.includes('PESADO_2') || (tipo.includes('PESADO') && tipo.includes('2_EJE'))
+    const isPesado3 = tipo.includes('PESADO_3') || (tipo.includes('PESADO') && tipo.includes('3_EJE'))
+    const isPesado4 = tipo.includes('PESADO_4') || (tipo.includes('PESADO') && tipo.includes('4_EJE'))
+    const isPesado5 = tipo.includes('PESADO_5') || (tipo.includes('PESADO') && tipo.includes('5_EJE'))
 
-    if (isMotorcycle) {
+    if (isMoto) {
+      // ── MOTOCICLETA: 2 llantas de servicio, sin repuesto ──
       setTintedWindows('NO_APLICA')
       setArmoredVehicle('NO_APLICA')
       setAxles([
@@ -186,7 +199,110 @@ export function useCrearRecepcion() {
         { position: 'FRONT', code: '', tire_pressure: 0 },
         { position: 'REAR', code: '', tire_pressure: 0 },
       ])
+    } else if (isPesado5) {
+      // ── PESADO 5 EJES: 18 servicio + 2 repuesto ──
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRACCION' },
+        { index: 3, axle_type: 'TRACCION' },
+        { index: 4, axle_type: 'REMOLQUE' },
+        { index: 5, axle_type: 'REMOLQUE' },
+      ])
+      setTires([
+        { position: 'EJE1_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE1_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE4_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE4_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE4_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE4_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE5_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE5_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE5_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE5_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_2', code: '', tire_pressure: 0 },
+      ])
+    } else if (isPesado4) {
+      // ── PESADO 4 EJES: 14 servicio + 2 repuesto ──
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRACCION' },
+        { index: 3, axle_type: 'TRACCION' },
+        { index: 4, axle_type: 'REMOLQUE' },
+      ])
+      setTires([
+        { position: 'EJE1_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE1_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE4_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE4_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE4_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE4_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_2', code: '', tire_pressure: 0 },
+      ])
+    } else if (isPesado3) {
+      // ── PESADO 3 EJES: 10 servicio + 2 repuesto ──
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRACCION' },
+        { index: 3, axle_type: 'TRACCION' },
+      ])
+      setTires([
+        { position: 'EJE1_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE1_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE3_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE3_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_2', code: '', tire_pressure: 0 },
+      ])
+    } else if (isPesado2) {
+      // ── PESADO 2 EJES: 6 servicio + 2 repuesto ──
+      setTintedWindows('NO')
+      setArmoredVehicle('NO')
+      setAxles([
+        { index: 1, axle_type: 'DELANTERO' },
+        { index: 2, axle_type: 'TRACCION' },
+      ])
+      setTires([
+        { position: 'EJE1_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE1_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_IZQ', code: '', tire_pressure: 0 },
+        { position: 'EJE2_INT_DER', code: '', tire_pressure: 0 },
+        { position: 'EJE2_EXT_DER', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_2', code: '', tire_pressure: 0 },
+      ])
     } else {
+      // ── CARRO ESTÁNDAR / fallback: 4 servicio + 1 repuesto ──
       setTintedWindows('NO')
       setArmoredVehicle('NO')
       setAxles([
@@ -198,10 +314,12 @@ export function useCrearRecepcion() {
         { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
         { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
         { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
+        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
       ])
     }
 
     setPaso('detalle')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const irADetalleSinVehiculo = useCallback(() => {

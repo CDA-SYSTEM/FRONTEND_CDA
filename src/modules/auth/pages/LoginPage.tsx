@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { animate, stagger } from 'animejs'
@@ -61,6 +62,20 @@ export function LoginPage() {
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [googleBtnWidth, setGoogleBtnWidth] = useState(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 480 ? 300 : 380
+  })
+  const [useGoogleFallback, setUseGoogleFallback] = useState(() => {
+    return typeof window !== 'undefined' && window.location.hostname === 'localhost' && !!(window as any).Capacitor
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setGoogleBtnWidth(window.innerWidth < 480 ? 300 : 380)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type })
     setTimeout(() => {
@@ -97,6 +112,75 @@ export function LoginPage() {
       }
     }
   }, [user, navigate, location])
+
+  useEffect(() => {
+    const isAndroidAPK = typeof window !== 'undefined' && window.location.hostname === 'localhost' && !!(window as any).Capacitor
+
+    if (!isAndroidAPK) {
+      return
+    }
+
+    // 1. OAUTH FALLBACK INJECTION AND ERROR HANDLING
+    const SCRIPT_URL = 'https://accounts.google.com/gsi/client'
+    let script = document.querySelector(`script[src="${SCRIPT_URL}"]`) as HTMLScriptElement
+
+    const initGoogle = () => {
+      const g = (window as any).google
+      if (g?.accounts?.id) {
+        try {
+          g.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim(),
+            callback: (res: any) => {
+              if (res.credential) {
+                handleGoogleLogin({ credential: res.credential })
+              }
+            },
+            ux_mode: 'popup', // Forzar siempre popup para evitar el escape al navegador externo
+            context: 'signin'
+          })
+        } catch (err) {
+          console.error('Error initializing Google Accounts GSI:', err)
+        }
+      }
+    }
+
+    if (!script) {
+      script = document.createElement('script')
+      script.src = SCRIPT_URL
+      script.async = true
+      script.defer = true
+      script.onload = initGoogle
+      script.onerror = () => {
+        setUseGoogleFallback(true)
+      }
+      document.body.appendChild(script)
+    } else {
+      if ((window as any).google?.accounts?.id) {
+        initGoogle()
+      } else {
+        script.addEventListener('load', initGoogle)
+      }
+      script.addEventListener('error', () => setUseGoogleFallback(true))
+    }
+
+    // 2. PARSE HASH FOR REDIRECT OAUTH (Implicit flow fallback)
+    const hash = window.location.hash
+    if (hash) {
+      const params = new URLSearchParams(hash.substring(1))
+      const idToken = params.get('id_token')
+      if (idToken) {
+        handleGoogleLogin({ credential: idToken })
+        window.location.hash = ''
+      }
+    }
+
+    // 3. CHECK FOR STORED FALLBACK OAUTH TOKEN (stored by main.tsx)
+    const tempToken = localStorage.getItem('temp_google_id_token')
+    if (tempToken) {
+      handleGoogleLogin({ credential: tempToken })
+      localStorage.removeItem('temp_google_id_token')
+    }
+  }, [location])
 
   useEffect(() => {
     const animacionTitulo = animate('.login-title-char', {
@@ -234,22 +318,24 @@ export function LoginPage() {
                 Contraseña
                 <div className="input-wrapper">
                   <Lock size={18} className="input-icon" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    {...register('password')}
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    className="input-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    tabIndex={-1}
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                  <div className="password-input-wrapper">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      {...register('password')}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      className="btn-toggle-password"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 {errors.password ? (
                   <span className="field-error">{errors.password.message}</span>
@@ -280,19 +366,59 @@ export function LoginPage() {
               </div>
 
               <div className="google-btn-wrapper">
-                <GoogleLogin
-                  onSuccess={(credentialResponse) => {
-                    if (credentialResponse.credential) {
-                      handleGoogleLogin({ credential: credentialResponse.credential })
-                    }
-                  }}
-                  onError={() => showToast('Error al iniciar sesión con Google.', 'error')}
-                  shape="rectangular"
-                  size="large"
-                  width={380}
-                  theme="outline"
-                  text="signin_with"
-                />
+                {useGoogleFallback ? (
+                  <button
+                    type="button"
+                    className="btn-google-custom"
+                    onClick={async () => {
+                      try {
+                        // Plugin nativo: abre el selector de cuentas de Google en Android
+                        // sin salir de la app ni usar redirect_uri
+                        await GoogleAuth.initialize({
+                          clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim(),
+                          scopes: ['profile', 'email'],
+                          grantOfflineAccess: false,
+                        })
+                        const result = await GoogleAuth.signIn()
+                        const idToken = result?.authentication?.idToken
+                        if (idToken) {
+                          handleGoogleLogin({ credential: idToken })
+                        } else {
+                          showToast('No se pudo obtener el token de Google.', 'error')
+                        }
+                      } catch (err: any) {
+                        // El usuario canceló la selección — no es un error real
+                        if (err?.message?.includes('cancel') || err?.message?.includes('Cancel') || err?.code === 12501) {
+                          return
+                        }
+                        console.error('GoogleAuth.signIn error:', err)
+                        showToast('Error al iniciar sesión con Google. Intenta de nuevo.', 'error')
+                      }
+                    }}
+                  >
+                    <svg viewBox="0 0 48 48" className="google-icon-svg" style={{ width: '18px', height: '18px', marginRight: '10px', display: 'block', flexShrink: 0 }}>
+                      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                      <path fill="#4285F4" d="M46.5 24c0-1.61-.15-3.16-.42-4.69H24v8.89h12.66c-.55 2.92-2.19 5.39-4.66 7.05l7.24 5.61C43.5 36.32 46.5 30.73 46.5 24z"/>
+                      <path fill="#FBBC05" d="M10.54 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.98-6.19z"/>
+                      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.24-5.61c-2 .67-4.55 1.07-7.65 1.07-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    <span>Iniciar sesión con Google</span>
+                  </button>
+                ) : (
+                  <GoogleLogin
+                    onSuccess={(credentialResponse: any) => {
+                      if (credentialResponse.credential) {
+                        handleGoogleLogin({ credential: credentialResponse.credential })
+                      }
+                    }}
+                    onError={() => showToast('Error al iniciar sesión con Google.', 'error')}
+                    shape="rectangular"
+                    size="large"
+                    width={googleBtnWidth}
+                    theme="outline"
+                    text="signin_with"
+                  />
+                )}
               </div>
 
               <div className="form-support">

@@ -1536,6 +1536,17 @@
   background: rgba(0, 0, 0, 0.16);
 }
 
+.vehiculo-registro-body input:-webkit-autofill,
+.vehiculo-registro-body input:-webkit-autofill:hover,
+.vehiculo-registro-body input:-webkit-autofill:focus,
+.vehiculo-modal-body input:-webkit-autofill,
+.vehiculo-modal-body input:-webkit-autofill:hover,
+.vehiculo-modal-body input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .vehiculo-registro-footer {
   border-top: 1px solid rgba(0, 0, 0, 0.04);
   padding: 16px 24px !important;

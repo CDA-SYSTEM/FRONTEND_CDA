@@ -18,6 +18,7 @@ import type { CrearChecklistTemplateDTO } from '../domain/checklistTemplate.type
 import { useAuthStore } from '@/core/store/authStore'
 import { AnimatedText } from '@/shared/components/AnimatedText'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { ConfirmModal } from '@/shared/components/ConfirmModal'
 import './PlantillasPage.css'
 
 export function PlantillasPage() {
@@ -32,6 +33,7 @@ export function PlantillasPage() {
   const [showFormModal, setShowFormModal] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [confirmState, setConfirmState] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
 
   // Detalle visualizador
   const [viewingTemplate, setViewingTemplate] = useState<ChecklistTemplate | null>(null)
@@ -204,14 +206,18 @@ export function PlantillasPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Está seguro de eliminar esta plantilla de checklist?')) return
-    try {
-      await checklistTemplateService.eliminarPlantilla(id)
-      fetchTemplates()
-    } catch (err: any) {
-      console.error('Error eliminando plantilla:', err)
-      alert('No se pudo eliminar la plantilla.')
-    }
+    setConfirmState({
+      mensaje: '¿Está seguro de eliminar esta plantilla de checklist? Esta acción no se puede deshacer.',
+      onAceptar: async () => {
+        setConfirmState(null)
+        try {
+          await checklistTemplateService.eliminarPlantilla(id)
+          fetchTemplates()
+        } catch (err: any) {
+          console.error('Error eliminando plantilla:', err)
+        }
+      },
+    })
   }
 
   const user = useAuthStore((state) => state.user)
@@ -577,6 +583,13 @@ export function PlantillasPage() {
           </div>
         </div>,
         document.body
+      )}
+      {confirmState && (
+        <ConfirmModal
+          mensaje={confirmState.mensaje}
+          onAceptar={confirmState.onAceptar}
+          onCancelar={() => setConfirmState(null)}
+        />
       )}
     </div>
   )

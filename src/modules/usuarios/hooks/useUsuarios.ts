@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { usuarioService } from '@/modules/usuarios/services/usuarioService'
 import { authService } from '@/modules/auth/services/authService'
 import type {
@@ -45,6 +45,31 @@ export function useUsuarios() {
   // Restablecimiento de contraseña
   const [resetUserId, setResetUserId] = useState<string | null>(null)
   const [resetPasswordVal, setResetPasswordVal] = useState('')
+
+  // Confirmación personalizada (reemplaza window.confirm)
+  const [confirmPendiente, setConfirmPendiente] = useState<{ mensaje: string; onAceptar: () => void } | null>(null)
+  const confirmResolveRef = useRef<((v: boolean) => void) | null>(null)
+
+  /** Muestra un modal de confirmación y espera la respuesta del usuario */
+  const pedirConfirmacion = (mensaje: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      confirmResolveRef.current = resolve
+      setConfirmPendiente({
+        mensaje,
+        onAceptar: () => {
+          confirmResolveRef.current?.(true)
+          confirmResolveRef.current = null
+          setConfirmPendiente(null)
+        },
+      })
+    })
+  }
+
+  const cancelarConfirm = () => {
+    confirmResolveRef.current?.(false)
+    confirmResolveRef.current = null
+    setConfirmPendiente(null)
+  }
 
   const clearFeedback = () => {
     setMensaje('')
@@ -108,10 +133,15 @@ export function useUsuarios() {
   }, [])
 
   const handleCambiarRol = async (id: string, nuevoRol: string) => {
-    if (!window.confirm(`¿Confirmas cambiar el rol a ${nuevoRol}?`)) return
+    const confirmado = await pedirConfirmacion(`¿Confirmas cambiar el rol a ${nuevoRol}?`)
+    if (!confirmado) return
     try {
       clearFeedback()
-      await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
+      if (tab === 'cuentas') {
+        await usuarioService.cambiarRolAuthAccount(id, { role: nuevoRol })
+      } else {
+        await usuarioService.cambiarRol(id, { role: nuevoRol as RolUsuario })
+      }
       setMensaje('Rol actualizado correctamente.')
       if (tab === 'usuarios') {
         cargarUsuarios()
@@ -125,7 +155,8 @@ export function useUsuarios() {
 
   const handleToggleEstado = async (usuario: { id: string; isActive: boolean }) => {
     const accion = usuario.isActive ? 'desactivar' : 'activar'
-    if (!window.confirm(`¿Confirmas ${accion} esta cuenta/usuario?`)) return
+    const confirmado = await pedirConfirmacion(`¿Confirmas ${accion} esta cuenta/usuario?`)
+    if (!confirmado) return
     try {
       clearFeedback()
       await usuarioService.cambiarEstado(usuario.id, !usuario.isActive)
@@ -228,12 +259,10 @@ export function useUsuarios() {
   }
 
   const handleEliminarUsuario = async (id: string) => {
-    if (
-      !window.confirm(
-        '¿Seguro que deseas eliminar esta cuenta/usuario? Esta acción no se puede deshacer.',
-      )
+    const confirmado = await pedirConfirmacion(
+      '¿Seguro que deseas eliminar esta cuenta/usuario? Esta acción no se puede deshacer.',
     )
-      return
+    if (!confirmado) return
     try {
       clearFeedback()
       await usuarioService.eliminarUsuario(id)
@@ -281,5 +310,7 @@ export function useUsuarios() {
     handleResetPassword,
     setTab,
     cargarCuentas,
+    confirmPendiente,
+    cancelarConfirm,
   }
 }

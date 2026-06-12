@@ -55,22 +55,19 @@ export const clienteSchema = z.object({
 
   email: z
     .string()
-    .email('Correo electrónico inválido')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'El correo electrónico es obligatorio')
+    .email('Correo electrónico inválido'),
 
   direccion: z
     .string()
-    .max(200, 'La dirección no puede superar 200 caracteres')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'La dirección es obligatoria')
+    .max(200, 'La dirección no puede superar 200 caracteres'),
 
-  /** Fecha de nacimiento en formato ISO YYYY-MM-DD (opcional) */
+  /** Fecha de nacimiento en formato ISO YYYY-MM-DD (obligatoria) */
   birthDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'La fecha de nacimiento es obligatoria')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
 })
 
 export type ClienteSchema = z.infer<typeof clienteSchema>

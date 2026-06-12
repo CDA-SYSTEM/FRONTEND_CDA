@@ -545,6 +545,14 @@
   background: rgba(0, 0, 0, 0.16);
 }
 
+.vehiculo-modal-body input:-webkit-autofill,
+.vehiculo-modal-body input:-webkit-autofill:hover,
+.vehiculo-modal-body input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .vehiculo-modal-footer {
   border-top: 1px solid var(--vh-border, #e2e8f0);
   padding: 16px 24px !important;

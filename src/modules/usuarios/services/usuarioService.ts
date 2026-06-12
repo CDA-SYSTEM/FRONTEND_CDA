@@ -163,8 +163,14 @@ export const usuarioService = {
   },
 
   async cambiarRol(id: string, payload: { role: RolUsuario }): Promise<void> {
-    await apiClient.patch(`/auth/users/${id}/role`, {
+    await apiClient.patch(`/auth/users/${id}`, {
       role: toFormRole(payload.role),
+    })
+  },
+
+  async cambiarRolAuthAccount(id: string, payload: { role: string }): Promise<void> {
+    await apiClient.patch(`/auth/admin/personnel/${id}/role`, {
+      role: payload.role,
     })
   },
 

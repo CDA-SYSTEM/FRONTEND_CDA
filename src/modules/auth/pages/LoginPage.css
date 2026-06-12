@@ -413,37 +413,45 @@
 }
 
 /* Password toggle */
-.input-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: color 0.15s, background 0.15s;
-  padding: 0;
-  flex-shrink: 0;
-  margin-inline: 0 0.125rem;
+.password-input-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-.input-toggle:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.07);
+.password-input-wrapper input {
+  padding-right: 44px !important;
 }
 
-.input-toggle:active {
-  background: rgba(255, 255, 255, 0.12);
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+  display: none !important;
 }
 
-.input-toggle svg {
-  width: 20px;
-  height: 20px;
-  display: block;
-  flex-shrink: 0;
+.btn-toggle-password {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 6px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #64748b !important; /* Gris elegante de Refero */
+  transition: color 0.2s ease !important;
+}
+
+.btn-toggle-password:hover {
+  color: #0b224e !important; /* Azul corporativo */
+}
+
+.btn-toggle-password svg {
+  width: 18px !important; /* Tamaño compacto y premium */
+  height: 18px !important;
 }
 
 /* ── Form Options ── */
@@ -650,6 +658,36 @@
 
 .google-btn-wrapper iframe {
   border-radius: var(--radius-input) !important;
+}
+
+.btn-google-custom,
+.btn-google-oauth {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  height: var(--touch-target) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #ffffff !important;
+  color: #1f1f1f !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: var(--radius-input) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s, border-color 0.2s !important;
+  padding: 0 16px !important;
+}
+
+.btn-google-custom:hover,
+.btn-google-oauth:hover {
+  background-color: #f8f9fa !important;
+  border-color: #c3d7f7 !important;
+}
+
+.btn-google-custom:active,
+.btn-google-oauth:active {
+  background-color: #f1f3f4 !important;
 }
 
 /* ── Support Link ── */

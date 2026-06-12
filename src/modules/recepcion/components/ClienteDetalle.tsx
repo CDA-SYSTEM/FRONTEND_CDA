@@ -150,8 +150,8 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
       email: cliente.email ?? '',
       direccion: cliente.direccion ?? '',
       birthDate: cliente.birthDate ?? '',
-      documentTypeId: cliente.documentTypeId,
-      personTypeId: cliente.personTypeId,
+      documentTypeId: cliente.documentTypeId || (cliente as any).documentType?.id,
+      personTypeId: cliente.personTypeId || (cliente as any).personType?.id,
     },
   })
 
@@ -194,20 +194,44 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
       email: cliente.email ?? '',
       direccion: cliente.direccion ?? '',
       birthDate: cliente.birthDate ?? '',
-      documentTypeId: cliente.documentTypeId,
-      personTypeId: cliente.personTypeId,
+      documentTypeId: cliente.documentTypeId || (cliente as any).documentType?.id,
+      personTypeId: cliente.personTypeId || (cliente as any).personType?.id,
     })
   }, [cliente, reset])
 
-  const docTipoNombre = tiposDocumento.find((d) => d.id === cliente.documentTypeId)?.nombre || '—'
-  const persTipoNombre = tiposPersona.find((p) => p.id === cliente.personTypeId)?.nombre || '—'
+  const docTipoNombre = 
+    (cliente as any).documentType?.type || 
+    (cliente as any).documentType?.nombre || 
+    (cliente as any).documentType?.name || 
+    tiposDocumento.find((d) => d.id === cliente.documentTypeId)?.nombre || 
+    '—'
+  const persTipoNombre = 
+    (cliente as any).personType?.type || 
+    (cliente as any).personType?.nombre || 
+    (cliente as any).personType?.name || 
+    tiposPersona.find((p) => p.id === cliente.personTypeId)?.nombre || 
+    '—'
 
   const onSubmit = async (data: ClienteSchema) => {
     if (!puedeEditar) return
     setActualizando(true)
     setError(null)
     try {
-      await clienteService.actualizarCliente(cliente.id, data)
+      const emailVal = data.email?.trim()
+      const direccionVal = data.direccion?.trim()
+      const birthDateVal = data.birthDate?.trim()
+
+      await clienteService.actualizarCliente(cliente.id, {
+        nombre: data.nombre.trim(),
+        apellido: data.apellido.trim(),
+        identity: data.identity.trim(),
+        celular: data.celular.trim(),
+        email: emailVal !== '' ? emailVal : undefined,
+        direccion: direccionVal !== '' ? direccionVal : undefined,
+        birthDate: birthDateVal !== '' ? birthDateVal : undefined,
+        documentTypeId: data.documentTypeId,
+        personTypeId: data.personTypeId,
+      })
       showToast('Cliente actualizado con éxito', 'success')
       setIsEditing(false)
       onActualizado()
@@ -361,15 +385,17 @@ export function ClienteDetalle({ clienteInicial, onVolver, onActualizado }: Prop
                   {errors.personTypeId && <span className="cl-field-error">{errors.personTypeId.message}</span>}
                 </div>
                 <div className="cl-field">
-                  <span className="cl-field-label">Correo electrónico</span>
+                  <span className="cl-field-label">Correo electrónico <span className="cl-field-required">*</span></span>
                   <input className="cl-input" type="email" {...register('email')} disabled={actualizando} />
+                  {errors.email && <span className="cl-field-error">{errors.email.message}</span>}
                 </div>
                 <div className="cl-field">
-                  <span className="cl-field-label">Dirección</span>
+                  <span className="cl-field-label">Dirección <span className="cl-field-required">*</span></span>
                   <input className="cl-input" {...register('direccion')} disabled={actualizando} />
+                  {errors.direccion && <span className="cl-field-error">{errors.direccion.message}</span>}
                 </div>
                 <div className="cl-field form-group-fecha">
-                  <span className="cl-field-label">Fecha de nacimiento</span>
+                  <span className="cl-field-label">Fecha de nacimiento <span className="cl-field-required">*</span></span>
                   <input className="cl-input" type="date" {...register('birthDate')} disabled={actualizando} />
                   {errors.birthDate && <span className="cl-field-error">{errors.birthDate.message}</span>}
                 </div>

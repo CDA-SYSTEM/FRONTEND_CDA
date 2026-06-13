@@ -355,3 +355,22 @@
     }
   }
 }
+
+/* ── App Footer (visible solo cuando está logueado) ── */
+.app-footer {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    margin-bottom: var(--bottom-nav-height);
+  }
+}

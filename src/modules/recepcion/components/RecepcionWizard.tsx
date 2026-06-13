@@ -69,7 +69,12 @@ export function RecepcionWizard({ onCancelar }: Props) {
         <div className="recepcion-wizard-header-card">
           <div className="recepcion-wizard-header-text">
             <h1>Nueva Recepción</h1>
-            <p>Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica</p>
+            <p>
+              Registre el ingreso de un vehículo para iniciar la revision {' '}
+              <strong style={{ textTransform: 'lowercase', color: '#1d4ed8' }}>
+                {wizard.tiposRevision.find((t) => String(t.id) === String(wizard.revisionType))?.nombre || 'revisión técnico-mecánica'}
+              </strong>
+            </p>
           </div>
           <button
             onClick={onCancelar}

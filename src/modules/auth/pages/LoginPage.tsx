@@ -14,7 +14,22 @@ import {
 } from '@/modules/auth/domain/auth.schema'
 import { useAuthStore } from '@/core/store/authStore'
 import logoSvg from '@/shared/assets/logo_cda.svg'
+import bgMechanic1 from '@/shared/assets/bg-mechanic-1.jpg'
+import bgMechanic2 from '@/shared/assets/bg-mechanic-2.jpg'
+import bgMechanic3 from '@/shared/assets/bg-mechanic-3.jpg'
+import bgMechanic4 from '@/shared/assets/bg-mechanic-4.jpg'
+import bgMechanic5 from '@/shared/assets/bg-mechanic-5.jpg'
+import bgMechanic6 from '@/shared/assets/bg-mechanic-6.jpg'
 import './LoginPage.css'
+
+const BG_IMAGES = [
+  bgMechanic1,
+  bgMechanic2,
+  bgMechanic3,
+  bgMechanic4,
+  bgMechanic5,
+  bgMechanic6,
+]
 
 
 const DASHBOARD_ROUTES: Record<string, string> = {
@@ -68,6 +83,15 @@ export function LoginPage() {
   const [useGoogleFallback, setUseGoogleFallback] = useState(() => {
     return typeof window !== 'undefined' && window.location.hostname === 'localhost' && !!(window as any).Capacitor
   })
+
+  // ── Background Slideshow ──
+  const [bgIndex, setBgIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % BG_IMAGES.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const handleResize = () => {
@@ -240,7 +264,18 @@ export function LoginPage() {
 
   return (
     <main className="auth-shell">
-      <div className="bg-image" />
+      {/* ── Background Slideshow ── */}
+      {BG_IMAGES.map((src, i) => (
+        <div
+          key={src}
+          className="bg-image"
+          style={{
+            backgroundImage: `url(${src})`,
+            opacity: i === bgIndex ? 0.28 : 0,
+            transition: 'opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        />
+      ))}
       <div className="bg-overlay" />
       <div className="auth-split">
         {/* ── Left: Branding Panel ── */}
@@ -347,19 +382,13 @@ export function LoginPage() {
                   <input type="checkbox" defaultChecked={false} />
                   <span>Recordarme</span>
                 </label>
-                <a href="#" className="forgot-link" onClick={(e) => e.preventDefault()}>
-                  ¿Olvidaste tu contraseña?
-                </a>
               </div>
 
               <button type="submit" disabled={isSubmitting || isLoading}>
                 {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
               </button>
 
-              <div className="form-badge">
-                <span className="badge-dot" />
-                <span>+5.000 inspecciones realizadas</span>
-              </div>
+
 
               <div className="auth-divider">
                 <span>o continúa con</span>
@@ -426,9 +455,7 @@ export function LoginPage() {
             </form>
           </section>
 
-          <p className="auth-footer">
-            © {new Date().getFullYear()} CDA Putumayo — Todos los derechos reservados
-          </p>
+
         </div>
       </div>
 

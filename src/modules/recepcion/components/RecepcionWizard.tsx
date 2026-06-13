@@ -2273,6 +2273,7 @@ function PasoCondiciones({
       'REAR_RIGHT':  'Trasera derecha',
       'FRONT':       'Delantera',
       'REAR':        'Trasera',
+      'SPARE':       'Repuesto',
       'REPUESTO_1':  'Repuesto 1',
       'REPUESTO_2':  'Repuesto 2',
     }

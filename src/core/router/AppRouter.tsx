@@ -21,19 +21,13 @@ import { TrackerPage } from '@/modules/tracker/pages/TrackerPage'
 import { AppLayout } from '@/shared/layout/AppLayout'
 import { useAuthStore } from '@/core/store/authStore'
 
-/**
- * Componente que redirija "/" al módulo correcto según el rol del usuario
- */
 function RoleBasedRedirect() {
   const user = useAuthStore((state) => state.user)
 
-  // Si no hay usuario, redirigir a login
   if (!user) {
     return <Navigate to="/login" replace />
   }
 
-  // Mapeo de roles backend → ruta inicial del frontend
-  // Backend (minúsculas): admin | manager | operario | inspector | facturador | superadmin
   const roleRoutes: Record<string, string> = {
     admin: '/admin/dashboard',
     superadmin: '/admin/dashboard',
@@ -57,24 +51,131 @@ export function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<RoleBasedRedirect />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/recepcion" element={<RecepcionPage />} />
-            <Route path="/clientes" element={<ClientesPage />} />
-            <Route path="/inspeccion" element={<InspeccionPage />} />
-            <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
-            <Route path="/inspeccion/ejecutar/:vehicleType/:inspectionId" element={<ChecklistPage />} />
-            <Route path="/inspeccion/ejecutar/:inspectionId" element={<ChecklistPage />} />
-            <Route path="/facturacion" element={<FacturacionPage />} />
-            <Route path="/precios" element={<PreciosPage />} />
-            <Route path="/estados" element={<EstadosPage />} />
-            <Route path="/plantillas" element={<PlantillasPage />} />
-            <Route path="/admin/documentos" element={<InvoiceTemplatesPage />} />
-            <Route path="/admin/documentos/:id/edit" element={<InvoiceTemplateEditorPage />} />
-            <Route path="/archivos" element={<ArchivosPage />} />
-            <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
-            <Route path="/usuarios" element={<UsuariosPage />} />
-            <Route path="/tracker" element={<TrackerPage />} />
+
+            {/* Solo Admin, Manager, Facturador */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    'admin',
+                    'superadmin',
+                    'manager',
+                    'facturador',
+                  ]}
+                />
+              }
+            >
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/facturacion" element={<FacturacionPage />} />
+            </Route>
+
+            {/* Solo Admin */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={['admin', 'superadmin']}
+                />
+              }
+            >
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/usuarios" element={<UsuariosPage />} />
+              <Route path="/archivos" element={<ArchivosPage />} />
+
+              {/* Gestión de plantillas de documentos */}
+              <Route
+                path="/admin/documentos"
+                element={<InvoiceTemplatesPage />}
+              />
+
+              <Route
+                path="/admin/documentos/:id/edit"
+                element={<InvoiceTemplateEditorPage />}
+              />
+            </Route>
+
+            {/* Solo Admin, Manager, Recepcionista, Operario */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    'admin',
+                    'superadmin',
+                    'manager',
+                    'operario',
+                    'recepcionista',
+                  ]}
+                />
+              }
+            >
+              <Route path="/recepcion" element={<RecepcionPage />} />
+            </Route>
+
+            {/* Admin, Manager, Recepcionista, Operario, Inspector */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    'admin',
+                    'superadmin',
+                    'manager',
+                    'operario',
+                    'recepcionista',
+                    'inspector',
+                  ]}
+                />
+              }
+            >
+              <Route path="/clientes" element={<ClientesPage />} />
+              <Route
+                path="/vehiculo/registro"
+                element={<RegistroVehiculoPage />}
+              />
+            </Route>
+
+            {/* Admin, Inspector */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    'admin',
+                    'superadmin',
+                    'inspector',
+                  ]}
+                />
+              }
+            >
+              <Route path="/inspeccion" element={<InspeccionPage />} />
+              <Route
+                path="/inspeccion/asignacion"
+                element={<AsignacionPage />}
+              />
+              <Route
+                path="/inspeccion/ejecutar/:vehicleType/:inspectionId"
+                element={<ChecklistPage />}
+              />
+              <Route
+                path="/inspeccion/ejecutar/:inspectionId"
+                element={<ChecklistPage />}
+              />
+            </Route>
+
+            {/* Admin, Manager */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    'admin',
+                    'superadmin',
+                    'manager',
+                  ]}
+                />
+              }
+            >
+              <Route path="/precios" element={<PreciosPage />} />
+              <Route path="/estados" element={<EstadosPage />} />
+              <Route path="/plantillas" element={<PlantillasPage />} />
+              <Route path="/tracker" element={<TrackerPage />} />
+            </Route>
           </Route>
         </Route>
 

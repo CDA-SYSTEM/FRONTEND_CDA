@@ -64,13 +64,6 @@ body::before {
   z-index: 10;
 }
 
-.app-footer {
-  text-align: center;
-  padding: 1rem 0;
-  color: #94a3b8;
-  font-size: 0.9rem;
-  background: transparent;
-}
 
 h1,
 h2,
@@ -156,7 +149,6 @@ label span {
 
 .app-shell {
   min-height: 100vh;
-  padding-bottom: 60px;
 }
 
 .topbar {

@@ -14,6 +14,7 @@ import {
   Activity,
   Home,
   Menu,
+  LayoutTemplate,
 } from 'lucide-react'
 import './Navigation.css'
 
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
   { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['admin', 'manager'] },
   { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['admin', 'manager'] },
   { to: '/plantillas', label: 'Plantillas', icon: <FileText size={20} />, roles: ['admin', 'manager'] },
+  { to: '/admin/documentos', label: 'Documentos', icon: <LayoutTemplate size={20} />, roles: ['admin'] },
   { to: '/archivos', label: 'Archivos', icon: <FileArchive size={20} />, roles: ['admin'] },
   { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['admin', 'manager'] },
 ]

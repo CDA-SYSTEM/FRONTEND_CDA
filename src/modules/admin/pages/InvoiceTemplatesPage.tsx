@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Card, CardContent, Button, IconButton, Chip,
@@ -69,11 +69,101 @@ export function InvoiceTemplatesPage() {
   const [newDialog, setNewDialog] = useState(false);
   const [previewDialog, setPreviewDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<InvoiceTemplate | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [menuTarget, setMenuTarget] = useState<InvoiceTemplate | null>(null);
 
   const [newForm, setNewForm] = useState({ name: '', type: 'INVOICE' as TemplateType, description: '' });
+
+  const renderTemplate = (html: string) => {
+    let rendered = html;
+    
+    // Inject print-optimized CSS
+    const printStyles = `
+      <style>
+        @media print {
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Ensure everything tries to stay on one page */
+          html, body {
+            height: 99%;
+            overflow: hidden;
+          }
+          /* Prevent breaking inside cards or tables */
+          .header, .totals, .footer, table, tr, div {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          /* Scale down slightly if content is too large */
+          body {
+            zoom: 0.95;
+          }
+        }
+      </style>
+    `;
+
+    // Insert styles before </head> or at the beginning
+    if (rendered.includes('</head>')) {
+      rendered = rendered.replace('</head>', `${printStyles}</head>`);
+    } else {
+      rendered = printStyles + rendered;
+    }
+
+    const mockData: Record<string, any> = {
+      'invoice.number': 'FAC-0001',
+      'invoice.id': 'INV-12345',
+      'invoice.subtotal': '250.000',
+      'invoice.tax': '47.500',
+      'invoice.total': '297.500',
+      'invoice.item_description': 'Revisión Técnico Mecánica',
+      'invoice.item_quantity': '1',
+      'invoice.item_unitPrice': '250.000',
+      'invoice.item_total': '250.000',
+      'client.name': 'Juan Pérez',
+      'client.document': '1.085.123.456',
+      'date.day': new Date().getDate().toString().padStart(2, '0'),
+      'date.month': (new Date().getMonth() + 1).toString().padStart(2, '0'),
+      'date.year': new Date().getFullYear().toString(),
+    };
+
+    Object.entries(mockData).forEach(([key, value]) => {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      rendered = rendered.replace(regex, value);
+    });
+
+    // Handle simple each loops if present (naive approach)
+    rendered = rendered.replace(/{{#each invoice\.items}}([\s\S]*?){{\/each}}/g, '$1');
+
+    return rendered;
+  };
+
+  const handleExportPdf = () => {
+    if (iframeRef.current) {
+      const contentWindow = iframeRef.current.contentWindow;
+      if (contentWindow) {
+        contentWindow.focus();
+        contentWindow.print();
+      }
+    }
+  };
+
+  const handleMenuExport = () => {
+    if (menuTarget) {
+      setEditingTemplate(menuTarget);
+      // We need to wait for the dialog to open and iframe to load to print.
+      // A better way is to open the preview and then trigger print, or just open preview.
+      // For now, let's just open the preview as it's the safest way to ensure iframe exists.
+      setPreviewDialog(true);
+      closeMenu();
+    }
+  };
 
   // Map domain templates to UI format for filtering/display
   const mappedTemplates = templates.map(t => ({
@@ -81,8 +171,8 @@ export function InvoiceTemplatesPage() {
     uiType: (t.typeCode as TemplateType) || 'INVOICE',
     uiStatus: t.isActive ? 'active' : 'inactive' as TemplateStatus,
     // Add missing fields for UI consistency
-    description: 'Plantilla de documento para el sistema CDA.',
-    usageCount: t.usageCount ?? Math.floor(Math.random() * 200),
+    description: (t as any).description || 'Diseño de plantilla oficial para la generación de documentos legales y comerciales del CDA.',
+    usageCount: t.usageCount ?? 0,
     starred: (t as any).starred ?? false,
     previewColor: TYPE_META[(t.typeCode as TemplateType) || 'INVOICE']?.color || '#1e40af',
     versionLabel: 'v1.0',
@@ -171,7 +261,7 @@ export function InvoiceTemplatesPage() {
         {[
           { label: 'Total Plantillas', value: stats.total, icon: <FileCopyIcon />, color: '#1e40af', bg: 'linear-gradient(135deg,#dbeafe,#eff6ff)' },
           { label: 'Plantillas Activas', value: stats.active, icon: <ActiveIcon />, color: '#065f46', bg: 'linear-gradient(135deg,#d1fae5,#f0fdf4)' },
-          { label: 'Usos Totales', value: stats.totalUsage, icon: <ChartIcon />, color: '#7c3aed', bg: 'linear-gradient(135deg,#ede9fe,#faf5ff)' },
+          { label: 'Tipos Disponibles', value: Object.keys(TYPE_META).length, icon: <SettingsIcon />, color: '#7c3aed', bg: 'linear-gradient(135deg,#ede9fe,#faf5ff)' },
         ].map((s, i) => (
           <Box key={i}>
             <Paper
@@ -220,9 +310,35 @@ export function InvoiceTemplatesPage() {
 
       {/* Tabs + Filters */}
       <Paper sx={{ borderRadius: 3, mb: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-        <Box sx={{ px: 2, pt: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ minHeight: 44 }}>
-            <Tab label="Todas" sx={{ minHeight: 44, fontWeight: 600 }} />
+        <Box sx={{ px: 2, py: 0.75, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#f1f5f9' }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={(_, v) => setActiveTab(v)} 
+            sx={{ 
+              minHeight: 36,
+              '& .MuiTabs-indicator': { display: 'none' },
+              '& .MuiTab-root': {
+                minHeight: 36,
+                borderRadius: 2,
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                px: 3,
+                color: '#64748b',
+                transition: 'all 0.2s',
+                '&.Mui-selected': {
+                  color: '#ffffff',
+                  bgcolor: '#1e40af',
+                  boxShadow: '0 4px 12px rgba(30,64,175,0.3)',
+                },
+                '&:hover:not(.Mui-selected)': {
+                  bgcolor: '#e2e8f0',
+                  color: '#1e293b',
+                }
+              }
+            }}
+          >
+            <Tab label="Todas las Plantillas" />
           </Tabs>
         </Box>
         <Box sx={{ p: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -382,8 +498,8 @@ export function InvoiceTemplatesPage() {
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                       <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: meta.color }}>{t.usageCount}</Typography>
-                        <Typography variant="caption" color="text.secondary">Usos</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: meta.color }}>{meta.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">Documento</Typography>
                       </Box>
                       <Divider orientation="vertical" flexItem />
                       <Box sx={{ textAlign: 'center' }}>
@@ -454,7 +570,7 @@ export function InvoiceTemplatesPage() {
         <Paper sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
           {/* List header */}
           <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 120px', px: 2, py: 1.5, bgcolor: 'grey.50', borderBottom: '1px solid', borderColor: 'divider' }}>
-            {['Plantilla', 'Tipo', 'Estado', 'Usos', 'Modificado', 'Acciones'].map(h => (
+            {['Plantilla', 'Tipo', 'Estado', 'Formato', 'Modificado', 'Acciones'].map(h => (
               <Typography key={h} variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {h}
               </Typography>
@@ -489,7 +605,7 @@ export function InvoiceTemplatesPage() {
                   </Box>
                   <Chip label={meta.label} size="small" sx={{ width: 'fit-content', bgcolor: `${meta.color}15`, color: meta.color, fontWeight: 700, border: `1px solid ${meta.color}30` }} />
                   <Chip label={statusInfo.label} color={statusInfo.color} size="small" icon={statusInfo.icon as React.ReactElement} sx={{ width: 'fit-content', fontWeight: 700 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: meta.color }}>{t.usageCount}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: meta.color }}>{meta.label}</Typography>
                   <Typography variant="body2" color="text.secondary">{t.lastModifiedLabel}</Typography>
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <Tooltip title="Editar"><IconButton size="small" color="primary" onClick={() => navigate(`/admin/documentos/${t.id}/edit`)}><EditIcon fontSize="small" /></IconButton></Tooltip>
@@ -523,6 +639,10 @@ export function InvoiceTemplatesPage() {
         </MenuItem>
         <MenuItem onClick={() => { if (menuTarget) toggleStatus(menuTarget); }} sx={{ gap: 1.5 }}>
           <SettingsIcon fontSize="small" color="action" /><Typography variant="body2">Cambiar estado</Typography>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleMenuExport} sx={{ gap: 1.5 }}>
+          <DownloadIcon fontSize="small" color="action" /><Typography variant="body2">Exportar PDF</Typography>
         </MenuItem>
         <Divider />
         <MenuItem onClick={onConfirmDelete} sx={{ gap: 1.5, color: 'error.main' }}>
@@ -587,51 +707,81 @@ export function InvoiceTemplatesPage() {
       </Dialog>
 
       {/* PREVIEW DIALOG */}
-      <Dialog open={previewDialog} onClose={() => setPreviewDialog(false)} maxWidth="md" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Dialog open={previewDialog} onClose={() => setPreviewDialog(false)} maxWidth="md" fullWidth slotProps={{ paper: { sx: { borderRadius: 3, height: '85vh' } } }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
           <PreviewIcon color="primary" />
-          Vista previa — {editingTemplate?.name}
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Vista previa — {editingTemplate?.name}</Typography>
+            <Typography variant="caption" color="text.secondary">Renderizado con datos de prueba</Typography>
+          </Box>
           <IconButton sx={{ ml: 'auto' }} onClick={() => setPreviewDialog(false)}><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent sx={{ bgcolor: '#e2e8f0', display: 'flex', justifyContent: 'center', p: 3 }}>
+        <DialogContent sx={{ bgcolor: '#e2e8f0', p: 0, display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
           {editingTemplate && (
-            <Paper elevation={8} sx={{ width: 500, p: 4, borderRadius: 1 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, pb: 2, borderBottom: `3px solid ${TYPE_META[(editingTemplate.typeCode as TemplateType) || 'INVOICE'].color}` }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 800, color: '#0f172a' }}>CDA Putumayo</Typography>
-                  <Typography variant="caption" color="text.secondary">NIT: 900.123.456-7</Typography>
-                </Box>
-                <Box sx={{ textAlign: 'right' }}>
-                  <Chip label={TYPE_META[(editingTemplate.typeCode as TemplateType) || 'INVOICE'].label} size="small" sx={{ bgcolor: TYPE_META[(editingTemplate.typeCode as TemplateType) || 'INVOICE'].color, color: 'white', fontWeight: 700 }} />
-                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }} color="text.secondary">No. 0001 • {new Date().toLocaleDateString('es-CO')}</Typography>
-                </Box>
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Esta es una vista previa de cómo se verá el documento generado.</Typography>
-              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, overflow: 'hidden' }}>
-                <Box sx={{ bgcolor: `${TYPE_META[(editingTemplate.typeCode as TemplateType) || 'INVOICE'].color}15`, p: 1.5, display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
-                  {['Concepto', 'Cant.', 'Precio', 'Total'].map(h => <Typography key={h} variant="caption" sx={{ fontWeight: 700 }}>{h}</Typography>)}
-                </Box>
-                {['Revisión técnico-mecánica', 'Emisión de gases', 'Certificado'].map((item, i) => (
-                  <Box key={i} sx={{ p: 1.5, display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', borderTop: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption">{item}</Typography>
-                    <Typography variant="caption">1</Typography>
-                    <Typography variant="caption">$120.000</Typography>
-                    <Typography variant="caption">$120.000</Typography>
-                  </Box>
-                ))}
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: TYPE_META[(editingTemplate.typeCode as TemplateType) || 'INVOICE'].color }}>
-                  Total: $360.000
-                </Typography>
-              </Box>
-            </Paper>
+            <Box sx={{ width: '100%', height: '100%', p: 3, overflowY: 'auto', display: 'flex', justifyContent: 'center' }}>
+              <Paper 
+                elevation={8} 
+                sx={{ 
+                  width: '794px', // A4 Width
+                  minHeight: '1123px', // A4 Height proportional
+                  bgcolor: 'white',
+                  boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  p: 0,
+                  overflow: 'hidden'
+                }}
+              >
+                <iframe
+                  ref={iframeRef}
+                  title="Preview"
+                  srcDoc={renderTemplate(editingTemplate.body)}
+                  style={{
+                    width: '100%',
+                    height: '1123px',
+                    border: 'none',
+                    display: 'block'
+                  }}
+                />
+              </Paper>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button startIcon={<DownloadIcon />} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none' }}>Exportar PDF</Button>
-          <Button variant="contained" startIcon={<EditIcon />} onClick={() => { setPreviewDialog(false); navigate(`/admin/documentos/${editingTemplate?.id}/edit`); }} sx={{ background: 'linear-gradient(135deg,#1e40af,#3b82f6)', borderRadius: 2, textTransform: 'none' }}>
-            Abrir editor
+        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: '#f8fafc', gap: 1 }}>
+          <Button 
+            startIcon={<DownloadIcon />} 
+            variant="contained" 
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 4,
+              bgcolor: '#1e40af',
+              '&:hover': { bgcolor: '#1e3a8a' }
+            }}
+            onClick={handleExportPdf}
+          >
+            Exportar PDF
+          </Button>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button 
+            variant="contained"
+            startIcon={<EditIcon />} 
+            onClick={() => { setPreviewDialog(false); navigate(`/admin/documentos/${editingTemplate?.id}/edit`); }} 
+            sx={{ 
+              borderRadius: 2, 
+              textTransform: 'none', 
+              fontWeight: 700,
+              bgcolor: '#64748b',
+              '&:hover': { bgcolor: '#475569' }
+            }}
+          >
+            Abrir en Editor
+          </Button>
+          <Button 
+            variant="outlined" 
+            onClick={() => setPreviewDialog(false)}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, color: 'text.secondary', borderColor: 'divider' }}
+          >
+            Cerrar
           </Button>
         </DialogActions>
       </Dialog>

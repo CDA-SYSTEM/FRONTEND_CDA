@@ -157,7 +157,7 @@ export function AppLayout() {
           <Outlet />
         </section>
 
-        <footer className="app-footer">
+        <footer className={`app-footer${sidebarCollapsed ? ' app-footer--collapsed' : ''}`}>
           © {new Date().getFullYear()} CDA Putumayo — Todos los derechos reservados
         </footer>
       </div>

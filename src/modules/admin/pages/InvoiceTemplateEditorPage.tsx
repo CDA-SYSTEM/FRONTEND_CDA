@@ -512,7 +512,11 @@ export function InvoiceTemplateEditorPage() {
     if (editorMode === 'preview') return
 
     if (editorMode === 'visual') {
-      canvasRef.current?.insertVariable(tag)
+      if (canvasRef.current) {
+        canvasRef.current.insertVariable(tag)
+      } else {
+        console.warn('[PAGE] canvasRef.current is null!')
+      }
       return
     }
 

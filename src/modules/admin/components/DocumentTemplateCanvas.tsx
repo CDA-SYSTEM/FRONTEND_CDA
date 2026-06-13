@@ -90,7 +90,9 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
       const component = selectedComponent
       if (component) {
         isTypingRef.current = true
-        component.set('content', val)
+        component.set('content', null)
+        component.components().reset()
+        component.append(val)
         const el = component.getEl()
         if (el) {
           el.innerText = val
@@ -148,16 +150,24 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
 
         const variable = `{{${tag}}}`
         const selected = editor.getSelected()
-
-        if (selected?.is('text')) {
-          const content = selected.get('content') ?? ''
-          selected.set('content', `${content}${variable}`)
-        } else if (selected) {
-          selected.append({ type: 'text', content: variable })
-        } else {
+        if (!selected) {
           editor.addComponents(
             `<span class="template-variable" style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-weight:600;">${variable}</span>`,
           )
+          return
+        }
+
+        const el = selected.getEl()
+        const currentText = el ? el.innerHTML || '' : ''
+        const newContent = currentText + variable
+
+        selected.set('content', null)
+        selected.components().reset()
+        selected.append(newContent)
+        if (el) el.innerHTML = newContent
+
+        if (onChangeRef.current) {
+          onChangeRef.current(exportHtmlFromEditor(editor))
         }
       },
       insertImage(url: string) {
@@ -337,6 +347,7 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
       })
 
       return () => {
+        syncingRef.current = true
         editor.destroy()
         editorRef.current = null
       }

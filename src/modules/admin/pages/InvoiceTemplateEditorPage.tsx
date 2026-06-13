@@ -12,6 +12,14 @@ import {
   MoreVertical,
   Play,
   Copy,
+  FolderOpen,
+  FolderPlus,
+  UploadCloud,
+  ArrowLeft,
+  Plus,
+  FileText,
+  File,
+  Trash2,
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { invoiceTemplateService } from '../services/invoiceTemplateService'
@@ -19,6 +27,7 @@ import type { TemplateVariable, TemplateType } from '../domain/invoiceTemplate.t
 import { DEFAULT_INVOICE_TEMPLATE } from '../constants/defaultInvoiceTemplate'
 import type { DocumentTemplateCanvasRef } from '../components/DocumentTemplateCanvas'
 import { DocumentPreviewPanel } from '../components/DocumentPreviewPanel'
+import { storageService, StorageFolder, StorageFile } from '@/modules/storage/services/storageService'
 import './InvoiceTemplatesPage.css'
 
 const DocumentTemplateCanvas = lazy(() =>
@@ -105,6 +114,340 @@ function VariableChip({ variable, onInsert, showToast }: VariableChipProps) {
   )
 }
 
+interface MediaLibraryPanelProps {
+  onInsertImage: (url: string) => void
+  onInsertLink: (url: string, name: string) => void
+  showToast: (msg: string, type: 'success' | 'error') => void
+}
+
+function MediaLibraryPanel({ onInsertImage, onInsertLink, showToast }: MediaLibraryPanelProps) {
+  const [folders, setFolders] = useState<StorageFolder[]>([])
+  const [activeFolder, setActiveFolder] = useState<StorageFolder | null>(null)
+  const [files, setFiles] = useState<StorageFile[]>([])
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [showCreateFolder, setShowCreateFolder] = useState(false)
+  const [folderSearch, setFolderSearch] = useState('')
+  const [folderToDelete, setFolderToDelete] = useState<StorageFolder | null>(null)
+
+  const loadFolders = async () => {
+    setLoading(true)
+    const data = await storageService.listarCarpetas(folderSearch)
+    setFolders(data)
+    setLoading(false)
+  }
+
+  const handleDeleteFolder = async (folderId: string) => {
+    setFolderToDelete(null)
+    setLoading(true)
+    const success = await storageService.eliminarCarpeta(folderId)
+    setLoading(false)
+    if (success) {
+      showToast('Carpeta eliminada con éxito', 'success')
+      loadFolders()
+    } else {
+      showToast('Error al eliminar. Asegúrate de que la carpeta esté vacía.', 'error')
+    }
+  }
+
+  const loadFolderFiles = async (folderId: string) => {
+    setLoading(true)
+    const data = await storageService.listarArchivosDeCarpeta(folderId)
+    setFiles(data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (!activeFolder) {
+      loadFolders()
+    } else {
+      loadFolderFiles(activeFolder.id)
+    }
+  }, [activeFolder, folderSearch])
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newFolderName.trim()) return
+    const folder = await storageService.crearCarpeta(newFolderName.trim())
+    if (folder) {
+      showToast('Carpeta creada con éxito', 'success')
+      setNewFolderName('')
+      setShowCreateFolder(false)
+      loadFolders()
+    } else {
+      showToast('Error al crear la carpeta', 'error')
+    }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const uploaded = await storageService.subirArchivo(file, activeFolder?.id)
+    setUploading(false)
+    if (uploaded) {
+      showToast('Archivo subido con éxito', 'success')
+      if (activeFolder) {
+        loadFolderFiles(activeFolder.id)
+      }
+    } else {
+      showToast('Error al subir el archivo', 'error')
+    }
+  }
+
+  const handleDeleteFile = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar este archivo?')) return
+    const success = await storageService.eliminarArchivo(id)
+    if (success) {
+      showToast('Archivo eliminado', 'success')
+      if (activeFolder) {
+        loadFolderFiles(activeFolder.id)
+      }
+    } else {
+      showToast('Error al eliminar archivo', 'error')
+    }
+  }
+
+  const getFileUrl = (file: StorageFile) => {
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://api-cda.ilesandres.online'
+    return `${backendUrl}/api/v1/storage/files/${file.id}`
+  }
+
+  const handleCopyUrl = async (file: StorageFile, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = getFileUrl(file)
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast('Enlace copiado al portapapeles', 'success')
+    } catch {
+      showToast('Error al copiar el enlace', 'error')
+    }
+  }
+
+  const handleInsert = (file: StorageFile, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = getFileUrl(file)
+    const isImage = file.mimetype.startsWith('image/')
+    if (isImage) {
+      onInsertImage(url)
+      showToast('Imagen insertada en la plantilla', 'success')
+    } else {
+      onInsertLink(url, file.original_name)
+      showToast('Enlace de archivo insertado', 'success')
+    }
+  }
+
+  const getFolderColorClass = (index: number) => {
+    const colors = ['folder-blue', 'folder-green', 'folder-purple', 'folder-pink', 'folder-cyan']
+    return colors[index % colors.length]
+  }
+
+  return (
+    <div className="media-library-panel">
+      {activeFolder ? (
+        <div className="media-folder-detail">
+          <div className="media-folder-detail__header">
+            <button 
+              type="button" 
+              className="media-back-btn"
+              onClick={() => setActiveFolder(null)}
+            >
+              <ArrowLeft size={14} />
+              Volver
+            </button>
+            <span className="media-folder-name" title={activeFolder.name}>
+              {activeFolder.name}
+            </span>
+          </div>
+
+          <div className="media-upload-area">
+            <label className="media-upload-label">
+              <UploadCloud size={20} />
+              <span>{uploading ? 'Subiendo...' : 'Subir archivo'}</span>
+              <input 
+                type="file" 
+                onChange={handleFileUpload} 
+                disabled={uploading} 
+                style={{ display: 'none' }} 
+              />
+            </label>
+          </div>
+
+          {loading ? (
+            <div className="media-loading">
+              <span className="spinner" />
+              <span>Cargando archivos...</span>
+            </div>
+          ) : files.length === 0 ? (
+            <div className="media-empty">
+              <span>Esta carpeta está vacía.</span>
+            </div>
+          ) : (
+            <div className="media-files-grid">
+              {files.map((file) => {
+                const isImage = file.mimetype.startsWith('image/')
+                const fileUrl = getFileUrl(file)
+                return (
+                  <div key={file.id} className="media-file-card">
+                    <div className="media-file-card__preview">
+                      {isImage ? (
+                        <img src={fileUrl} alt={file.original_name} />
+                      ) : (
+                        <div className="media-file-icon">
+                          {file.mimetype === 'application/pdf' ? (
+                            <FileText size={24} style={{ color: '#ef4444' }} />
+                          ) : (
+                            <File size={24} style={{ color: '#64748b' }} />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="media-file-card__info">
+                      <span className="media-file-name" title={file.original_name}>
+                        {file.original_name}
+                      </span>
+                    </div>
+                    <div className="media-file-card__actions">
+                      <button 
+                        type="button" 
+                        onClick={(e) => handleInsert(file, e)}
+                        title={isImage ? "Insertar Imagen" : "Insertar Enlace"}
+                        className="media-action-btn media-action-btn--insert"
+                      >
+                        <Plus size={12} />
+                        Insertar
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={(e) => handleCopyUrl(file, e)}
+                        title="Copiar Enlace"
+                        className="media-action-btn"
+                      >
+                        <Copy size={12} />
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => handleDeleteFile(file.id)}
+                        title="Eliminar"
+                        className="media-action-btn media-action-btn--danger"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="media-folders-view">
+          <div className="media-folders-header">
+            <span className="media-folders-title">Biblioteca de Medios</span>
+            <button 
+              type="button" 
+              className="media-new-folder-btn"
+              onClick={() => setShowCreateFolder(!showCreateFolder)}
+            >
+              <FolderPlus size={14} />
+              Nueva carpeta
+            </button>
+          </div>
+
+          <div className="invoice-editor-variables__search" style={{ margin: '0 0 0.75rem 0' }}>
+            <Search size={15} />
+            <input
+              type="search"
+              placeholder="Buscar carpeta..."
+              value={folderSearch}
+              onChange={(e) => setFolderSearch(e.target.value)}
+            />
+          </div>
+
+          {showCreateFolder && (
+            <form onSubmit={handleCreateFolder} className="media-new-folder-form">
+              <input 
+                type="text" 
+                placeholder="Nombre de la carpeta..."
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                autoFocus
+              />
+              <div className="form-actions">
+                <button type="button" onClick={() => setShowCreateFolder(false)}>Cancelar</button>
+                <button type="submit" className="submit-btn">Crear</button>
+              </div>
+            </form>
+          )}
+
+          {loading ? (
+            <div className="media-loading">
+              <span className="spinner" />
+              <span>Cargando carpetas...</span>
+            </div>
+          ) : folders.length === 0 ? (
+            <div className="media-empty">
+              <span>No hay carpetas creadas.</span>
+            </div>
+          ) : (
+            <div className="media-folders-grid">
+              {folders.map((folder, idx) => (
+                <div 
+                  key={folder.id} 
+                  className={`media-folder-card ${getFolderColorClass(idx)}`}
+                  onClick={() => setActiveFolder(folder)}
+                >
+                  <button
+                    type="button"
+                    className="media-folder-delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFolderToDelete(folder)
+                    }}
+                    title="Eliminar carpeta"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                  <FolderOpen size={28} className="folder-icon" />
+                  <span className="folder-name" title={folder.name}>
+                    {folder.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {folderToDelete && (
+        <div className="custom-confirm-overlay">
+          <div className="custom-confirm-modal">
+            <h3>Eliminar Carpeta</h3>
+            <p>¿Estás seguro de que deseas eliminar la carpeta <strong>{folderToDelete.name}</strong>? Esta acción solo se puede realizar si la carpeta está completamente vacía.</p>
+            <div className="custom-confirm-modal__actions">
+              <button 
+                type="button" 
+                className="custom-confirm-modal__btn custom-confirm-modal__btn--cancel"
+                onClick={() => setFolderToDelete(null)}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                className="custom-confirm-modal__btn custom-confirm-modal__btn--danger"
+                onClick={() => handleDeleteFolder(folderToDelete.id)}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function InvoiceTemplateEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -113,6 +456,7 @@ export function InvoiceTemplateEditorPage() {
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [variables, setVariables] = useState<TemplateVariable[]>([])
+  const [sidebarTab, setSidebarTab] = useState<'variables' | 'media'>('variables')
   const [types, setTypes] = useState<TemplateType[]>([])
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [editorMode, setEditorMode] = useState<EditorMode>('visual')
@@ -411,54 +755,83 @@ export function InvoiceTemplateEditorPage() {
 
         {editorMode !== 'preview' && (
         <aside className="invoice-editor-variables">
-          <div className="invoice-editor-variables__header">
-            <span className="invoice-editor-variables__title">
-              <Sparkles size={18} />
-              Variables dinámicas
-            </span>
-            <p>Haz clic para insertar en el documento</p>
+          <div className="invoice-sidebar-tabs">
+            <button
+              type="button"
+              className={`invoice-sidebar-tab ${sidebarTab === 'variables' ? 'invoice-sidebar-tab--active' : ''}`}
+              onClick={() => setSidebarTab('variables')}
+            >
+              <Sparkles size={14} />
+              Variables
+            </button>
+            <button
+              type="button"
+              className={`invoice-sidebar-tab ${sidebarTab === 'media' ? 'invoice-sidebar-tab--active' : ''}`}
+              onClick={() => setSidebarTab('media')}
+            >
+              <FolderOpen size={14} />
+              Biblioteca
+            </button>
           </div>
 
-          <div className="invoice-editor-variables__search">
-            <Search size={15} />
-            <input
-              type="search"
-              placeholder="Buscar variable..."
-              value={variableSearch}
-              onChange={e => setVariableSearch(e.target.value)}
+          {sidebarTab === 'variables' ? (
+            <>
+              <div className="invoice-editor-variables__header">
+                <span className="invoice-editor-variables__title">
+                  <Sparkles size={18} />
+                  Variables dinámicas
+                </span>
+                <p>Haz clic para insertar en el documento</p>
+              </div>
+
+              <div className="invoice-editor-variables__search">
+                <Search size={15} />
+                <input
+                  type="search"
+                  placeholder="Buscar variable..."
+                  value={variableSearch}
+                  onChange={e => setVariableSearch(e.target.value)}
+                />
+              </div>
+
+              <div className="invoice-editor-variables__list">
+                {categories.map(cat => {
+                  const items = filteredVariables.filter(v => v.category === cat)
+                  if (items.length === 0) return null
+                  return (
+                    <div key={cat} className="invoice-editor-variable-group">
+                      <div className="invoice-editor-variable-group__label">{cat}</div>
+                      {items.map(v => (
+                        <VariableChip
+                          key={v.tag}
+                          variable={v}
+                          onInsert={insertVariable}
+                          showToast={showToast}
+                        />
+                      ))}
+                    </div>
+                  )
+                })}
+                {filteredVariables.length === 0 && (
+                  <p className="invoice-editor-variables__empty">No hay variables que coincidan.</p>
+                )}
+              </div>
+
+              <div className="invoice-editor-variables__tip">
+                <PenLine size={14} />
+                <span>
+                  Usa <strong>{'{{variable}}'}</strong> para datos simples y{' '}
+                  <strong>{'{{#each}}'}</strong> en modo código para filas repetibles.
+                </span>
+              </div>
+            </>
+          ) : (
+            <MediaLibraryPanel
+              onInsertImage={(url) => canvasRef.current?.insertImage(url)}
+              onInsertLink={(url, name) => canvasRef.current?.insertLink(url, name)}
+              showToast={showToast}
             />
-          </div>
-
-          <div className="invoice-editor-variables__list">
-            {categories.map(cat => {
-              const items = filteredVariables.filter(v => v.category === cat)
-              if (items.length === 0) return null
-              return (
-                <div key={cat} className="invoice-editor-variable-group">
-                  <div className="invoice-editor-variable-group__label">{cat}</div>
-                  {items.map(v => (
-                    <VariableChip
-                      key={v.tag}
-                      variable={v}
-                      onInsert={insertVariable}
-                      showToast={showToast}
-                    />
-                  ))}
-                </div>
-              )
-            })}
-            {filteredVariables.length === 0 && (
-              <p className="invoice-editor-variables__empty">No hay variables que coincidan.</p>
-            )}
-          </div>
-
-          <div className="invoice-editor-variables__tip">
-            <PenLine size={14} />
-            <span>
-              Usa <strong>{'{{variable}}'}</strong> para datos simples y{' '}
-              <strong>{'{{#each}}'}</strong> en modo código para filas repetibles.
-            </span>
-          </div>
+          )}
         </aside>
         )}
       </div>

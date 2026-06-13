@@ -2,10 +2,13 @@ import { useEffect, useRef, useImperativeHandle, forwardRef, useCallback, useSta
 import grapesjs, { type Editor, type Component } from 'grapesjs'
 import presetWebpage from 'grapesjs-preset-webpage'
 import 'grapesjs/dist/css/grapes.min.css'
+import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
 import { buildTemplateHtml, parseTemplateHtml } from '../utils/templateHtml'
 
 export interface DocumentTemplateCanvasRef {
   insertVariable: (tag: string) => void
+  insertImage: (url: string) => void
+  insertLink: (url: string, name: string) => void
   exportHtml: () => string
 }
 
@@ -33,6 +36,52 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
     const [selectedComponent, setSelectedComponent] = useState<any>(null)
     const [selectedText, setSelectedText] = useState('')
     const [selectedId, setSelectedId] = useState('')
+
+    const [quickTitle, setQuickTitle] = useState('')
+    const [quickText, setQuickText] = useState('')
+    const [quickInsertOpen, setQuickInsertOpen] = useState(false)
+
+    const handleQuickTitleInsert = () => {
+      if (!quickTitle.trim()) return
+      const editor = editorRef.current
+      if (!editor) return
+
+      const selected = editor.getSelected()
+      const titleHtml = `<h2 style="font-family: Inter, sans-serif; font-size: 20px; font-weight: 600; color: #1e293b; margin-top: 10px; margin-bottom: 10px;">${quickTitle.trim()}</h2>`
+
+      if (selected) {
+        selected.append({
+          type: 'text',
+          content: quickTitle.trim(),
+          tagName: 'h2',
+          style: { 'font-family': 'Inter, sans-serif', 'font-size': '20px', 'font-weight': '600', 'color': '#1e293b', 'margin-top': '10px', 'margin-bottom': '10px' }
+        })
+      } else {
+        editor.addComponents(titleHtml)
+      }
+      setQuickTitle('')
+    }
+
+    const handleQuickTextInsert = () => {
+      if (!quickText.trim()) return
+      const editor = editorRef.current
+      if (!editor) return
+
+      const selected = editor.getSelected()
+      const textHtml = `<p style="font-family: Inter, sans-serif; font-size: 14px; color: #475569; line-height: 1.5; margin-top: 10px; margin-bottom: 10px;">${quickText.trim()}</p>`
+
+      if (selected) {
+        selected.append({
+          type: 'text',
+          content: quickText.trim(),
+          tagName: 'p',
+          style: { 'font-family': 'Inter, sans-serif', 'font-size': '14px', 'color': '#475569', 'line-height': '1.5', 'margin-top': '10px', 'margin-bottom': '10px' }
+        })
+      } else {
+        editor.addComponents(textHtml)
+      }
+      setQuickText('')
+    }
 
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = e.target.value
@@ -108,6 +157,47 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
         } else {
           editor.addComponents(
             `<span class="template-variable" style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-weight:600;">${variable}</span>`,
+          )
+        }
+      },
+      insertImage(url: string) {
+        const editor = editorRef.current
+        if (!editor) return
+
+        const selected = editor.getSelected()
+        if (selected && selected.is('image')) {
+          selected.set('attributes', { ...selected.get('attributes'), src: url })
+        } else if (selected) {
+          selected.append({
+            type: 'image',
+            dmode: 'absolute',
+            attributes: { src: url, style: 'max-width: 150px; height: auto; position: absolute; z-index: 10; cursor: move;' }
+          })
+        } else {
+          editor.addComponents({
+            type: 'image',
+            dmode: 'absolute',
+            attributes: { src: url, style: 'max-width: 150px; height: auto; position: absolute; z-index: 10; cursor: move;' }
+          })
+        }
+      },
+      insertLink(url: string, name: string) {
+        const editor = editorRef.current
+        if (!editor) return
+
+        const selected = editor.getSelected()
+        if (selected?.is('text')) {
+          const content = selected.get('content') ?? ''
+          selected.set('content', `${content}<a href="${url}" target="_blank" rel="noopener noreferrer">${name}</a>`)
+        } else if (selected) {
+          selected.append({
+            type: 'link',
+            content: name,
+            attributes: { href: url, target: '_blank', style: 'color: #2563eb; text-decoration: underline;' }
+          })
+        } else {
+          editor.addComponents(
+            `<a href="${url}" style="color: #2563eb; text-decoration: underline;" target="_blank" rel="noopener noreferrer">${name}</a>`
           )
         }
       },
@@ -253,9 +343,6 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-
-
-
     return (
       <div className="document-template-canvas-host">
         <aside className="gjs-side-panel">
@@ -264,6 +351,63 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
             <p className="gjs-side-panel__hint">Arrastra al documento</p>
             <div id={BLOCKS_CONTAINER_ID} className="gjs-side-panel__blocks" />
           </section>
+
+          <section className="gjs-side-panel__section">
+            <div 
+              className="quick-insert-header"
+              onClick={() => setQuickInsertOpen(!quickInsertOpen)}
+            >
+              <div>
+                <h4 className="gjs-side-panel__title">Creación Rápida</h4>
+                <p className="gjs-side-panel__hint">Escribe e inserta en la posición seleccionada</p>
+              </div>
+              <span className="quick-insert-chevron">
+                {quickInsertOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </span>
+            </div>
+            
+            {quickInsertOpen && (
+              <div className="quick-insert-fields">
+                <div className="quick-insert-field">
+                  <input 
+                    type="text" 
+                    placeholder="Escribe un título..."
+                    value={quickTitle}
+                    onChange={(e) => setQuickTitle(e.target.value)}
+                    className="form-control-custom"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleQuickTitleInsert}
+                    className="quick-insert-btn"
+                    title="Insertar Título"
+                  >
+                    <Plus size={14} />
+                    Insertar Título
+                  </button>
+                </div>
+                <div className="quick-insert-field">
+                  <textarea 
+                    placeholder="Escribe un párrafo o texto..."
+                    value={quickText}
+                    onChange={(e) => setQuickText(e.target.value)}
+                    className="form-control-custom"
+                    rows={2}
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleQuickTextInsert}
+                    className="quick-insert-btn"
+                    title="Insertar Texto"
+                  >
+                    <Plus size={14} />
+                    Insertar Texto
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
           <section className="gjs-side-panel__section gjs-side-panel__section--props">
             <h4 className="gjs-side-panel__title">Propiedades</h4>
             <p className="gjs-side-panel__hint">Selecciona un elemento del documento</p>

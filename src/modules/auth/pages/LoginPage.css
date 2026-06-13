@@ -59,15 +59,13 @@
     radial-gradient(ellipse 40% 35% at 50% 50%, var(--bg-orb-c), transparent);
 }
 
-/* Background image layer */
+/* Background image layer (each slide stacked, opacity controlled via JS) */
 .bg-image {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url('@/shared/assets/bg-mechanic-1.jpg');
   background-size: cover;
   background-position: center;
-  opacity: 0.25;
   pointer-events: none;
 }
 

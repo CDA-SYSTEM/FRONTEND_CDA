@@ -19,7 +19,7 @@
   --text-primary: #f0f6ff;
   --text-muted:   rgba(255, 255, 255, 0.55);
   --text-label:   rgba(255, 255, 255, 0.80);
-  --text-placeholder: rgba(255, 255, 255, 0.28);
+  --text-placeholder: rgba(255, 255, 255, 0.15);
   --accent:       #155dfc;
   --accent-hover: #1a6bff;
   --accent-glow:  rgba(21, 93, 252, 0.40);
@@ -381,7 +381,9 @@
 }
 
 .form-grid input::placeholder {
-  color: var(--text-placeholder);
+  color: #64748b !important;
+  opacity: 0.55 !important;
+  -webkit-text-fill-color: #64748b !important;
 }
 
 .form-grid input:-webkit-autofill,
@@ -466,22 +468,21 @@
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 0.35rem !important;
+  gap: 0.5rem !important;
   color: var(--text-muted) !important;
   font-weight: 500 !important;
   font-size: 0.8125rem !important;
   cursor: pointer !important;
   user-select: none !important;
-  line-height: 1;
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 0.8125rem;
-  height: 0.8125rem;
+  width: 1rem !important;
+  height: 1rem !important;
   accent-color: var(--accent);
   cursor: pointer;
   flex-shrink: 0;
-  margin: 0;
+  margin: 0 !important;
 }
 
 .checkbox-label input[type="checkbox"]:focus-visible {

@@ -867,11 +867,9 @@
 }
 
 .cliente-modal-window .cliente-modal-content {
-  overflow: hidden !important;
-  padding: 0 !important;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  overflow-y: auto !important;
+  padding: 24px !important;
+  display: block;
 }
 
 /* Formulario principal del modal */

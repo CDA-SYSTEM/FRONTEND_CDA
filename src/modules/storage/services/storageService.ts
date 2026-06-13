@@ -5,6 +5,7 @@ export interface StorageFolder {
   name: string
   description?: string
   created_at: string
+  parent_id?: string
 }
 
 export interface StorageFile {
@@ -12,14 +13,16 @@ export interface StorageFile {
   filename: string
   original_name: string
   mimetype: string
+  size?: number
   created_at: string
   deleted_at: string | null
   url: string
   folder_id?: string
 }
 
+export type StorageItem = (StorageFolder & { type: 'folder' }) | (StorageFile & { type: 'file' })
+
 export const storageService = {
-  // Listar todas las carpetas
   async listarCarpetas(search?: string): Promise<StorageFolder[]> {
     try {
       const response = await apiClient.get('/api/v1/storage/folders', {
@@ -34,10 +37,11 @@ export const storageService = {
     }
   },
 
-  // Crear carpeta
-  async crearCarpeta(name: string): Promise<StorageFolder | null> {
+  async crearCarpeta(name: string, parentId?: string): Promise<StorageFolder | null> {
     try {
-      const response = await apiClient.post('/api/v1/storage/folders', { name })
+      const payload: Record<string, any> = { name }
+      if (parentId) payload.parent_id = parentId
+      const response = await apiClient.post('/api/v1/storage/folders', payload)
       const body = response.data as any
       return body?.data || body || null
     } catch (error) {
@@ -46,7 +50,30 @@ export const storageService = {
     }
   },
 
-  // Listar archivos dentro de una carpeta
+  async getFolderContents(folderId: string): Promise<StorageItem[]> {
+    try {
+      const response = await apiClient.get(`/api/v1/storage/folders/${folderId}/contents`)
+      const body = response.data as any
+      const items = body?.data?.data || body?.data || body || []
+      if (Array.isArray(items)) return items
+    } catch {
+      // fallback to old endpoint
+    }
+    return this.listarArchivosDeCarpeta(folderId)
+  },
+
+  async listRootContents(): Promise<StorageItem[]> {
+    try {
+      const response = await apiClient.get('/api/v1/storage/folders/root/contents')
+      const body = response.data as any
+      const items = body?.data?.data || body?.data || body || []
+      if (Array.isArray(items)) return items
+    } catch {
+      // empty
+    }
+    return []
+  },
+
   async listarArchivosDeCarpeta(folderId: string): Promise<StorageFile[]> {
     try {
       const response = await apiClient.get(`/api/v1/storage/folders/${folderId}/files`)
@@ -69,7 +96,6 @@ export const storageService = {
     return []
   },
 
-  // Subir archivo
   async subirArchivo(file: File, folderId?: string): Promise<StorageFile | null> {
     try {
       const formData = new FormData()
@@ -88,7 +114,6 @@ export const storageService = {
     }
   },
 
-  // Listar todos los archivos activos
   async listarArchivosActivos(limit = 100): Promise<StorageFile[]> {
     try {
       const response = await apiClient.get('/api/v1/storage/files', {
@@ -103,7 +128,6 @@ export const storageService = {
     }
   },
 
-  // Eliminar archivo
   async eliminarArchivo(id: string): Promise<boolean> {
     try {
       await apiClient.delete(`/api/v1/storage/files/${id}`)
@@ -114,12 +138,11 @@ export const storageService = {
     }
   },
 
-  // Eliminar carpeta (solo si está vacía)
   async eliminarCarpeta(id: string): Promise<boolean> {
     try {
       await apiClient.delete(`/api/v1/storage/folders/${id}`)
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting folder:', error)
       return false
     }

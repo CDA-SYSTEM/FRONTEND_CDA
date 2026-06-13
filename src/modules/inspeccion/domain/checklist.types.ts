@@ -13,7 +13,6 @@ export type VehicleType = 'MOTO' | 'LIVIANO' | 'PESADO'
 export type ItemResponse = string
 export type InspectionResult = 'APROBADO' | 'RECHAZADO'
 
-/** Opciones de respuesta estándar NTC 5375 — se usan como fallback si el backend no las envía */
 export interface ResponseOption {
   value: string
   label: string
@@ -22,13 +21,6 @@ export interface ResponseOption {
   bg: string
   border: string
 }
-
-export const RESPONSE_OPTIONS_NTC5375: ResponseOption[] = [
-  { value: 'CUMPLE',        label: 'Conforme',       icon: '✓', color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
-  { value: 'DEFECTO_LEVE',  label: 'Defecto Menor',  icon: '⚠', color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
-  { value: 'DEFECTO_GRAVE', label: 'Defecto Mayor',  icon: '✗', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
-  { value: 'NO_APLICA',     label: 'N/A',            icon: '—', color: '#6b7280', bg: '#f9fafb', border: '#e5e7eb' },
-]
 
 export interface ChecklistTemplate {
   id: string

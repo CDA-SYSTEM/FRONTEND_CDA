@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
+import { GoogleSignIn } from '@capawesome/capacitor-google-sign-in'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { animate, stagger } from 'animejs'
@@ -374,13 +374,11 @@ export function LoginPage() {
                       try {
                         // Plugin nativo: abre el selector de cuentas de Google en Android
                         // sin salir de la app ni usar redirect_uri
-                        await GoogleAuth.initialize({
+                        await GoogleSignIn.initialize({
                           clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim(),
-                          scopes: ['profile', 'email'],
-                          grantOfflineAccess: false,
                         })
-                        const result = await GoogleAuth.signIn()
-                        const idToken = result?.authentication?.idToken
+                        const result = await GoogleSignIn.signIn()
+                        const idToken = result?.idToken
                         if (idToken) {
                           handleGoogleLogin({ credential: idToken })
                         } else {
@@ -391,7 +389,7 @@ export function LoginPage() {
                         if (err?.message?.includes('cancel') || err?.message?.includes('Cancel') || err?.code === 12501) {
                           return
                         }
-                        console.error('GoogleAuth.signIn error:', err)
+                        console.error('GoogleSignIn error:', err)
                         showToast('Error al iniciar sesión con Google. Intenta de nuevo.', 'error')
                       }
                     }}

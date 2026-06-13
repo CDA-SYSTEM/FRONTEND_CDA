@@ -52,25 +52,54 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Rutas protegidas generales (requieren estar autenticado) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<RoleBasedRedirect />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/recepcion" element={<RecepcionPage />} />
-            <Route path="/clientes" element={<ClientesPage />} />
-            <Route path="/inspeccion" element={<InspeccionPage />} />
-            <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
-            <Route path="/inspeccion/ejecutar/:vehicleType/:inspectionId" element={<ChecklistPage />} />
-            <Route path="/inspeccion/ejecutar/:inspectionId" element={<ChecklistPage />} />
-            <Route path="/facturacion" element={<FacturacionPage />} />
-            <Route path="/precios" element={<PreciosPage />} />
-            <Route path="/estados" element={<EstadosPage />} />
-            <Route path="/plantillas" element={<PlantillasPage />} />
-            <Route path="/archivos" element={<ArchivosPage />} />
-            <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
-            <Route path="/usuarios" element={<UsuariosPage />} />
-            <Route path="/tracker" element={<TrackerPage />} />
+            
+            {/* Solo Admin, Manager, Facturador */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'manager', 'facturador']} />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+            </Route>
+
+            {/* Solo Admin */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin']} />}>
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/usuarios" element={<UsuariosPage />} />
+              <Route path="/archivos" element={<ArchivosPage />} />
+            </Route>
+
+            {/* Solo Admin, Manager, Recepcionista, Operario */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'manager', 'operario', 'recepcionista']} />}>
+              <Route path="/recepcion" element={<RecepcionPage />} />
+            </Route>
+
+            {/* Admin, Manager, Recepcionista, Operario, Inspector */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'manager', 'operario', 'recepcionista', 'inspector']} />}>
+              <Route path="/clientes" element={<ClientesPage />} />
+              <Route path="/vehiculo/registro" element={<RegistroVehiculoPage />} />
+            </Route>
+
+            {/* Admin, Inspector */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'inspector']} />}>
+              <Route path="/inspeccion" element={<InspeccionPage />} />
+              <Route path="/inspeccion/asignacion" element={<AsignacionPage />} />
+              <Route path="/inspeccion/ejecutar/:vehicleType/:inspectionId" element={<ChecklistPage />} />
+              <Route path="/inspeccion/ejecutar/:inspectionId" element={<ChecklistPage />} />
+            </Route>
+
+            {/* Admin, Manager, Facturador */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'manager', 'facturador']} />}>
+              <Route path="/facturacion" element={<FacturacionPage />} />
+            </Route>
+
+            {/* Admin, Manager */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'superadmin', 'manager']} />}>
+              <Route path="/precios" element={<PreciosPage />} />
+              <Route path="/estados" element={<EstadosPage />} />
+              <Route path="/plantillas" element={<PlantillasPage />} />
+              <Route path="/tracker" element={<TrackerPage />} />
+            </Route>
           </Route>
         </Route>
 

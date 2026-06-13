@@ -421,7 +421,7 @@ export function LoginPage() {
 
               <div className="form-support">
                 <span>¿Necesitas ayuda?</span>
-                <a href="#" onClick={(e) => e.preventDefault()}>Soporte técnico</a>
+                <a href="https://wa.me/573124119934" target="_blank" rel="noopener noreferrer">Soporte técnico</a>
               </div>
             </form>
           </section>

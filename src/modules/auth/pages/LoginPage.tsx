@@ -382,19 +382,13 @@ export function LoginPage() {
                   <input type="checkbox" defaultChecked={false} />
                   <span>Recordarme</span>
                 </label>
-                <a href="#" className="forgot-link" onClick={(e) => e.preventDefault()}>
-                  ¿Olvidaste tu contraseña?
-                </a>
               </div>
 
               <button type="submit" disabled={isSubmitting || isLoading}>
                 {isLoading ? 'Iniciando sesión...' : 'Ingresar'}
               </button>
 
-              <div className="form-badge">
-                <span className="badge-dot" />
-                <span>+5.000 inspecciones realizadas</span>
-              </div>
+
 
               <div className="auth-divider">
                 <span>o continúa con</span>
@@ -461,9 +455,7 @@ export function LoginPage() {
             </form>
           </section>
 
-          <p className="auth-footer">
-            © {new Date().getFullYear()} CDA Putumayo — Todos los derechos reservados
-          </p>
+
         </div>
       </div>
 

@@ -13,7 +13,10 @@
    ═══════════════════════════════════════════════ */
 
 .app-shell {
-  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.content {
   background: #f8fafc;
 }
 
@@ -353,5 +356,25 @@
     .content {
       padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
     }
+  }
+}
+
+/* ── App Footer (visible solo cuando está logueado) ── */
+.app-footer {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  padding: 10px 0 !important;
+  margin: 0 !important;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    margin-bottom: var(--bottom-nav-height);
   }
 }

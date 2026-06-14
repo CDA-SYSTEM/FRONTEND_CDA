@@ -156,6 +156,10 @@ export function AppLayout() {
         <section className="content">
           <Outlet />
         </section>
+
+        <footer className="app-footer">
+          © {new Date().getFullYear()} CDA Putumayo — Todos los derechos reservados
+        </footer>
       </div>
 
       {showConfirm && (

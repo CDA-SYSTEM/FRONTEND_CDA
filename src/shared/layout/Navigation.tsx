@@ -14,6 +14,7 @@ import {
   Activity,
   Home,
   Menu,
+  LayoutTemplate,
 } from 'lucide-react'
 import './Navigation.css'
 
@@ -22,6 +23,7 @@ interface NavItem {
   label: string
   icon: React.ReactNode
   roles?: string[]
+  hideOnMobile?: boolean
 }
 
 const navItems: NavItem[] = [
@@ -35,6 +37,7 @@ const navItems: NavItem[] = [
   { to: '/precios', label: 'Tarifas', icon: <Tag size={20} />, roles: ['admin', 'manager'] },
   { to: '/estados', label: 'Estados', icon: <List size={20} />, roles: ['admin', 'manager'] },
   { to: '/plantillas', label: 'Plantillas', icon: <FileText size={20} />, roles: ['admin', 'manager'] },
+  { to: '/admin/documentos', label: 'Documentos', icon: <LayoutTemplate size={20} />, roles: ['admin'], hideOnMobile: true },
   { to: '/archivos', label: 'Archivos', icon: <FileArchive size={20} />, roles: ['admin'] },
   { to: '/tracker', label: 'Trazabilidad', icon: <Activity size={20} />, roles: ['admin', 'manager'] },
 ]
@@ -54,6 +57,8 @@ export function Navigation({ collapsed }: NavigationProps) {
         (user.role === 'superadmin' ||
           item.roles.includes(user.role))),
   )
+
+  const mobileFilteredItems = filteredItems.filter((item) => !item.hideOnMobile)
 
   return (
     <nav className={`navigation${collapsed ? ' navigation--collapsed' : ''}`} aria-label="Navegación principal">
@@ -76,8 +81,8 @@ export function Navigation({ collapsed }: NavigationProps) {
 
       {/* Mobile List */}
       <ul className="navigation__list navigation__list--mobile">
-        {filteredItems.length <= 5 ? (
-          filteredItems.map((item) => (
+        {mobileFilteredItems.length <= 5 ? (
+          mobileFilteredItems.map((item) => (
             <li key={item.to} className="navigation__item">
               <NavLink
                 to={item.to}
@@ -93,7 +98,7 @@ export function Navigation({ collapsed }: NavigationProps) {
           ))
         ) : (
           <>
-            {filteredItems.slice(0, 4).map((item) => (
+            {mobileFilteredItems.slice(0, 4).map((item) => (
               <li key={item.to} className="navigation__item">
                 <NavLink
                   to={item.to}
@@ -144,7 +149,7 @@ export function Navigation({ collapsed }: NavigationProps) {
               </button>
             </div>
             <ul className="mobile-nav-sheet-list">
-              {filteredItems.slice(4).map((item) => (
+              {mobileFilteredItems.slice(4).map((item) => (
                 <li key={item.to} className="mobile-nav-sheet-item">
                   <NavLink
                     to={item.to}

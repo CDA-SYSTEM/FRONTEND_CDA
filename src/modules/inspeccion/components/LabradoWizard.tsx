@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
-import { ArrowLeft, Car, CheckCircle, ChevronRight, Loader2, Truck, Wrench } from 'lucide-react'
+import { ArrowLeft, Car, CheckCircle, ChevronRight, Loader2, Truck, Wrench, Bike } from 'lucide-react'
 import type { AxleMeasurement, TireMeasurement, WheelMeasurement } from '@/modules/inspeccion/domain/checklist.types'
 
 /* ── Tipos ── */
 
-type VehicleConfig = 'LIVIANO' | 'PESADO_2' | 'PESADO_3' | 'PESADO_4' | 'PESADO_5'
+type VehicleConfig = 'MOTOCICLETA' | 'LIVIANO' | 'PESADO_2' | 'PESADO_3' | 'PESADO_4' | 'PESADO_5'
 type WizardMode = 'select' | 'edit' | 'view'
 type TireNumericKey = 'outer_mm' | 'middle_mm' | 'inner_mm'
 type ValidationLevel = 'normal' | 'green' | 'red' | 'intense-red'
@@ -40,6 +40,7 @@ const TIRE_FIELDS: { key: TireNumericKey; label: string; abbr: string }[] = [
 const TIRE_KEYS: TireNumericKey[] = ['outer_mm', 'middle_mm', 'inner_mm']
 
 const VEHICLE_OPTIONS: { id: VehicleConfig; label: string; desc: string }[] = [
+  { id: 'MOTOCICLETA', label: 'Motocicleta', desc: '2 llantas de medición' },
   { id: 'LIVIANO', label: 'Liviano', desc: '4 llantas + 1 repuesto' },
   { id: 'PESADO_2', label: 'Pesado 2 ejes', desc: '2 delanteras + 4 traseras dual + 2 repuesto' },
   { id: 'PESADO_3', label: 'Pesado 3 ejes', desc: '2 delanteras + 8 traseras dual + 2 repuesto' },
@@ -50,6 +51,7 @@ const VEHICLE_OPTIONS: { id: VehicleConfig; label: string; desc: string }[] = [
 /* ── Helpers ── */
 
 function getMinLegal(type: VehicleConfig): number {
+  if (type === 'MOTOCICLETA') return 1.0
   return type === 'LIVIANO' ? 1.6 : 2.0
 }
 
@@ -95,6 +97,14 @@ function buildPesadoLayout(num: number): AxleSlot[] {
 }
 
 const LAYOUTS: Record<VehicleConfig, AxleSlot[]> = {
+  MOTOCICLETA: [
+    { id: 'EJE01', label: 'EJE 1: DELANTERO', type: 'single', tireSlots: [
+      { id: 'DEL-IZQ', label: 'DELANTERA', side: 'left' },
+    ]},
+    { id: 'EJE02', label: 'EJE 2: TRASERO', type: 'single', tireSlots: [
+      { id: 'TRAS-IZQ', label: 'TRASERA', side: 'left' },
+    ]},
+  ],
   LIVIANO: [
     { id: 'EJE01', label: 'EJE 1: DELANTERO', type: 'single', tireSlots: [
       { id: 'DEL-IZQ', label: 'DELANTERA IZQUIERDA', side: 'left' },
@@ -119,12 +129,15 @@ function getLayout(type: VehicleConfig): AxleSlot[] { return LAYOUTS[type] }
 function inferirConfig(axles: AxleMeasurement[]): VehicleConfig | null {
   if (!axles?.length) return null
   const dualCount = axles.filter((a) => a.axle_code !== 'REPUESTO' && (a.wheels?.length ?? 0) > 2).length
-  if (dualCount === 0) return 'LIVIANO'
-  if (dualCount === 1) return 'PESADO_2'
-  if (dualCount === 2) return 'PESADO_3'
-  if (dualCount === 3) return 'PESADO_4'
-  if (dualCount >= 4) return 'PESADO_5'
-  return null
+  if (dualCount > 0) {
+    if (dualCount === 1) return 'PESADO_2'
+    if (dualCount === 2) return 'PESADO_3'
+    if (dualCount === 3) return 'PESADO_4'
+    if (dualCount >= 4) return 'PESADO_5'
+  }
+  const count = totalTires(axles)
+  if (count > 0 && count <= 2) return 'MOTOCICLETA'
+  return 'LIVIANO'
 }
 
 function mergeIntoLayout(axles: AxleMeasurement[], layout: AxleSlot[]): AxleMeasurement[] {
@@ -238,7 +251,6 @@ function StepSelector({ selected, onSelect }: StepSelectorProps) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
         {VEHICLE_OPTIONS.map((opt) => {
           const sel = selected === opt.id
-          const pesado = opt.id.startsWith('PESADO')
           return (
             <button key={opt.id} type="button" onClick={() => onSelect(opt.id)}
               style={{
@@ -251,7 +263,7 @@ function StepSelector({ selected, onSelect }: StepSelectorProps) {
               onMouseOver={(e) => { if (!sel) { e.currentTarget.style.borderColor = '#93c5fd'; e.currentTarget.style.background = '#f8fafc' } }}
               onMouseOut={(e) => { if (!sel) { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#ffffff' } }}
             >
-              {pesado ? <Truck size={32} /> : <Car size={32} />}
+              {opt.id === 'MOTOCICLETA' ? <Bike size={32} /> : opt.id === 'LIVIANO' ? <Car size={32} /> : <Truck size={32} />}
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{opt.label}</div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>{opt.desc}</div>
@@ -395,14 +407,14 @@ function ChassisGrid({ type, axles, mode, onChange }: ChassisGridProps) {
           padding: '10px 14px', borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 700, color: '#0f172a' }}>{type === 'LIVIANO' ? 'Liviano' : `Pesado ${type.replace('PESADO_', '')} ejes`}</span>
-            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>· {layout.length - 1} eje{layout.length - 1 !== 1 ? 's' : ''} · {totalCount} llantas</span>
+            <span style={{ fontWeight: 700, color: '#0f172a' }}>{type === 'MOTOCICLETA' ? 'Motocicleta' : type === 'LIVIANO' ? 'Liviano' : `Pesado ${type.replace('PESADO_', '')} ejes`}</span>
+            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>· {layout.filter((l) => l.id !== 'REPUESTO').length} eje{layout.filter((l) => l.id !== 'REPUESTO').length !== 1 ? 's' : ''} · {totalCount} llantas</span>
           </div>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999,
             fontSize: '0.8rem', fontWeight: 600,
-            background: type === 'LIVIANO' ? '#f0fdf4' : '#fff7ed',
-            color: type === 'LIVIANO' ? '#16a34a' : '#c2410c',
+            background: type === 'MOTOCICLETA' ? '#f5f3ff' : type === 'LIVIANO' ? '#f0fdf4' : '#fff7ed',
+            color: type === 'MOTOCICLETA' ? '#7c3aed' : type === 'LIVIANO' ? '#16a34a' : '#c2410c',
           }}>
             Mín. legal: {minLegal} mm
           </span>
@@ -517,7 +529,7 @@ function LabradoWizard({ axles, onChange, onSave, saving = false }: LabradoWizar
             <ArrowLeft size={15} /> Volver
           </button>
           <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-            {vehicleType === 'LIVIANO' ? 'Vehículo Liviano' : `Vehículo Pesado ${vehicleType.replace('PESADO_', '')} ejes`}
+            {vehicleType === 'MOTOCICLETA' ? 'Vehículo Motocicleta' : vehicleType === 'LIVIANO' ? 'Vehículo Liviano' : `Vehículo Pesado ${vehicleType.replace('PESADO_', '')} ejes`}
           </span>
         </div>
 
@@ -545,7 +557,7 @@ function LabradoWizard({ axles, onChange, onSave, saving = false }: LabradoWizar
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 4 }}>
         <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-          {vehicleType === 'LIVIANO' ? 'Vehículo Liviano' : `Vehículo Pesado ${vehicleType.replace('PESADO_', '')} ejes`}
+          {vehicleType === 'MOTOCICLETA' ? 'Vehículo Motocicleta' : vehicleType === 'LIVIANO' ? 'Vehículo Liviano' : `Vehículo Pesado ${vehicleType.replace('PESADO_', '')} ejes`}
           <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 999, background: '#f0fdf4', color: '#16a34a', fontWeight: 600, fontSize: '0.78rem' }}>
             <CheckCircle size={12} /> Guardado
           </span>

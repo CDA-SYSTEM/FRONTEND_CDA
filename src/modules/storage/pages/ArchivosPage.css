@@ -136,6 +136,8 @@
   justify-content: center;
   width: 32px;
   height: 32px;
+  padding: 0 !important;
+  min-height: unset !important;
   border-radius: var(--arc-radius-btn);
   background: transparent;
   border: none;

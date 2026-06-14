@@ -34,6 +34,7 @@ import { CustomSelect } from '@/shared/components/CustomSelect'
 import { useRegistrarVehiculo } from '@/modules/vehiculo/hooks/useRegistrarVehiculo'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
+import { useToastStore } from '@/core/store/toastStore'
 
 interface Props {
   onCancelar: () => void
@@ -69,7 +70,12 @@ export function RecepcionWizard({ onCancelar }: Props) {
         <div className="recepcion-wizard-header-card">
           <div className="recepcion-wizard-header-text">
             <h1>Nueva Recepción</h1>
-            <p>Registre el ingreso de un vehículo para iniciar la revisión técnico-mecánica</p>
+            <p>
+              Registre el ingreso de un vehículo para iniciar la revision {' '}
+              <strong style={{ textTransform: 'lowercase', color: '#1d4ed8' }}>
+                {wizard.tiposRevision.find((t) => String(t.id) === String(wizard.revisionType))?.nombre || 'revisión técnico-mecánica'}
+              </strong>
+            </p>
           </div>
           <button
             onClick={onCancelar}
@@ -1245,8 +1251,8 @@ function PasoVehiculo({
                               setCreandoTipoVehiculoInline(false)
                             }
                             setNuevaTipoVehiculoNombre('')
-                          } catch (e) {
-                            alert(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo')
+                          } catch {
+                            useToastStore.getState().addToast(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1405,8 +1411,8 @@ function PasoVehiculo({
                               setCreandoMarcaInline(false)
                             }
                             setNuevaMarcaNombre('')
-                          } catch (e) {
-                            alert(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca')
+                          } catch {
+                            useToastStore.getState().addToast(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1514,8 +1520,8 @@ function PasoVehiculo({
                               setCreandoLineaInline(false)
                             }
                             setNuevaLineaNombre('')
-                          } catch (e) {
-                            alert(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea')
+                          } catch {
+                            useToastStore.getState().addToast(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1616,8 +1622,8 @@ function PasoVehiculo({
                               setCreandoClaseInline(false)
                             }
                             setNuevaClaseNombre('')
-                          } catch (e) {
-                            alert(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase')
+                          } catch {
+                            useToastStore.getState().addToast(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1716,8 +1722,8 @@ function PasoVehiculo({
                               setCreandoColorInline(false)
                             }
                             setNuevaColorNombre('')
-                          } catch (e) {
-                            alert(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color')
+                          } catch {
+                            useToastStore.getState().addToast(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1833,8 +1839,8 @@ function PasoVehiculo({
                               setCreandoCombustibleInline(false)
                             }
                             setNuevaCombustibleNombre('')
-                          } catch (e) {
-                            alert(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible')
+                          } catch {
+                            useToastStore.getState().addToast(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1937,8 +1943,8 @@ function PasoVehiculo({
                               setCreandoTipoServicioInline(false)
                             }
                             setNuevaTipoServicioNombre('')
-                          } catch (e) {
-                            alert(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio')
+                          } catch {
+                            useToastStore.getState().addToast(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -2304,11 +2310,11 @@ function PasoCondiciones({
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('La imagen no puede superar los 5 MB.')
+        useToastStore.getState().addToast('La imagen no puede superar los 5 MB.', 'error')
         return
       }
       if (!['image/jpeg', 'image/png', 'image/heic'].includes(file.type)) {
-        alert('Formato no permitido. Use JPG, PNG o HEIC.')
+        useToastStore.getState().addToast('Formato no permitido. Use JPG, PNG o HEIC.', 'error')
         return
       }
       setPhotoFile(file)

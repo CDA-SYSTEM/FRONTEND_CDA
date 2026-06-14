@@ -32,6 +32,8 @@ import { estadoService } from '@/modules/estados/services/estadoService'
 import type { Estado } from '@/modules/estados/domain/estado.types'
 import type { InspectionSummary, InspectionDetail } from '@/modules/inspeccion/domain/inspeccion.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { useToastStore } from '@/core/store/toastStore'
+
 import './RecepcionPage.css'
 
 /* ── Helpers para datos enriquecidos ──────────────────────────────────────── */
@@ -130,6 +132,10 @@ export function RecepcionPage() {
   const [inspectionDetail, setInspectionDetail] = useState<InspectionDetail | null>(null)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
 
+  const TIRE_POSITIONS = [
+    'FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', 'SPARE',
+  ] as const
+
   // Modal de Edición
   const [editInspectionId, setEditInspectionId] = useState<string | null>(null)
   const [editMileage, setEditMileage] = useState<number | string>('')
@@ -138,7 +144,9 @@ export function RecepcionPage() {
   const [editSignatureBlob, setEditSignatureBlob] = useState<Blob | null>(null)
   const [guardandoEdicion, setGuardandoEdicion] = useState(false)
   const [editStatusId, setEditStatusId] = useState('')
+  const [editOriginalData, setEditOriginalData] = useState<any | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
+  const [editTires, setEditTires] = useState<{ position: string; code: string; tire_pressure: number }[]>([])
 
   // Modal de Eliminación
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -228,6 +236,7 @@ export function RecepcionPage() {
   // Cargar datos en el formulario de edición al seleccionar
   const iniciarEdicion = async (insp: InspectionSummary) => {
     setEditInspectionId(insp.id)
+    setEditOriginalData(insp)
     setEditMileage(insp.mileage ?? '')
     setEditObservations(insp.observations ?? insp.observations_text ?? '')
     setEditPhoto(null)
@@ -241,10 +250,19 @@ export function RecepcionPage() {
     try {
       const detail = await inspeccionService.obtenerDetalle(insp.id)
       if (detail) {
+        setEditOriginalData(detail)
         setEditMileage(detail.mileage ?? '')
         setEditObservations(detail.observations ?? detail.observations_text ?? '')
         const detailStatusId = (detail as any).statusId || detail.status_id || (detail as any).status?.id
         if (detailStatusId) setEditStatusId(String(detailStatusId))
+        const tiresData = (detail as any).tires
+        setEditTires(Array.isArray(tiresData) && tiresData.length > 0
+          ? tiresData.map((t: any) => ({
+              position: t.position || 'FRONT_LEFT',
+              code: t.code || 'PENDIENTE',
+              tire_pressure: t.tire_pressure ?? 0,
+            }))
+          : [])
       } else {
         setEditError('No se pudo cargar el detalle de la inspección.')
       }
@@ -261,10 +279,80 @@ export function RecepcionPage() {
     setGuardandoEdicion(true)
     try {
         const mileageVal = editMileage === '' || editMileage === null || editMileage === undefined ? 0 : Number(editMileage)
+        const checklistObj = editOriginalData?.checklist ? {
+          is_clean: editOriginalData.checklist.is_clean ?? true,
+          hubcaps_removed: editOriginalData.checklist.hubcaps_removed ?? false,
+          alarms_off: editOriginalData.checklist.alarms_off ?? false,
+          is_unloaded: editOriginalData.checklist.is_unloaded ?? false,
+          public_service_seats: editOriginalData.checklist.public_service_seats === null || editOriginalData.checklist.public_service_seats === undefined ? 0 : Number(editOriginalData.checklist.public_service_seats),
+          seatbelts_visible: editOriginalData.checklist.seatbelts_visible ?? false,
+        } : {
+          is_clean: true,
+          hubcaps_removed: false,
+          alarms_off: false,
+          is_unloaded: false,
+          public_service_seats: 0,
+          seatbelts_visible: false,
+        }
 
+        // Mapeadores para tipos que el backend requiere en mayúsculas y formato enum
+        const mapVehicleType = (raw: string | null | undefined): string => {
+          if (!raw) return 'LIVIANO';
+          const upper = raw.toUpperCase();
+          if (upper.includes('MOTO') || upper.includes('MOTOCICLETA')) return 'MOTOCICLETA_2_TIEMPOS';
+          if (upper.includes('PESADO')) return 'PESADO';
+          return 'LIVIANO';
+        }
+
+        const mapFuelType = (raw: string | null | undefined): string | null => {
+          if (!raw) return null;
+          const upper = raw.toUpperCase();
+          if (upper.includes('GASOLINA')) return 'GASOLINA';
+          if (upper.includes('DIESEL') || upper.includes('ACP')) return 'DIESEL';
+          if (upper.includes('GAS')) return 'GAS';
+          return upper;
+        }
+
+        const mapServiceType = (raw: string | null | undefined): string | null => {
+          if (!raw) return null;
+          const upper = raw.toUpperCase();
+          if (upper.includes('PARTICULAR')) return 'PARTICULAR';
+          if (upper.includes('PUBLICO')) return 'PUBLICO';
+          return upper;
+        }
+
+        // Construir el objeto de datos completo tal como en la creación
         const payload: Record<string, unknown> = {
           mileage: mileageVal,
+          client_id: editOriginalData?.client_id ? String(editOriginalData.client_id) : null,
+          vehicle_id: editOriginalData?.vehicle_id ? String(editOriginalData.vehicle_id) : null,
+          vehicle_type: mapVehicleType(editOriginalData?.vehicle_type || editOriginalData?.vehicle?.tipoVehiculo?.nombre),
+          fuel_type: mapFuelType(editOriginalData?.fuel_type || editOriginalData?.vehicle?.tipoCombustible?.nombre),
+          fuel_certificate_number: editOriginalData?.fuel_certificate_number || null,
+          service_type: mapServiceType(editOriginalData?.service_type || editOriginalData?.vehicle?.tipoServicio?.nombre),
+          operator_id: editOriginalData?.operator_id ? String(editOriginalData.operator_id) : null,
+          responsible_id: editOriginalData?.responsible_id ? String(editOriginalData.responsible_id) : null,
+          customer_id: editOriginalData?.customer_id ? String(editOriginalData.customer_id) : null,
+          customer_type: editOriginalData?.customer_type || null,
+          revision_type: editOriginalData?.revision_type || null,
+          tinted_windows: editOriginalData?.tinted_windows || null,
+          armored_vehicle: editOriginalData?.armored_vehicle || null,
+          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass || null,
           observations: editObservations,
+          signature_url: editOriginalData?.signature_url || null,
+          checklistId: editOriginalData?.checklistId || editOriginalData?.checklist_id || null,
+          photo_reception_url: editOriginalData?.photo_reception_url || null,
+          checklist: checklistObj,
+          axles: (editOriginalData?.axles && editOriginalData.axles.length > 0)
+            ? editOriginalData.axles.map((a: any) => ({ index: a.index, axle_type: a.axle_type }))
+            : [{ index: 1, axle_type: 'DELANTERO' }],
+          tires: editTires.length > 0
+            ? editTires.map((t) => ({
+                position: t.position,
+                code: t.code || 'PENDIENTE',
+                tire_pressure: t.tire_pressure ?? 0,
+              }))
+            : undefined,
         }
         
         const formData = new FormData()
@@ -293,8 +381,11 @@ export function RecepcionPage() {
 
       await cargarDatos()
       setEditInspectionId(null)
+      setEditOriginalData(null)
+      setEditTires([])
+      useToastStore.getState().addToast('Recepción actualizada correctamente.', 'success')
     } catch (err) {
-      alert('Error: No se pudieron guardar los cambios.')
+      useToastStore.getState().addToast('Error: No se pudieron guardar los cambios.', 'error')
     } finally {
       setGuardandoEdicion(false)
     }
@@ -348,8 +439,9 @@ export function RecepcionPage() {
       await inspeccionService.eliminar(id)
       setInspecciones((prev) => prev.filter((i) => i.id !== id))
       setDeleteConfirmId(null)
+      useToastStore.getState().addToast('Recepción eliminada correctamente.', 'success')
     } catch (err) {
-      alert('Error: No se pudo eliminar la recepción.')
+      useToastStore.getState().addToast('Error: No se pudo eliminar la recepción.', 'error')
     } finally {
       setEliminandoId(null)
     }
@@ -1104,7 +1196,7 @@ export function RecepcionPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setEditInspectionId(null)}
+                onClick={() => { setEditInspectionId(null); setEditOriginalData(null); setEditTires([]); }}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -1166,6 +1258,7 @@ export function RecepcionPage() {
                     options={statuses.map((s) => ({ value: s.id, label: `${s.name} (${s.code})` }))}
                     value={editStatusId}
                     onChange={(val) => setEditStatusId(val)}
+                    disabled={true}
                   />
                 </div>
               )}
@@ -1188,6 +1281,107 @@ export function RecepcionPage() {
                     resize: 'vertical',
                   }}
                 />
+              </div>
+
+              {/* Llantas */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  Llantas
+                </label>
+                {editTires.length === 0 ? (
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                    Sin llantas registradas
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {editTires.map((tire, idx) => (
+                      <div key={idx} style={{
+                        display: 'flex', gap: 6, alignItems: 'center',
+                        padding: '8px', background: '#f8fafc', borderRadius: 8,
+                        border: '1px solid #e2e8f0',
+                      }}>
+                        <select
+                          value={tire.position}
+                          onChange={(e) => {
+                            const next = [...editTires]
+                            next[idx] = { ...next[idx], position: e.target.value }
+                            setEditTires(next)
+                          }}
+                          style={{
+                            padding: '6px', borderRadius: 6, border: '1px solid #cbd5e1',
+                            fontSize: '0.75rem', minWidth: 100,
+                          }}
+                        >
+                          {TIRE_POSITIONS.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={tire.code}
+                          onChange={(e) => {
+                            const next = [...editTires]
+                            next[idx] = { ...next[idx], code: e.target.value }
+                            setEditTires(next)
+                          }}
+                          placeholder="Código"
+                          style={{
+                            flex: 1, padding: '6px', borderRadius: 6, border: '1px solid #cbd5e1',
+                            fontSize: '0.75rem', minWidth: 0,
+                          }}
+                        />
+                        <input
+                          type="number"
+                          value={tire.tire_pressure}
+                          onChange={(e) => {
+                            const next = [...editTires]
+                            next[idx] = { ...next[idx], tire_pressure: Number(e.target.value) }
+                            setEditTires(next)
+                          }}
+                          placeholder="PSI"
+                          min={0}
+                          style={{
+                            width: 64, padding: '6px', borderRadius: 6, border: '1px solid #cbd5e1',
+                            fontSize: '0.75rem',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditTires(editTires.filter((_, i) => i !== idx))
+                          }}
+                          style={{
+                            background: 'none', border: 'none', color: '#ef4444',
+                            cursor: 'pointer', padding: 4, display: 'flex',
+                          }}
+                          title="Eliminar llanta"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const available = TIRE_POSITIONS.find((p) => !editTires.some((t) => t.position === p))
+                    setEditTires([...editTires, {
+                      position: available || `TIRE_${editTires.length + 1}`,
+                      code: 'PENDIENTE',
+                      tire_pressure: 0,
+                    }])
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '6px 12px', borderRadius: 6,
+                    border: '1px dashed #94a3b8', background: 'transparent',
+                    color: '#64748b', cursor: 'pointer', fontSize: '0.8rem',
+                    alignSelf: 'flex-start',
+                  }}
+                >
+                  <Plus size={14} /> Agregar llanta
+                </button>
               </div>
 
               {/* Foto Adjunta */}
@@ -1234,7 +1428,7 @@ export function RecepcionPage() {
             }}>
               <button
                 type="button"
-                onClick={() => setEditInspectionId(null)}
+                onClick={() => { setEditInspectionId(null); setEditOriginalData(null); setEditTires([]); }}
                 style={{
                   background: '#f1f5f9',
                   color: '#475569',

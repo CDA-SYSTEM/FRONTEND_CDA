@@ -16,6 +16,7 @@ import {
   X
 } from 'lucide-react'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
+import { useToastStore } from '@/core/store/toastStore'
 
 interface StorageFile {
   id: string
@@ -81,12 +82,14 @@ export function ArchivosPage() {
       if (success) {
         setFiles((prev) => prev.filter((f) => f.id !== deletingId))
         setDeletingId(null)
+        useToastStore.getState().addToast('Archivo eliminado correctamente.', 'success')
       } else {
-        alert('No se pudo eliminar el archivo. Inténtalo de nuevo.')
+        useToastStore.getState().addToast('No se pudo eliminar el archivo. Inténtalo de nuevo.', 'error')
       }
     } catch (err) {
       console.error('Error al eliminar archivo:', err)
-      alert('Error en el servidor al intentar eliminar el archivo.')
+      // La API lanzará un error capturado por el interceptor global, pero como respaldo local:
+      useToastStore.getState().addToast('Error en el servidor al intentar eliminar el archivo.', 'error')
     } finally {
       setIsDeleting(false)
     }

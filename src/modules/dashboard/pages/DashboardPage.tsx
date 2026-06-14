@@ -27,14 +27,6 @@ const tarjetasDashboard: DashboardCard[] = [
 export function DashboardPage() {
   const user = useAuthStore((state) => state.user)
 
-  if (user?.role === 'operario') {
-    return <Navigate to="/recepcion" replace />
-  }
-
-  if (user?.role === 'inspector') {
-    return <Navigate to="/inspeccion/asignacion" replace />
-  }
-
   useEffect(() => {
     const animacion = animate('.dashboard-card', {
       opacity: [0, 1],
@@ -48,6 +40,14 @@ export function DashboardPage() {
       animacion.revert()
     }
   }, [])
+
+  if (user?.role === 'operario') {
+    return <Navigate to="/recepcion" replace />
+  }
+
+  if (user?.role === 'inspector') {
+    return <Navigate to="/inspeccion/asignacion" replace />
+  }
 
   return (
     <div className="panel-grid">

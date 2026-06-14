@@ -18,6 +18,7 @@ export interface InvoiceTemplate {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  usageCount?: number
 }
 
 export interface CreateTemplateDto {

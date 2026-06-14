@@ -47,6 +47,7 @@ export function CustomSelect({
       {/* Botón Disparador */}
       <button
         type="button"
+        className="custom-select-trigger"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         style={{

@@ -140,12 +140,12 @@
     box-shadow var(--as-dur-fast) var(--as-ease-out) !important;
 }
 
-.as-filters-grid .as-field-label button:hover {
+.as-filters-grid .as-field-label button:not(.custom-select-option):hover {
   background: #ffffff !important;
   border-color: var(--as-border-strong) !important;
 }
 
-.as-filters-grid .as-field-label button:focus {
+.as-filters-grid .as-field-label button:not(.custom-select-option):focus {
   background: #ffffff !important;
   border-color: var(--as-accent) !important;
   box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.15) !important;

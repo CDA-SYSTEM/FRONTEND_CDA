@@ -357,7 +357,7 @@ export function AsignacionPage() {
             <CustomSelect
               options={[
                 { value: '', label: 'Todos' },
-                { value: 'EN PROGRESO', label: 'En progreso' },
+                { value: 'EN_PROGRESO', label: 'En progreso' },
                 { value: 'BORRADOR', label: 'Borrador' },
                 { value: 'CERRADA', label: 'Cerrada' },
               ]}

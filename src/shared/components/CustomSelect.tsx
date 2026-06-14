@@ -47,6 +47,7 @@ export function CustomSelect({
       {/* Botón Disparador */}
       <button
         type="button"
+        className="custom-select-trigger"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         style={{
@@ -59,7 +60,7 @@ export function CustomSelect({
           borderRadius: '12px',
           padding: '0.7rem 0.85rem',
           minHeight: '44px',
-          color: disabled ? '#94a3b8' : (value && String(value) !== '0' && String(value) !== '' ? '#0f172a' : '#64748b'),
+          color: disabled ? '#94a3b8' : (value && String(value) !== '0' && String(value) !== '' ? '#0f172a' : '#ef4444'),
           fontSize: '0.9rem',
           cursor: disabled ? 'not-allowed' : 'pointer',
           textAlign: 'left',
@@ -107,55 +108,49 @@ export function CustomSelect({
             border: '1px solid #cbd5e1',
             borderRadius: '12px',
             boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
-            padding: '4px !important',
-            paddingLeft: '4px !important',
-            paddingRight: '4px !important',
-            paddingInlineStart: '4px !important',
+            padding: '4px',
             margin: '4px 0 0 0',
-            listStyle: 'none !important',
+            listStyle: 'none',
             maxHeight: '240px',
             overflowY: 'auto',
-            animation: 'modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxSizing: 'border-box'
+            animation: 'modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           {options.map((opt) => {
             const isSelected = opt.value === value
             return (
-              <li key={opt.value} style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+              <li key={opt.value}>
                 <button
                   type="button"
-                  className="custom-select-option"
                   onClick={() => {
                     onChange(opt.value)
                     setIsOpen(false)
                   }}
                   style={{
-                    width: '100% !important',
-                    boxSizing: 'border-box !important',
-                    padding: '8px 12px !important',
-                    borderRadius: '8px !important',
-                    border: 'none !important',
-                    background: isSelected ? 'linear-gradient(135deg, #155dfc 0%, #0f47d6 100%) !important' : 'transparent !important',
-                    color: isSelected ? '#ffffff !important' : '#334155 !important',
-                    fontSize: '0.9rem !important',
-                    textAlign: 'left !important',
-                    cursor: 'pointer !important',
-                    minHeight: '38px !important',
-                    boxShadow: 'none !important',
-                    display: 'block !important',
-                    transition: 'background 0.15s, color 0.15s !important'
-                  } as any}
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: isSelected ? 'linear-gradient(135deg, #155dfc 0%, #0f47d6 100%)' : 'transparent',
+                    color: isSelected ? '#ffffff' : '#334155',
+                    fontSize: '0.9rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    minHeight: '38px',
+                    boxShadow: 'none',
+                    display: 'block',
+                    transition: 'background 0.15s, color 0.15s'
+                  }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.setProperty('background', '#f1f5f9', 'important')
-                      e.currentTarget.style.setProperty('color', '#0f172a', 'important')
+                      e.currentTarget.style.background = '#f1f5f9'
+                      e.currentTarget.style.color = '#0f172a'
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.setProperty('background', 'transparent', 'important')
-                      e.currentTarget.style.setProperty('color', '#334155', 'important')
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#334155'
                     }
                   }}
                 >

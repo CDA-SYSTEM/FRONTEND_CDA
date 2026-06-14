@@ -127,7 +127,7 @@
 }
 
 /* CustomSelect override especificidad */
-.as-filters-grid .as-field-label button:not(.custom-select-option) {
+.as-filters-grid .as-field-label button.custom-select-trigger {
   background: var(--as-bg) !important;
   border: 1px solid var(--as-border) !important;
   border-radius: var(--as-radius-btn) !important;
@@ -140,12 +140,12 @@
     box-shadow var(--as-dur-fast) var(--as-ease-out) !important;
 }
 
-.as-filters-grid .as-field-label button:not(.custom-select-option):hover {
+.as-filters-grid .as-field-label button.custom-select-trigger:hover {
   background: #ffffff !important;
   border-color: var(--as-border-strong) !important;
 }
 
-.as-filters-grid .as-field-label button:not(.custom-select-option):focus {
+.as-filters-grid .as-field-label button.custom-select-trigger:focus {
   background: #ffffff !important;
   border-color: var(--as-accent) !important;
   box-shadow: 0 0 0 3px rgba(21, 93, 252, 0.15) !important;

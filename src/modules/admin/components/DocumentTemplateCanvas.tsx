@@ -161,7 +161,7 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
         const currentText = el ? el.innerHTML || '' : ''
         const newContent = currentText + variable
 
-        selected.set('content', null)
+        selected.set('content', '')
         selected.components().reset()
         selected.append(newContent)
         if (el) el.innerHTML = newContent

@@ -24,8 +24,6 @@ import {
   ViewList as ListViewIcon,
   CheckCircle as ActiveIcon,
   Cancel as InactiveIcon,
-  Star as StarIcon,
-  StarBorder as StarBorderIcon,
   Settings as SettingsIcon,
   Close as CloseIcon,
   BarChart as ChartIcon,
@@ -82,7 +80,7 @@ export function InvoiceTemplatesPage() {
     uiStatus: t.isActive ? 'active' : 'inactive' as TemplateStatus,
     // Add missing fields for UI consistency
     description: 'Plantilla de documento para el sistema CDA.',
-    usageCount: t.usageCount ?? Math.floor(Math.random() * 200),
+    usageCount: (t as any).usageCount ?? Math.floor(Math.random() * 200),
     starred: (t as any).starred ?? false,
     previewColor: TYPE_META[(t.typeCode as TemplateType) || 'INVOICE']?.color || '#1e40af',
     versionLabel: 'v1.0',

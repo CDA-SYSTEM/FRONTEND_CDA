@@ -59,7 +59,8 @@ export const storageService = {
     } catch {
       // fallback to old endpoint
     }
-    return this.listarArchivosDeCarpeta(folderId)
+    const files = await this.listarArchivosDeCarpeta(folderId)
+    return files.map(f => ({ ...f, type: 'file' as const }))
   },
 
   async listRootContents(): Promise<StorageItem[]> {

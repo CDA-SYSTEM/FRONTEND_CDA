@@ -20,7 +20,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/core/store/authStore'
 import { Modal } from '@/core/components/Modal'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
-import { Toast } from '@/shared/components/Toast'
+import { useToastStore } from '@/core/store/toastStore'
 import { CustomSelect } from '@/shared/components/CustomSelect'
 import type { AxleMeasurement, ChecklistInspection, LabradoRecord, VehicleType } from '@/modules/inspeccion/domain/checklist.types'
 import { LabradoWizard, ChassisGrid, buildAxlesForType, getLayout, inferirConfig, mergeIntoLayout } from '@/modules/inspeccion/components/LabradoWizard'
@@ -142,7 +142,6 @@ export function AsignacionPage() {
   const [inspecciones, setInspecciones] = useState<ChecklistInspection[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ tipo: 'exito' | 'error'; mensaje: string } | null>(null)
 
   const [plateFiltro, setPlateFiltro] = useState('')
   const [statusFiltro, setStatusFiltro] = useState('')
@@ -242,7 +241,7 @@ export function AsignacionPage() {
 
   const abrirEditorLabrado = useCallback(() => {
     if (!selectedInspectionId) {
-      setToast({ tipo: 'error', mensaje: 'Seleccione una inspección antes de editar el labrado.' })
+      useToastStore.getState().addToast('Seleccione una inspección antes de editar el labrado.', 'error')
       return
     }
     const inferredType = inferirConfig(labrado?.axles ?? []) ?? 'PESADO_5'
@@ -266,7 +265,7 @@ export function AsignacionPage() {
       }
       setLabrado(actualizado)
       setEditandoLabrado(false)
-      setToast({ tipo: 'exito', mensaje: 'Labrado actualizado correctamente.' })
+      useToastStore.getState().addToast('Labrado actualizado correctamente.', 'success')
     } catch (err) {
       setErrorEditorLabrado(err instanceof Error ? err.message : 'No se pudo guardar el labrado.')
     } finally {
@@ -311,13 +310,6 @@ export function AsignacionPage() {
 
   return (
     <div className="as-root">
-      {toast && (
-        <Toast
-          tipo={toast.tipo}
-          mensaje={toast.mensaje}
-          onCerrar={() => setToast(null)}
-        />
-      )}
 
       <div className="page-header-responsive">
         <div>
@@ -560,7 +552,7 @@ export function AsignacionPage() {
                     <button
                       onClick={() => {
                         if (!insp.id) {
-                          setToast({ tipo: 'error', mensaje: 'La inspección no tiene un identificador válido para editar.' })
+                          useToastStore.getState().addToast('La inspección no tiene un identificador válido para editar.', 'error')
                           return
                         }
                         const tipo = (insp.vehicle_type || 'LIVIANO').toLowerCase()

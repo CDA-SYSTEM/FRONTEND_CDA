@@ -121,35 +121,36 @@ export function CustomSelect({
               <li key={opt.value}>
                 <button
                   type="button"
+                  className="custom-select-option"
                   onClick={() => {
                     onChange(opt.value)
                     setIsOpen(false)
                   }}
                   style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: isSelected ? 'linear-gradient(135deg, #155dfc 0%, #0f47d6 100%)' : 'transparent',
-                    color: isSelected ? '#ffffff' : '#334155',
-                    fontSize: '0.9rem',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    minHeight: '38px',
-                    boxShadow: 'none',
-                    display: 'block',
-                    transition: 'background 0.15s, color 0.15s'
-                  }}
+                    width: '100% !important',
+                    padding: '8px 12px !important',
+                    borderRadius: '8px !important',
+                    border: 'none !important',
+                    background: isSelected ? 'linear-gradient(135deg, #155dfc 0%, #0f47d6 100%) !important' : 'transparent !important',
+                    color: isSelected ? '#ffffff !important' : '#334155 !important',
+                    fontSize: '0.9rem !important',
+                    textAlign: 'left !important',
+                    cursor: 'pointer !important',
+                    minHeight: '38px !important',
+                    boxShadow: 'none !important',
+                    display: 'block !important',
+                    transition: 'background 0.15s, color 0.15s !important'
+                  } as any}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.background = '#f1f5f9'
-                      e.currentTarget.style.color = '#0f172a'
+                      e.currentTarget.style.setProperty('background', '#f1f5f9', 'important')
+                      e.currentTarget.style.setProperty('color', '#0f172a', 'important')
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.background = 'transparent'
-                      e.currentTarget.style.color = '#334155'
+                      e.currentTarget.style.setProperty('background', 'transparent', 'important')
+                      e.currentTarget.style.setProperty('color', '#334155', 'important')
                     }
                   }}
                 >

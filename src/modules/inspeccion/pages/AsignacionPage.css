@@ -127,7 +127,7 @@
 }
 
 /* CustomSelect override especificidad */
-.as-filters-grid .as-field-label button {
+.as-filters-grid .as-field-label button:not(.custom-select-option) {
   background: var(--as-bg) !important;
   border: 1px solid var(--as-border) !important;
   border-radius: var(--as-radius-btn) !important;

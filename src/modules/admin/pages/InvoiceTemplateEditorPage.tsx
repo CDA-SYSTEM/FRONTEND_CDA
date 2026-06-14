@@ -256,8 +256,8 @@ function MediaLibraryPanel({ onInsertImage, onInsertLink, showToast }: MediaLibr
     return colors[index % colors.length]
   }
 
-  const folderContents = contents.filter(i => i.type === 'folder') as StorageItem[]
-  const fileContents = contents.filter(i => i.type === 'file') as StorageItem[]
+  const folderContents = contents.filter(i => i.type === 'folder') as any[]
+  const fileContents = contents.filter(i => i.type === 'file') as any[]
 
   return (
     <div className="media-library-panel">

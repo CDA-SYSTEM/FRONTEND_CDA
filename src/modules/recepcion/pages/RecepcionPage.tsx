@@ -138,6 +138,7 @@ export function RecepcionPage() {
   const [editSignatureBlob, setEditSignatureBlob] = useState<Blob | null>(null)
   const [guardandoEdicion, setGuardandoEdicion] = useState(false)
   const [editStatusId, setEditStatusId] = useState('')
+  const [editOriginalData, setEditOriginalData] = useState<any | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
 
   // Modal de Eliminación
@@ -228,6 +229,7 @@ export function RecepcionPage() {
   // Cargar datos en el formulario de edición al seleccionar
   const iniciarEdicion = async (insp: InspectionSummary) => {
     setEditInspectionId(insp.id)
+    setEditOriginalData(insp)
     setEditMileage(insp.mileage ?? '')
     setEditObservations(insp.observations ?? insp.observations_text ?? '')
     setEditPhoto(null)
@@ -241,6 +243,7 @@ export function RecepcionPage() {
     try {
       const detail = await inspeccionService.obtenerDetalle(insp.id)
       if (detail) {
+        setEditOriginalData(detail)
         setEditMileage(detail.mileage ?? '')
         setEditObservations(detail.observations ?? detail.observations_text ?? '')
         const detailStatusId = (detail as any).statusId || detail.status_id || (detail as any).status?.id
@@ -262,8 +265,24 @@ export function RecepcionPage() {
     try {
         const mileageVal = editMileage === '' || editMileage === null || editMileage === undefined ? 0 : Number(editMileage)
 
+        // Construir el objeto de datos completo tal como en la creación
         const payload: Record<string, unknown> = {
           mileage: mileageVal,
+          client_id: editOriginalData?.client_id ? String(editOriginalData.client_id) : undefined,
+          vehicle_id: editOriginalData?.vehicle_id ? String(editOriginalData.vehicle_id) : undefined,
+          operator_id: editOriginalData?.operator_id ? String(editOriginalData.operator_id) : undefined,
+          customer_type: editOriginalData?.customer_type,
+          revision_type: editOriginalData?.revision_type,
+          tinted_windows: editOriginalData?.tinted_windows,
+          armored_vehicle: editOriginalData?.armored_vehicle,
+          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass,
+          checklist: editOriginalData?.checklist,
+          axles: editOriginalData?.axles?.map((a: any) => ({ index: a.index, axle_type: a.axle_type })),
+          tires: editOriginalData?.tires?.map((t: any) => ({
+            position: t.position,
+            code: t.code,
+            tire_pressure: t.tire_pressure === null || t.tire_pressure === undefined ? null : Number(t.tire_pressure)
+          })),
           observations: editObservations,
         }
         
@@ -293,6 +312,7 @@ export function RecepcionPage() {
 
       await cargarDatos()
       setEditInspectionId(null)
+      setEditOriginalData(null)
     } catch (err) {
       alert('Error: No se pudieron guardar los cambios.')
     } finally {
@@ -1104,7 +1124,7 @@ export function RecepcionPage() {
               </div>
               <button
                 type="button"
-                onClick={() => setEditInspectionId(null)}
+                onClick={() => { setEditInspectionId(null); setEditOriginalData(null); }}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -1235,7 +1255,7 @@ export function RecepcionPage() {
             }}>
               <button
                 type="button"
-                onClick={() => setEditInspectionId(null)}
+                onClick={() => { setEditInspectionId(null); setEditOriginalData(null); }}
                 style={{
                   background: '#f1f5f9',
                   color: '#475569',

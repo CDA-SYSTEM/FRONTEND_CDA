@@ -13,7 +13,10 @@
    ═══════════════════════════════════════════════ */
 
 .app-shell {
-  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.content {
   background: #f8fafc;
 }
 
@@ -360,13 +363,14 @@
 .app-footer {
   text-align: center;
   color: #94a3b8;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 400;
   letter-spacing: 0.02em;
-  padding: 1rem 1.5rem;
+  padding: 10px 0 !important;
+  margin: 0 !important;
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;
-  margin-top: auto;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {

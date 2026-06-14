@@ -356,15 +356,13 @@ export function AsignacionPage() {
             <span className="as-label-text">Estado</span>
             <CustomSelect
               options={[
-                { value: '', label: 'Todos' },
-                { value: 'PENDIENTE', label: 'Pendiente' },
                 { value: 'EN PROGRESO', label: 'En progreso' },
                 { value: 'BORRADOR', label: 'Borrador' },
                 { value: 'CERRADA', label: 'Cerrada' },
               ]}
               value={statusFiltro}
               onChange={(val) => setStatusFiltro(val)}
-              placeholder="Todos"
+              placeholder="Seleccione Estado"
             />
           </label>
           <label className="as-field-label">

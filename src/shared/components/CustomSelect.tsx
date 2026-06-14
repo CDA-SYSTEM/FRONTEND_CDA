@@ -59,7 +59,7 @@ export function CustomSelect({
           borderRadius: '12px',
           padding: '0.7rem 0.85rem',
           minHeight: '44px',
-          color: disabled ? '#94a3b8' : (value && String(value) !== '0' && String(value) !== '' ? '#0f172a' : '#ef4444'),
+          color: disabled ? '#94a3b8' : (value && String(value) !== '0' && String(value) !== '' ? '#0f172a' : '#64748b'),
           fontSize: '0.9rem',
           cursor: disabled ? 'not-allowed' : 'pointer',
           textAlign: 'left',
@@ -107,18 +107,22 @@ export function CustomSelect({
             border: '1px solid #cbd5e1',
             borderRadius: '12px',
             boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08)',
-            padding: '4px',
+            padding: '4px !important',
+            paddingLeft: '4px !important',
+            paddingRight: '4px !important',
+            paddingInlineStart: '4px !important',
             margin: '4px 0 0 0',
-            listStyle: 'none',
+            listStyle: 'none !important',
             maxHeight: '240px',
             overflowY: 'auto',
-            animation: 'modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+            animation: 'modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxSizing: 'border-box'
           }}
         >
           {options.map((opt) => {
             const isSelected = opt.value === value
             return (
-              <li key={opt.value}>
+              <li key={opt.value} style={{ margin: 0, padding: 0, listStyle: 'none' }}>
                 <button
                   type="button"
                   className="custom-select-option"
@@ -128,6 +132,7 @@ export function CustomSelect({
                   }}
                   style={{
                     width: '100% !important',
+                    boxSizing: 'border-box !important',
                     padding: '8px 12px !important',
                     borderRadius: '8px !important',
                     border: 'none !important',

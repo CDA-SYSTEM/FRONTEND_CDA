@@ -1166,6 +1166,7 @@ export function RecepcionPage() {
                     options={statuses.map((s) => ({ value: s.id, label: `${s.name} (${s.code})` }))}
                     value={editStatusId}
                     onChange={(val) => setEditStatusId(val)}
+                    disabled={true}
                   />
                 </div>
               )}

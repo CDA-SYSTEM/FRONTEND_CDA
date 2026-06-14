@@ -264,7 +264,6 @@ export function RecepcionPage() {
     setGuardandoEdicion(true)
     try {
         const mileageVal = editMileage === '' || editMileage === null || editMileage === undefined ? 0 : Number(editMileage)
-
         const checklistObj = editOriginalData?.checklist ? {
           is_clean: editOriginalData.checklist.is_clean ?? true,
           hubcaps_removed: editOriginalData.checklist.hubcaps_removed ?? false,
@@ -281,18 +280,53 @@ export function RecepcionPage() {
           seatbelts_visible: false,
         }
 
+        // Mapeadores para tipos que el backend requiere en mayúsculas y formato enum
+        const mapVehicleType = (raw: string | null | undefined): string => {
+          if (!raw) return 'LIVIANO';
+          const upper = raw.toUpperCase();
+          if (upper.includes('MOTO') || upper.includes('MOTOCICLETA')) return 'MOTOCICLETA_2_TIEMPOS';
+          if (upper.includes('PESADO')) return 'PESADO';
+          return 'LIVIANO';
+        }
+
+        const mapFuelType = (raw: string | null | undefined): string | null => {
+          if (!raw) return null;
+          const upper = raw.toUpperCase();
+          if (upper.includes('GASOLINA')) return 'GASOLINA';
+          if (upper.includes('DIESEL') || upper.includes('ACP')) return 'DIESEL';
+          if (upper.includes('GAS')) return 'GAS';
+          return upper;
+        }
+
+        const mapServiceType = (raw: string | null | undefined): string | null => {
+          if (!raw) return null;
+          const upper = raw.toUpperCase();
+          if (upper.includes('PARTICULAR')) return 'PARTICULAR';
+          if (upper.includes('PUBLICO')) return 'PUBLICO';
+          return upper;
+        }
+
         // Construir el objeto de datos completo tal como en la creación
         const payload: Record<string, unknown> = {
           mileage: mileageVal,
-          client_id: editOriginalData?.client_id ? String(editOriginalData.client_id) : undefined,
-          vehicle_id: editOriginalData?.vehicle_id ? String(editOriginalData.vehicle_id) : undefined,
-          operator_id: editOriginalData?.operator_id ? String(editOriginalData.operator_id) : undefined,
-          customer_type: editOriginalData?.customer_type || undefined,
-          revision_type: editOriginalData?.revision_type || undefined,
-          tinted_windows: editOriginalData?.tinted_windows || undefined,
-          armored_vehicle: editOriginalData?.armored_vehicle || undefined,
-          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass || undefined,
+          client_id: editOriginalData?.client_id ? String(editOriginalData.client_id) : null,
+          vehicle_id: editOriginalData?.vehicle_id ? String(editOriginalData.vehicle_id) : null,
+          vehicle_type: mapVehicleType(editOriginalData?.vehicle_type || editOriginalData?.vehicle?.tipoVehiculo?.nombre),
+          fuel_type: mapFuelType(editOriginalData?.fuel_type || editOriginalData?.vehicle?.tipoCombustible?.nombre),
+          fuel_certificate_number: editOriginalData?.fuel_certificate_number || null,
+          service_type: mapServiceType(editOriginalData?.service_type || editOriginalData?.vehicle?.tipoServicio?.nombre),
+          operator_id: editOriginalData?.operator_id ? String(editOriginalData.operator_id) : null,
+          responsible_id: editOriginalData?.responsible_id ? String(editOriginalData.responsible_id) : null,
+          customer_id: editOriginalData?.customer_id ? String(editOriginalData.customer_id) : null,
+          customer_type: editOriginalData?.customer_type || null,
+          revision_type: editOriginalData?.revision_type || null,
+          tinted_windows: editOriginalData?.tinted_windows || null,
+          armored_vehicle: editOriginalData?.armored_vehicle || null,
+          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass || null,
           observations: editObservations,
+          signature_url: editOriginalData?.signature_url || null,
+          checklistId: editOriginalData?.checklistId || editOriginalData?.checklist_id || null,
+          photo_reception_url: editOriginalData?.photo_reception_url || null,
           checklist: checklistObj,
           axles: (editOriginalData?.axles && editOriginalData.axles.length > 0)
             ? editOriginalData.axles.map((a: any) => ({ index: a.index, axle_type: a.axle_type }))

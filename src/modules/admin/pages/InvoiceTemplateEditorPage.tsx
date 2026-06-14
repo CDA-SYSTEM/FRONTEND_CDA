@@ -65,7 +65,7 @@ function VariableChip({ variable, onInsert, showToast }: VariableChipProps) {
       const textToCopy = `{{${variable.tag}}}`
       await navigator.clipboard.writeText(textToCopy)
       showToast(`Copiado: ${textToCopy}`, 'success')
-    } catch (err) {
+    } catch {
       showToast('Error al copiar al portapapeles', 'error')
     }
   }

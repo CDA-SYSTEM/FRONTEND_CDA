@@ -276,13 +276,17 @@ export function RecepcionPage() {
           tinted_windows: editOriginalData?.tinted_windows,
           armored_vehicle: editOriginalData?.armored_vehicle,
           brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass,
-          checklist: editOriginalData?.checklist,
-          axles: editOriginalData?.axles?.map((a: any) => ({ index: a.index, axle_type: a.axle_type })),
-          tires: editOriginalData?.tires?.map((t: any) => ({
-            position: t.position,
-            code: t.code,
-            tire_pressure: t.tire_pressure === null || t.tire_pressure === undefined ? null : Number(t.tire_pressure)
-          })),
+          checklist: editOriginalData?.checklist || { is_clean: true },
+          axles: (editOriginalData?.axles && editOriginalData.axles.length > 0)
+            ? editOriginalData.axles.map((a: any) => ({ index: a.index, axle_type: a.axle_type }))
+            : [{ index: 1, axle_type: 'DELANTERO' }],
+          tires: (editOriginalData?.tires && editOriginalData.tires.length > 0)
+            ? editOriginalData.tires.map((t: any) => ({
+                position: t.position,
+                code: t.code || 'PENDIENTE',
+                tire_pressure: t.tire_pressure === null || t.tire_pressure === undefined ? 0 : Number(t.tire_pressure)
+              }))
+            : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 0 }],
           observations: editObservations,
         }
         

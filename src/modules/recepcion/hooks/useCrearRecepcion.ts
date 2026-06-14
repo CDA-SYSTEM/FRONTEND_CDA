@@ -314,7 +314,7 @@ export function useCrearRecepcion() {
         { position: 'FRONT_RIGHT', code: '', tire_pressure: 0 },
         { position: 'REAR_LEFT', code: '', tire_pressure: 0 },
         { position: 'REAR_RIGHT', code: '', tire_pressure: 0 },
-        { position: 'REPUESTO_1', code: '', tire_pressure: 0 },
+        { position: 'SPARE', code: '', tire_pressure: 0 },
       ])
     }
 
@@ -374,11 +374,25 @@ export function useCrearRecepcion() {
         brake_fluid_sight_glass: brakeFluidSightGlass,
         axles: axles.length > 0 ? axles : [{ index: 1, axle_type: 'DELANTERO' }],
         tires: tires.length > 0
-          ? tires.map((t) => ({
-              position: t.position,
-              code: t.code || 'PENDIENTE',
-              tire_pressure: Number(t.tire_pressure) || 0,
-            }))
+          ? tires.map((t, idx) => {
+              const allowedPositions = ['FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', 'SPARE'];
+              let mappedPosition = t.position;
+              if (t.position === 'FRONT') {
+                mappedPosition = 'FRONT_LEFT';
+              } else if (t.position === 'REAR') {
+                mappedPosition = 'REAR_LEFT';
+              } else if (t.position.startsWith('REPUESTO')) {
+                mappedPosition = 'SPARE';
+              } else if (!allowedPositions.includes(t.position)) {
+                // Si no es una de las posiciones permitidas estándar, la mapeamos a TIRE_1, TIRE_2, etc.
+                mappedPosition = `TIRE_${idx + 1}`;
+              }
+              return {
+                position: mappedPosition,
+                code: t.code || 'PENDIENTE',
+                tire_pressure: Number(t.tire_pressure) || 0,
+              };
+            })
           : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 0 }],
         checklist: { is_clean: confirmacionAcuerdo },
       }

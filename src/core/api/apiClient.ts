@@ -2,6 +2,7 @@ import axios from 'axios'
 import { API_BASE_URL, API_KEY_FRONT } from '@/core/api/apiConfig'
 import { useAuthStore } from '@/core/store/authStore'
 import { offlineStorage } from '@/core/services/offlineStorage'
+import { useToastStore } from '@/core/store/toastStore'
 
 const METODOS_MUTACION = ['post', 'patch', 'put', 'delete'] as const
 
@@ -223,6 +224,25 @@ apiClient.interceptors.response.use(
       } finally {
         isRefreshing = false
       }
+    }
+
+    if (error.response?.status !== 401 && error.code !== 'ERR_CANCELED') {
+      const data = error.response?.data
+      let mensajeError = 'Ha ocurrido un error en el servidor.'
+
+      if (data) {
+        if (typeof data.message === 'string') {
+          mensajeError = data.message
+        } else if (Array.isArray(data.message)) {
+          mensajeError = data.message.join(', ')
+        } else if (data.error) {
+          mensajeError = data.error
+        }
+      } else if (error.message) {
+        mensajeError = error.message
+      }
+
+      useToastStore.getState().addToast(mensajeError, 'error')
     }
 
     return Promise.reject(error)

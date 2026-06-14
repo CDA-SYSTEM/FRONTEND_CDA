@@ -305,6 +305,28 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
         })
       }
 
+      // Configurar el tipo de componente image para posicionamiento absoluto y arrastrable por defecto
+      const imgType = editor.DomComponents.getType('image')
+      if (imgType) {
+        editor.DomComponents.addType('image', {
+          model: {
+            defaults: {
+              ...imgType.model.prototype.defaults,
+              dmode: 'absolute',
+              draggable: true,
+              style: {
+                position: 'absolute',
+                'z-index': '10',
+                cursor: 'move',
+                'max-width': '150px',
+                height: 'auto',
+                ...imgType.model.prototype.defaults.style,
+              },
+            },
+          },
+        })
+      }
+
       const { styles, body } = parseTemplateHtml(html)
       editor.setComponents(body)
       if (styles) editor.setStyle(styles)
@@ -495,6 +517,89 @@ export const DocumentTemplateCanvas = forwardRef<DocumentTemplateCanvasRef, Prop
 )
 
 function configureEditorPanels(editor: Editor) {
+  // Registrar comandos de ordenamiento de capas (z-index)
+  editor.Commands.add('layer-bring-to-front', {
+    run(editorInstance) {
+      const comp = editorInstance.getSelected()
+      if (!comp) return
+
+      let maxZ = 10
+      const selectedPage = editorInstance.Pages.getSelected()
+      const mainComp = selectedPage ? selectedPage.getMainComponent() : null
+      const allComps = mainComp ? mainComp.find('*') : []
+      allComps.forEach((c: any) => {
+        const style = c.getStyle() || {}
+        const z = parseInt(style['z-index'] as any, 10)
+        if (!isNaN(z) && z > maxZ) {
+          maxZ = z
+        }
+      })
+
+      const currentStyle = comp.getStyle() || {}
+      comp.setStyle({
+        ...currentStyle,
+        position: 'absolute',
+        'z-index': String(maxZ + 1),
+      })
+    },
+  })
+
+  editor.Commands.add('layer-bring-forward', {
+    run(editorInstance) {
+      const comp = editorInstance.getSelected()
+      if (!comp) return
+
+      const currentStyle = comp.getStyle() || {}
+      const zIndex = parseInt((currentStyle['z-index'] as any) || '10', 10)
+      comp.setStyle({
+        ...currentStyle,
+        position: 'absolute',
+        'z-index': String(zIndex + 1),
+      })
+    },
+  })
+
+  editor.Commands.add('layer-send-backward', {
+    run(editorInstance) {
+      const comp = editorInstance.getSelected()
+      if (!comp) return
+
+      const currentStyle = comp.getStyle() || {}
+      const zIndex = parseInt((currentStyle['z-index'] as any) || '10', 10)
+      comp.setStyle({
+        ...currentStyle,
+        position: 'absolute',
+        'z-index': String(zIndex - 1),
+      })
+    },
+  })
+
+  editor.Commands.add('layer-send-to-back', {
+    run(editorInstance) {
+      const comp = editorInstance.getSelected()
+      if (!comp) return
+
+      let minZ = 0
+      const selectedPage = editorInstance.Pages.getSelected()
+      const mainComp = selectedPage ? selectedPage.getMainComponent() : null
+      const allComps = mainComp ? mainComp.find('*') : []
+      allComps.forEach((c: any) => {
+        const style = c.getStyle() || {}
+        const z = parseInt(style['z-index'] as any, 10)
+        if (!isNaN(z) && z < minZ) {
+          minZ = z
+        }
+      })
+
+      const currentStyle = comp.getStyle() || {}
+      comp.setStyle({
+        ...currentStyle,
+        position: 'absolute',
+        'z-index': String(minZ - 1),
+      })
+    },
+  })
+
   // Registrar comandos de manipulación de tablas
   editor.Commands.add('table-insert-row-above', {
     run(editorInstance) {
@@ -708,6 +813,43 @@ function configureEditorPanels(editor: Editor) {
               label: '-C',
               title: 'Eliminar columna',
               command: 'table-delete-column',
+            }
+          ]
+        })
+      }
+    }
+
+    if (component.is('image')) {
+      const toolbar = component.get('toolbar') || []
+      const hasCustom = toolbar.some(item => String(item.command).startsWith('layer-'))
+      
+      if (!hasCustom) {
+        (component as any).set({
+          toolbar: [
+            ...toolbar,
+            {
+              id: 'layer-to-front',
+              label: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 3px auto;"><path d="M17 11l-5-5-5 5M17 18l-5-5-5 5"/></svg>`,
+              title: 'Traer al frente del todo',
+              command: 'layer-bring-to-front',
+            },
+            {
+              id: 'layer-forward',
+              label: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 3px auto;"><path d="M18 15l-6-6-6 6"/></svg>`,
+              title: 'Subir una capa',
+              command: 'layer-bring-forward',
+            },
+            {
+              id: 'layer-backward',
+              label: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 3px auto;"><path d="M6 9l6 6 6-6"/></svg>`,
+              title: 'Bajar una capa',
+              command: 'layer-send-backward',
+            },
+            {
+              id: 'layer-to-back',
+              label: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: 3px auto;"><path d="M6 13l6 6 6-6M6 6l6 6 6-6"/></svg>`,
+              title: 'Enviar al fondo del todo',
+              command: 'layer-send-to-back',
             }
           ]
         })

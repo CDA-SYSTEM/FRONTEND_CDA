@@ -21,6 +21,7 @@ import { CustomSelect } from '@/shared/components/CustomSelect'
 import { vehiculoService } from '@/modules/vehiculo/services/vehiculoService'
 import type { CatalogoItem } from '@/modules/vehiculo/domain/vehiculo.types'
 import { ConfirmModal } from '@/shared/components/ConfirmModal'
+import { useToastStore } from '@/core/store/toastStore'
 import './VehiculosPage.css'
 
 export function RegistroVehiculoPage() {
@@ -961,8 +962,8 @@ export function RegistroVehiculoPage() {
                               setCreandoTipoVehiculoInline(false)
                             }
                             setNuevaTipoVehiculoNombre('')
-                          } catch (e) {
-                            alert(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo')
+                          } catch {
+                            useToastStore.getState().addToast(editandoTipoVehiculoInline ? 'Error al editar el tipo de vehículo' : 'Error al crear el tipo de vehículo', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1121,8 +1122,8 @@ export function RegistroVehiculoPage() {
                               setCreandoMarcaInline(false)
                             }
                             setNuevaMarcaNombre('')
-                          } catch (e) {
-                            alert(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca')
+                          } catch {
+                            useToastStore.getState().addToast(editandoMarcaInline ? 'Error al editar la marca' : 'Error al crear la marca', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1230,8 +1231,8 @@ export function RegistroVehiculoPage() {
                               setCreandoLineaInline(false)
                             }
                             setNuevaLineaNombre('')
-                          } catch (e) {
-                            alert(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea')
+                          } catch {
+                            useToastStore.getState().addToast(editandoLineaInline ? 'Error al editar la línea' : 'Error al crear la línea', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1332,8 +1333,8 @@ export function RegistroVehiculoPage() {
                               setCreandoClaseInline(false)
                             }
                             setNuevaClaseNombre('')
-                          } catch (e) {
-                            alert(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase')
+                          } catch {
+                            useToastStore.getState().addToast(editandoClaseInline ? 'Error al editar la clase' : 'Error al crear la clase', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1432,8 +1433,8 @@ export function RegistroVehiculoPage() {
                               setCreandoColorInline(false)
                             }
                             setNuevaColorNombre('')
-                          } catch (e) {
-                            alert(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color')
+                          } catch {
+                            useToastStore.getState().addToast(editandoColorInline ? 'Error al editar el color' : 'Error al crear el color', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1549,8 +1550,8 @@ export function RegistroVehiculoPage() {
                               setCreandoCombustibleInline(false)
                             }
                             setNuevaCombustibleNombre('')
-                          } catch (e) {
-                            alert(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible')
+                          } catch {
+                            useToastStore.getState().addToast(editandoCombustibleInline ? 'Error al editar el tipo de combustible' : 'Error al crear el tipo de combustible', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }
@@ -1653,8 +1654,8 @@ export function RegistroVehiculoPage() {
                               setCreandoTipoServicioInline(false)
                             }
                             setNuevaTipoServicioNombre('')
-                          } catch (e) {
-                            alert(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio')
+                          } catch {
+                            useToastStore.getState().addToast(editandoTipoServicioInline ? 'Error al editar el tipo de servicio' : 'Error al crear el tipo de servicio', 'error')
                           } finally {
                             setGuardandoCatalogo(false)
                           }

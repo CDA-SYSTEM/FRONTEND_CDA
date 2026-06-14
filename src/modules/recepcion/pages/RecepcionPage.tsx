@@ -265,18 +265,44 @@ export function RecepcionPage() {
     try {
         const mileageVal = editMileage === '' || editMileage === null || editMileage === undefined ? 0 : Number(editMileage)
 
+        const checklistObj = editOriginalData?.checklist ? {
+          is_clean: editOriginalData.checklist.is_clean ?? true,
+          hubcaps_removed: editOriginalData.checklist.hubcaps_removed ?? false,
+          alarms_off: editOriginalData.checklist.alarms_off ?? false,
+          is_unloaded: editOriginalData.checklist.is_unloaded ?? false,
+          public_service_seats: editOriginalData.checklist.public_service_seats === null || editOriginalData.checklist.public_service_seats === undefined ? 0 : Number(editOriginalData.checklist.public_service_seats),
+          seatbelts_visible: editOriginalData.checklist.seatbelts_visible ?? false,
+        } : {
+          is_clean: true,
+          hubcaps_removed: false,
+          alarms_off: false,
+          is_unloaded: false,
+          public_service_seats: 0,
+          seatbelts_visible: false,
+        }
+
         // Construir el objeto de datos completo tal como en la creación
         const payload: Record<string, unknown> = {
           mileage: mileageVal,
           client_id: editOriginalData?.client_id ? String(editOriginalData.client_id) : undefined,
           vehicle_id: editOriginalData?.vehicle_id ? String(editOriginalData.vehicle_id) : undefined,
+          vehicle_type: editOriginalData?.vehicle_type || undefined,
+          fuel_type: editOriginalData?.fuel_type || undefined,
+          fuel_certificate_number: editOriginalData?.fuel_certificate_number || undefined,
+          service_type: editOriginalData?.service_type || undefined,
           operator_id: editOriginalData?.operator_id ? String(editOriginalData.operator_id) : undefined,
-          customer_type: editOriginalData?.customer_type,
-          revision_type: editOriginalData?.revision_type,
-          tinted_windows: editOriginalData?.tinted_windows,
-          armored_vehicle: editOriginalData?.armored_vehicle,
-          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass,
-          checklist: editOriginalData?.checklist || { is_clean: true },
+          responsible_id: editOriginalData?.responsible_id ? String(editOriginalData.responsible_id) : undefined,
+          customer_id: editOriginalData?.customer_id ? String(editOriginalData.customer_id) : undefined,
+          customer_type: editOriginalData?.customer_type || undefined,
+          revision_type: editOriginalData?.revision_type || undefined,
+          tinted_windows: editOriginalData?.tinted_windows || undefined,
+          armored_vehicle: editOriginalData?.armored_vehicle || undefined,
+          brake_fluid_sight_glass: editOriginalData?.brake_fluid_sight_glass || undefined,
+          observations: editObservations,
+          signature_url: editOriginalData?.signature_url || undefined,
+          checklistId: editOriginalData?.checklistId || editOriginalData?.checklist_id || undefined,
+          photo_reception_url: editOriginalData?.photo_reception_url || undefined,
+          checklist: checklistObj,
           axles: (editOriginalData?.axles && editOriginalData.axles.length > 0)
             ? editOriginalData.axles.map((a: any) => ({ index: a.index, axle_type: a.axle_type }))
             : [{ index: 1, axle_type: 'DELANTERO' }],
@@ -287,7 +313,6 @@ export function RecepcionPage() {
                 tire_pressure: t.tire_pressure === null || t.tire_pressure === undefined ? 0 : Number(t.tire_pressure)
               }))
             : [{ position: 'FRONT_LEFT', code: 'PENDIENTE', tire_pressure: 0 }],
-          observations: editObservations,
         }
         
         const formData = new FormData()

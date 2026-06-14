@@ -144,7 +144,7 @@ export function AsignacionPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [plateFiltro, setPlateFiltro] = useState('')
-  const [statusFiltro, setStatusFiltro] = useState('BORRADOR')
+  const [statusFiltro, setStatusFiltro] = useState('')
   const [vehicleIdFiltro, setVehicleIdFiltro] = useState('')
   const [inspectionIdFiltro, setInspectionIdFiltro] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<VehicleType | ''>('')
@@ -356,13 +356,14 @@ export function AsignacionPage() {
             <span className="as-label-text">Estado</span>
             <CustomSelect
               options={[
+                { value: '', label: 'Todos' },
                 { value: 'EN PROGRESO', label: 'En progreso' },
                 { value: 'BORRADOR', label: 'Borrador' },
                 { value: 'CERRADA', label: 'Cerrada' },
               ]}
               value={statusFiltro}
               onChange={(val) => setStatusFiltro(val)}
-              placeholder="Borrador"
+              placeholder="Todos"
             />
           </label>
           <label className="as-field-label">

@@ -107,6 +107,12 @@
     box-shadow    0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
+.user-form-input[type="email"] {
+  background-repeat: no-repeat !important;
+  background-position: right 14px center !important;
+  background-size: 20px auto !important;
+}
+
 .user-form-input:focus {
   background: #ffffff !important;
   border-color: #155dfc !important;

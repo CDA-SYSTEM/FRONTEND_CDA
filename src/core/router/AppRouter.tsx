@@ -13,8 +13,19 @@ import { UsuariosPage } from '@/modules/usuarios/pages/UsuariosPage'
 import { PreciosPage } from '@/modules/precios/pages/PreciosPage'
 import { EstadosPage } from '@/modules/estados/pages/EstadosPage'
 import { PlantillasPage } from '@/modules/inspeccion/pages/PlantillasPage'
-import { InvoiceTemplatesPage } from '@/modules/admin/pages/InvoiceTemplatesPage'
-import { InvoiceTemplateEditorPage } from '@/modules/admin/pages/InvoiceTemplateEditorPage'
+import { lazy, Suspense } from 'react'
+
+const InvoiceTemplatesPage = lazy(() =>
+  import('@/modules/admin/pages/InvoiceTemplatesPage').then((m) => ({
+    default: m.InvoiceTemplatesPage,
+  })),
+)
+
+const InvoiceTemplateEditorPage = lazy(() =>
+  import('@/modules/admin/pages/InvoiceTemplateEditorPage').then((m) => ({
+    default: m.InvoiceTemplateEditorPage,
+  })),
+)
 import { AdminDashboard } from '@/modules/admin/pages/AdminDashboard'
 import { ArchivosPage } from '@/modules/storage/pages/ArchivosPage'
 import { TrackerPage } from '@/modules/tracker/pages/TrackerPage'
@@ -84,12 +95,30 @@ export function AppRouter() {
               {/* Gestión de plantillas de documentos */}
               <Route
                 path="/admin/documentos"
-                element={<InvoiceTemplatesPage />}
+                element={
+                  <Suspense fallback={
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+                      <p style={{ marginTop: 12, color: '#64748b', fontSize: '0.95rem' }}>Cargando documentos...</p>
+                    </div>
+                  }>
+                    <InvoiceTemplatesPage />
+                  </Suspense>
+                }
               />
 
               <Route
                 path="/admin/documentos/:id/edit"
-                element={<InvoiceTemplateEditorPage />}
+                element={
+                  <Suspense fallback={
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400 }}>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+                      <p style={{ marginTop: 12, color: '#64748b', fontSize: '0.95rem' }}>Abriendo editor de documentos...</p>
+                    </div>
+                  }>
+                    <InvoiceTemplateEditorPage />
+                  </Suspense>
+                }
               />
             </Route>
 

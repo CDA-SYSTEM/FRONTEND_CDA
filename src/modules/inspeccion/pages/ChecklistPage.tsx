@@ -241,6 +241,8 @@ export function ChecklistPage() {
   const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [mostrarExitoGuardado, setMostrarExitoGuardado] = useState(false)
+  const [mostrarExitoCierre, setMostrarExitoCierre] = useState(false)
+  const [mostrarErrorCierre, setMostrarErrorCierre] = useState(false)
 
   /* HU-014: Opciones de respuesta dinámicas — del template o fallback NTC5375 */
   
@@ -276,7 +278,9 @@ export function ChecklistPage() {
     const ok = await cerrar(resultado)
     setCerrando(null)
     if (ok) {
-      navigate('/inspeccion/asignacion', { replace: true })
+      setMostrarExitoCierre(true)
+    } else {
+      setMostrarErrorCierre(true)
     }
   }
 
@@ -635,6 +639,167 @@ export function ChecklistPage() {
             >
               Aceptar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de éxito al cerrar inspección */}
+      {mostrarExitoCierre && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '24px 32px',
+            width: '90%',
+            maxWidth: 400,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#dcfce7',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#1f2937' }}>
+              Inspección Guardada
+            </h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              La inspección técnica se ha cerrado y guardado exitosamente en el sistema.
+            </p>
+            <button
+              onClick={() => {
+                setMostrarExitoCierre(false)
+                navigate('/inspeccion/asignacion', { replace: true })
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                background: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+              }}
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error al cerrar (ej. falta labrado) */}
+      {mostrarErrorCierre && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '24px 32px',
+            width: '90%',
+            maxWidth: 420,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#991b1b' }}>
+              No se pudo cerrar
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              Ocurrió un inconveniente al cerrar la inspección.
+            </p>
+            {errorMensaje && (
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: '12px',
+                fontSize: '0.85rem',
+                color: '#475569',
+                textAlign: 'left',
+                maxHeight: 120,
+                overflowY: 'auto',
+                marginBottom: 20,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
+                <strong>Detalle:</strong> {errorMensaje}
+              </div>
+            )}
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.85rem', color: '#64748b' }}>
+              Por favor, verifique si falta registrar el labrado de las llantas en la pestaña de la inspección, o si hay algún campo obligatorio pendiente.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setMostrarErrorCierre(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Volver al Formulario
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarErrorCierre(false)
+                  navigate('/inspeccion/asignacion')
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px 24px',
+                  background: '#155DFC',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Ir a Asignaciones
+              </button>
+            </div>
           </div>
         </div>
       )}

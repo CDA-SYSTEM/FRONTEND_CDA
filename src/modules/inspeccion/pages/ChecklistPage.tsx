@@ -550,7 +550,7 @@ export function ChecklistPage() {
             }}
           >
             {guardando ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={16} />}
-            Guardar borrador
+            Guardar progreso
           </button>
 
           <button

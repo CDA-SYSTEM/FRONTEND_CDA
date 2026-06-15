@@ -719,12 +719,43 @@ export function ChecklistPage() {
           <div style={{
             background: '#ffffff',
             borderRadius: 16,
-            padding: '24px 32px',
+            padding: '32px 32px 24px 32px',
             width: '90%',
             maxWidth: 420,
             textAlign: 'center',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            position: 'relative',
           }}>
+            {/* Botón X arriba a la derecha */}
+            <button
+              onClick={() => setMostrarErrorCierre(false)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: 4,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f1f5f9';
+                e.currentTarget.style.color = '#475569';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none';
+                e.currentTarget.style.color = '#94a3b8';
+              }}
+            >
+              <X size={20} />
+            </button>
+
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
               background: '#fee2e2',
@@ -763,22 +794,31 @@ export function ChecklistPage() {
             <p style={{ margin: '0 0 24px 0', fontSize: '0.85rem', color: '#64748b' }}>
               Por favor, verifique si falta registrar el labrado de las llantas en la pestaña de la inspección, o si hay algún campo obligatorio pendiente.
             </p>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button
-                onClick={() => setMostrarErrorCierre(false)}
+                onClick={() => {
+                  setMostrarErrorCierre(false)
+                  navigate(`/inspeccion/asignacion?tab=labrado&inspectionId=${inspectionId}`)
+                }}
                 style={{
-                  flex: 1,
+                  width: '100%',
                   padding: '12px 24px',
-                  background: '#f1f5f9',
-                  color: '#475569',
+                  background: '#155DFC',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: 8,
                   fontWeight: 600,
                   fontSize: '0.95rem',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: '0 2px 4px rgba(21, 93, 252, 0.2)',
                 }}
               >
-                Volver al Formulario
+                <Wrench size={16} />
+                Ir a registrar labrado
               </button>
               <button
                 onClick={() => {
@@ -786,10 +826,10 @@ export function ChecklistPage() {
                   navigate('/inspeccion/asignacion')
                 }}
                 style={{
-                  flex: 1,
+                  width: '100%',
                   padding: '12px 24px',
-                  background: '#155DFC',
-                  color: '#ffffff',
+                  background: '#f1f5f9',
+                  color: '#475569',
                   border: 'none',
                   borderRadius: 8,
                   fontWeight: 600,

@@ -17,7 +17,13 @@ Construido utilizando **React 18 + TypeScript**, orquestado bajo una arquitectur
 | TanStack Query | Estado de servidor (cache, refetch) |
 | React Hook Form + Zod | Formularios y validaciones |
 | Axios | Cliente HTTP con interceptores de token y API Key |
-| Capacitor 8 | Empaquetado Android |
+| Capacitor 8 | Empaquetado Android y acceso a APIs nativas (Cámara, Geolocalización, Preferences, Notificaciones) |
+| GrapesJS | Editor visual interactivo de plantillas de documentos y facturas |
+| Socket.io Client | Conectividad en tiempo real (WebSockets) para notificaciones y actualización de colas de inspección |
+| Recharts | Gráficos, métricas y KPIs interactivos en el Dashboard |
+| Material UI (MUI) | Soporte para iconos y componentes especializados |
+| Anime.js | Micro-animaciones y transiciones premium interactivos |
+| Google Sign-In / OAuth | Inicio de sesión con Google (Web y Nativo con Capawesome) |
 | ESLint + Prettier | Linting y formato |
 | Vitest | Pruebas unitarias |
 

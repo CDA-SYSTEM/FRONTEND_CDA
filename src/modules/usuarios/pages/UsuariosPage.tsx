@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, XCircle, Key } from 'lucide-react'
 import { useUsuarios } from '@/modules/usuarios/hooks/useUsuarios'
 import type { RolUsuarioForm } from '@/modules/usuarios/domain/usuario.types'
 import { CustomSelect } from '@/shared/components/CustomSelect'
+import { useAuthStore } from '@/core/store/authStore'
 import './UsuariosPage.css'
 import './UsuariosModal.css'
 import './RestablecerPasswordModal.css'
@@ -26,6 +27,7 @@ const ROLE_FILTERS: Array<{ label: string; value: '' | RolUsuarioForm }> = [
  * Solo contiene JSX — toda la lógica vive en useUsuarios (capa de aplicación).
  */
 export function UsuariosPage() {
+  const currentUser = useAuthStore((state) => state.user)
   const {
     usuarios,
     loading,
@@ -349,7 +351,10 @@ export function UsuariosPage() {
                           </span>
                         ) : (
                           <CustomSelect
-                            options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                            options={ROLES.filter(r => {
+                              const valLower = r.value.toLowerCase()
+                              return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                            }).map((r) => ({ value: r.value, label: r.label }))}
                             value={cuenta.role.toLowerCase()}
                             onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
                           />
@@ -415,7 +420,10 @@ export function UsuariosPage() {
                     <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem' }}>Super Admin</span>
                   ) : (
                     <CustomSelect
-                      options={ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                      options={ROLES.filter(r => {
+                        const valLower = r.value.toLowerCase()
+                        return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                      }).map((r) => ({ value: r.value, label: r.label }))}
                       value={cuenta.role.toLowerCase()}
                       onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
                     />
@@ -595,13 +603,16 @@ export function UsuariosPage() {
                 <label className="user-form-label">
                   Rol
                 </label>
-                <CustomSelect
-                  options={rolesList.length > 0 ? rolesList.map(role => ({ value: role.code.toLowerCase(), label: role.name })) : [
+                 <CustomSelect
+                  options={(rolesList.length > 0 ? rolesList.map(role => ({ value: role.code.toLowerCase(), label: role.name })) : [
                     { value: 'admin', label: 'Administrador' },
                     { value: 'manager', label: 'Manager' },
                     { value: 'inspector', label: 'Inspector' },
                     { value: 'operario', label: 'Operario' }
-                  ]}
+                  ]).filter(role => {
+                    const valLower = role.value.toLowerCase()
+                    return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                  })}
                   value={formData.role}
                   onChange={(val) => handleFormChange({ target: { name: 'role', value: val } })}
                 />

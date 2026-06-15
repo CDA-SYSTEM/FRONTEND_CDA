@@ -1469,6 +1469,7 @@ a {
   margin-bottom: 0 !important;
 }
 
+
 @media (max-width: 768px) {
   .facturacion-actions-container {
     flex-direction: column;
@@ -1476,5 +1477,63 @@ a {
     gap: 10px;
     width: 100%;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BARRAS DE DESPLAZAMIENTO (SCROLLBARS) PREMIUM — Refero Design
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 1. Global / Áreas Claras */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important; /* Gris suave */
+  border-radius: 10px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* 2. Menú Lateral (Sidebar Navigation - Fondo Oscuro) */
+.navigation::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.navigation::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  background: #475569 !important; /* Slate oscuro */
+  border-radius: 10px !important;
+}
+
+.navigation::-webkit-scrollbar-thumb:hover {
+  background: #64748b !important;
+}
+
+/* Firefox para barra lateral */
+.navigation {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
 }
 

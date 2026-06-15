@@ -237,9 +237,10 @@ export function ChecklistPage() {
       label: ins.name || [ins.firstName, ins.lastName].filter(Boolean).join(' ') || ins.email || '',
     }))
   }, [inspectores])
-  const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
+   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
   const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const [mostrarExitoGuardado, setMostrarExitoGuardado] = useState(false)
 
   /* HU-014: Opciones de respuesta dinámicas — del template o fallback NTC5375 */
   
@@ -258,8 +259,11 @@ export function ChecklistPage() {
   const handleGuardar = async () => {
     setGuardando(true)
     setErrorMensaje(null)
-    await guardar()
+    const ok = await guardar()
     setGuardando(false)
+    if (ok) {
+      setMostrarExitoGuardado(true)
+    }
   }
 
   const handleCerrar = async (resultado: 'APROBADO' | 'RECHAZADO') => {
@@ -571,6 +575,67 @@ export function ChecklistPage() {
           </button>
 
 
+        </div>
+      )}
+
+      {/* Modal de éxito al guardar progreso */}
+      {mostrarExitoGuardado && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '24px 32px',
+            width: '90%',
+            maxWidth: 400,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#dcfce7',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#1f2937' }}>
+              Progreso Guardado
+            </h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              El progreso de la inspección se ha guardado correctamente en el sistema.
+            </p>
+            <button
+              onClick={() => setMostrarExitoGuardado(false)}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                background: '#155DFC',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#1d4ed8' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#155DFC' }}
+            >
+              Aceptar
+            </button>
+          </div>
         </div>
       )}
     </div>

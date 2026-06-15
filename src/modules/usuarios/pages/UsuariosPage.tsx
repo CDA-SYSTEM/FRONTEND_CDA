@@ -351,7 +351,10 @@ export function UsuariosPage() {
                           </span>
                         ) : (
                           <CustomSelect
-                            options={ROLES.filter(r => currentUser?.role?.toLowerCase() === 'superadmin' || r.value !== 'admin').map((r) => ({ value: r.value, label: r.label }))}
+                            options={ROLES.filter(r => {
+                              const valLower = r.value.toLowerCase()
+                              return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                            }).map((r) => ({ value: r.value, label: r.label }))}
                             value={cuenta.role.toLowerCase()}
                             onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
                           />
@@ -417,7 +420,10 @@ export function UsuariosPage() {
                     <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.85rem' }}>Super Admin</span>
                   ) : (
                     <CustomSelect
-                      options={ROLES.filter(r => currentUser?.role?.toLowerCase() === 'superadmin' || r.value !== 'admin').map((r) => ({ value: r.value, label: r.label }))}
+                      options={ROLES.filter(r => {
+                        const valLower = r.value.toLowerCase()
+                        return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                      }).map((r) => ({ value: r.value, label: r.label }))}
                       value={cuenta.role.toLowerCase()}
                       onChange={(val) => handleCambiarRol(cuenta.id, val as RolUsuarioForm)}
                     />
@@ -597,13 +603,16 @@ export function UsuariosPage() {
                 <label className="user-form-label">
                   Rol
                 </label>
-                <CustomSelect
+                 <CustomSelect
                   options={(rolesList.length > 0 ? rolesList.map(role => ({ value: role.code.toLowerCase(), label: role.name })) : [
                     { value: 'admin', label: 'Administrador' },
                     { value: 'manager', label: 'Manager' },
                     { value: 'inspector', label: 'Inspector' },
                     { value: 'operario', label: 'Operario' }
-                  ]).filter(role => currentUser?.role?.toLowerCase() === 'superadmin' || role.value !== 'admin')}
+                  ]).filter(role => {
+                    const valLower = role.value.toLowerCase()
+                    return currentUser?.role?.toLowerCase() === 'superadmin' || (valLower !== 'admin' && valLower !== 'superadmin')
+                  })}
                   value={formData.role}
                   onChange={(val) => handleFormChange({ target: { name: 'role', value: val } })}
                 />

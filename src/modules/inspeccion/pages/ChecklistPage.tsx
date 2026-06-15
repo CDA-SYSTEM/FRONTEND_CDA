@@ -349,6 +349,39 @@ export function ChecklistPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: 900, margin: '0 auto' }}>
 
+      {/* Botón de Volver */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <button
+          onClick={() => navigate('/inspeccion/asignacion')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 16px',
+            background: '#ffffff',
+            color: '#475569',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f8fafc';
+            e.currentTarget.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#ffffff';
+            e.currentTarget.style.color = '#475569';
+          }}
+        >
+          <ChevronLeft size={16} />
+          Volver a Inspecciones
+        </button>
+      </div>
+
       {/* ═══════ Cabecera ═══════ */}
       <div className="panel" style={{ borderTop: '4px solid #155DFC', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -390,7 +423,7 @@ export function ChecklistPage() {
         <div className="checklist-header-grid has-inspector">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-              Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>
+              Placa del Vehículo <span style={{ display: 'inline', color: '#dc2626', margin: 0, fontSize: 'inherit' }}>*</span>
             </label>
             <input
               type="text"
@@ -406,7 +439,7 @@ export function ChecklistPage() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-              Inspector Asignado <span style={{ color: '#dc2626' }}>*</span>
+              Inspector Asignado <span style={{ display: 'inline', color: '#dc2626', margin: 0, fontSize: 'inherit' }}>*</span>
             </label>
             <CustomSelect
               options={optionsInspectores}

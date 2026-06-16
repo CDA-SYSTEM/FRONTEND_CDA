@@ -18,7 +18,7 @@ import { useAnimatedNumber } from '@/modules/admin/hooks/useAnimatedNumber'
 import { useInvoiceSocket } from '@/modules/admin/hooks/useInvoiceSocket'
 import { facturaService } from '@/modules/facturacion/services/facturaService'
 import type { Factura } from '@/modules/facturacion/domain/factura.types'
-import type { AdminDashboardData, ClientStats, VehicleStats, InspectionStats, InvoiceStats, StorageStats, ChecklistStats, TrackerStats } from '@/modules/admin/domain/admin.types'
+import type { AdminDashboardData, ClientStats, VehicleStats, InspectionStats, InvoiceStats, StorageStats, ChecklistStats, TrackerStats, ByStatusEntry } from '@/modules/admin/domain/admin.types'
 import '../Admin.css'
 
 const CHART_COLORS = ['#155dfc', '#0f47d6', '#16a34a', '#d97706', '#9333ea', '#e11d48', '#0891b2', '#4f46e5', '#ca8a04']
@@ -118,10 +118,10 @@ function ChartSkeleton() {
 
 /* ─── StatChart helpers ─── */
 
-function PieStatChart({ data, title, icon }: { data: Record<string, number> | undefined; title: string; icon: React.ReactNode }) {
-  if (!data) return null
-  const entries = Object.entries(data)
-  if (entries.length === 0) return null
+function PieStatChart({ data, title, icon }: { data: ByStatusEntry[] | Record<string, number> | undefined; title: string; icon: React.ReactNode }) {
+  if (!data || (Array.isArray(data) && data.length === 0) || (!Array.isArray(data) && Object.keys(data).length === 0)) return null
+  const isNewFormat = Array.isArray(data)
+  const chartData = isNewFormat ? (data as ByStatusEntry[]).map(e => ({ name: e.status?.name ?? e.status?.code ?? 'Desconocido', value: e.count })) : Object.entries(data as Record<string, number>).map(([k, v]) => ({ name: statNameDisplay(k), value: v }))
   return (
     <div className="admin-chart-card">
       <h3>{icon} {title}</h3>
@@ -129,15 +129,15 @@ function PieStatChart({ data, title, icon }: { data: Record<string, number> | un
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <defs>
-              {entries.map((_, i) => (
+              {chartData.map((_, i) => (
                 <linearGradient key={i} id={`pieGrad_${i}`} x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.9} />
                   <stop offset="100%" stopColor={CHART_COLORS[i % CHART_COLORS.length]} stopOpacity={0.6} />
                 </linearGradient>
               ))}
             </defs>
-            <Pie data={entries.map(([k, v]) => ({ name: statNameDisplay(k), value: v }))} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} isAnimationActive animationDuration={900} animationEasing="ease-out">
-              {entries.map((_, i) => <Cell key={i} fill={`url(#pieGrad_${i})`} stroke="rgba(255,255,255,0.3)" strokeWidth={2} />)}
+            <Pie data={chartData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} isAnimationActive animationDuration={900} animationEasing="ease-out">
+              {chartData.map((_, i) => <Cell key={i} fill={`url(#pieGrad_${i})`} stroke="rgba(255,255,255,0.3)" strokeWidth={2} />)}
             </Pie>
             <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(21,93,252,0.06)' }} />
           </PieChart>

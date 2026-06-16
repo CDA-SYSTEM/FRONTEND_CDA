@@ -513,7 +513,7 @@ function FacturacionTab({ data, loading, error }: { data: InvoiceStats | undefin
                 <div key={inv.id} className={`admin-invoice-row${newIds.has(inv.id) ? ' admin-invoice-row-new' : ''} ${!newIds.has(inv.id) && invoices.indexOf(inv) < 3 ? '' : ''}`}>
                   <div className="admin-invoice-row-top">
                     <span className="admin-invoice-row-number">{inv.invoice_number}</span>
-                    {statusBadge(inv.statusId)}
+                    {statusBadge(inv.status?.id || inv.statusId)}
                   </div>
                   <div className="admin-invoice-row-client">
                     <Users size={12} /> {inv.client?.name ?? '—'} — <span className="admin-invoice-row-doc">{inv.client?.document ?? 'S/D'}</span>

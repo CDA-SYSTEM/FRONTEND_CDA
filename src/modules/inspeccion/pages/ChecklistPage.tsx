@@ -24,6 +24,7 @@ import {
   Trash2,
   Truck,
   Upload,
+  Wrench,
   X,
   Zap,
 } from 'lucide-react'
@@ -237,9 +238,12 @@ export function ChecklistPage() {
       label: ins.name || [ins.firstName, ins.lastName].filter(Boolean).join(' ') || ins.email || '',
     }))
   }, [inspectores])
-  const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
+   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<number>>(new Set([0]))
   const [cerrando, setCerrando] = useState<'APROBADO' | 'RECHAZADO' | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const [mostrarExitoGuardado, setMostrarExitoGuardado] = useState(false)
+  const [mostrarExitoCierre, setMostrarExitoCierre] = useState(false)
+  const [mostrarErrorCierre, setMostrarErrorCierre] = useState(false)
 
   /* HU-014: Opciones de respuesta dinámicas — del template o fallback NTC5375 */
   
@@ -258,8 +262,11 @@ export function ChecklistPage() {
   const handleGuardar = async () => {
     setGuardando(true)
     setErrorMensaje(null)
-    await guardar()
+    const ok = await guardar()
     setGuardando(false)
+    if (ok) {
+      setMostrarExitoGuardado(true)
+    }
   }
 
   const handleCerrar = async (resultado: 'APROBADO' | 'RECHAZADO') => {
@@ -272,7 +279,9 @@ export function ChecklistPage() {
     const ok = await cerrar(resultado)
     setCerrando(null)
     if (ok) {
-      navigate('/inspeccion/asignacion', { replace: true })
+      setMostrarExitoCierre(true)
+    } else {
+      setMostrarErrorCierre(true)
     }
   }
 
@@ -349,6 +358,39 @@ export function ChecklistPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: 900, margin: '0 auto' }}>
 
+      {/* Botón de Volver */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <button
+          onClick={() => navigate('/inspeccion/asignacion')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 16px',
+            background: '#ffffff',
+            color: '#475569',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f8fafc';
+            e.currentTarget.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#ffffff';
+            e.currentTarget.style.color = '#475569';
+          }}
+        >
+          <ChevronLeft size={16} />
+          Volver a Inspecciones
+        </button>
+      </div>
+
       {/* ═══════ Cabecera ═══════ */}
       <div className="panel" style={{ borderTop: '4px solid #155DFC', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -390,7 +432,7 @@ export function ChecklistPage() {
         <div className="checklist-header-grid has-inspector">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-              Placa del Vehículo <span style={{ color: '#dc2626' }}>*</span>
+              Placa del Vehículo <span style={{ display: 'inline', color: '#dc2626', margin: 0, fontSize: 'inherit' }}>*</span>
             </label>
             <input
               type="text"
@@ -406,7 +448,7 @@ export function ChecklistPage() {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: 4 }}>
-              Inspector Asignado <span style={{ color: '#dc2626' }}>*</span>
+              Inspector Asignado <span style={{ display: 'inline', color: '#dc2626', margin: 0, fontSize: 'inherit' }}>*</span>
             </label>
             <CustomSelect
               options={optionsInspectores}
@@ -517,7 +559,7 @@ export function ChecklistPage() {
             }}
           >
             {guardando ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={16} />}
-            Guardar borrador
+            Guardar progreso
           </button>
 
           <button
@@ -538,6 +580,268 @@ export function ChecklistPage() {
           </button>
 
 
+        </div>
+      )}
+
+      {/* Modal de éxito al guardar progreso */}
+      {mostrarExitoGuardado && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '24px 32px',
+            width: '90%',
+            maxWidth: 400,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#dcfce7',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#1f2937' }}>
+              Progreso Guardado
+            </h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              El progreso de la inspección se ha guardado correctamente en el sistema.
+            </p>
+            <button
+              onClick={() => setMostrarExitoGuardado(false)}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                background: '#155DFC',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#1d4ed8' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#155DFC' }}
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de éxito al cerrar inspección */}
+      {mostrarExitoCierre && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '24px 32px',
+            width: '90%',
+            maxWidth: 400,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#dcfce7',
+              color: '#15803d',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <CheckCircle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#1f2937' }}>
+              Inspección Guardada
+            </h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              La inspección técnica se ha cerrado y guardado exitosamente en el sistema.
+            </p>
+            <button
+              onClick={() => {
+                setMostrarExitoCierre(false)
+                navigate('/inspeccion/asignacion', { replace: true })
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 24px',
+                background: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+              }}
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de error al cerrar (ej. falta labrado) */}
+      {mostrarErrorCierre && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 16,
+            padding: '32px 32px 24px 32px',
+            width: '90%',
+            maxWidth: 420,
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            position: 'relative',
+          }}>
+            {/* Botón X arriba a la derecha */}
+            <button
+              onClick={() => setMostrarErrorCierre(false)}
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: 4,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f1f5f9';
+                e.currentTarget.style.color = '#475569';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none';
+                e.currentTarget.style.color = '#94a3b8';
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+            }}>
+              <AlertTriangle size={32} />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 700, color: '#991b1b' }}>
+              No se pudo cerrar
+            </h3>
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#4b5563', lineHeight: 1.5 }}>
+              Ocurrió un inconveniente al cerrar la inspección.
+            </p>
+            {errorMensaje && (
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: '12px',
+                fontSize: '0.85rem',
+                color: '#475569',
+                textAlign: 'left',
+                maxHeight: 120,
+                overflowY: 'auto',
+                marginBottom: 20,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
+                <strong>Detalle:</strong> {errorMensaje}
+              </div>
+            )}
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.85rem', color: '#64748b' }}>
+              Por favor, verifique si falta registrar el labrado de las llantas en la pestaña de la inspección, o si hay algún campo obligatorio pendiente.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => {
+                  setMostrarErrorCierre(false)
+                  navigate(`/inspeccion/asignacion?tab=labrado&inspectionId=${inspectionId}`)
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 24px',
+                  background: '#155DFC',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: '0 2px 4px rgba(21, 93, 252, 0.2)',
+                }}
+              >
+                <Wrench size={16} />
+                Ir a registrar labrado
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarErrorCierre(false)
+                  navigate('/inspeccion/asignacion')
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 24px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Ir a Asignaciones
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

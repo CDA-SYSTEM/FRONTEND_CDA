@@ -16,7 +16,7 @@ import {
   UserCheck,
   Wrench,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/core/store/authStore'
 import { Modal } from '@/core/components/Modal'
 import { checklistService } from '@/modules/inspeccion/services/checklistService'
@@ -138,7 +138,11 @@ function LabradoView({ record }: { record: LabradoRecord | null }) {
 export function AsignacionPage() {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('inspecciones')
+  const [searchParams] = useSearchParams()
+  const tabParam = searchParams.get('tab') as Tab | null
+  const inspectionIdParam = searchParams.get('inspectionId')
+  
+  const [tab, setTab] = useState<Tab>(tabParam === 'labrado' ? 'labrado' : 'inspecciones')
   const [inspecciones, setInspecciones] = useState<ChecklistInspection[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -151,7 +155,14 @@ export function AsignacionPage() {
   const [pageActual, setPageActual] = useState(1)
   const [tamanoPagina] = useState(20)
 
-  const [selectedInspectionId, setSelectedInspectionId] = useState('')
+  const [selectedInspectionId, setSelectedInspectionId] = useState(inspectionIdParam || '')
+  
+  useEffect(() => {
+    if (inspectionIdParam) {
+      setSelectedInspectionId(inspectionIdParam)
+    }
+  }, [inspectionIdParam])
+
   const [labrado, setLabrado] = useState<LabradoRecord | null>(null)
   const [labradoDraft, setLabradoDraft] = useState<AxleMeasurement[]>([])
   const [editandoLabrado, setEditandoLabrado] = useState(false)

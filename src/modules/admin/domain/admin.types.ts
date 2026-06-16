@@ -14,12 +14,24 @@ export interface VehicleStats {
   byServiceType: { label: string; count: number }[]
 }
 
+export interface StatusInfo {
+  id: string
+  code: string
+  name: string
+  color?: string
+}
+
+export interface ByStatusEntry {
+  status: StatusInfo | null
+  count: number
+}
+
 export interface InspectionStats {
   totalInspections: number
   todayInspections: number
   weekInspections: number
   monthInspections: number
-  byStatus: Record<string, number>
+  byStatus: ByStatusEntry[]
   byVehicleType: Record<string, number>
   byServiceType: Record<string, number>
 }
@@ -29,7 +41,7 @@ export interface InvoiceStats {
   totalRevenue: number
   todayRevenue: number
   monthRevenue: number
-  byStatus: Record<string, number>
+  byStatus: ByStatusEntry[]
   revenueByMonth: Record<string, number>
 }
 

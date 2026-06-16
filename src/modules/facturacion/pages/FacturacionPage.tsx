@@ -201,7 +201,7 @@ export function FacturacionPage() {
         quantity: it.quantity,
         unitPrice: it.unitPrice
       })),
-      statusId: inv.statusId,
+      statusId: inv.status?.id || inv.statusId,
       inspection_id: inv.inspection_id,
       observations: inv.observations || ''
     })
@@ -427,9 +427,9 @@ export function FacturacionPage() {
                     <td>
                       <span 
                         className="invoice-status-badge"
-                        data-status={inv.statusName === 'Pagado' ? 'paid' : 'pending'}
+                        data-status={(inv.status?.name || inv.statusName)?.toLowerCase() === 'pagado' || (inv.status?.name || inv.statusName)?.toLowerCase() === 'paid' ? 'paid' : 'pending'}
                       >
-                        {inv.statusName || 'Pendiente'}
+                        {inv.status?.name || inv.statusName || 'Pendiente'}
                       </span>
                     </td>
                     <td className="text-right">
@@ -510,9 +510,9 @@ export function FacturacionPage() {
                     <span className="invoice-card-label">Estado</span>
                     <span 
                       className="invoice-status-badge"
-                      data-status={inv.statusName === 'Pagado' ? 'paid' : 'pending'}
+                      data-status={(inv.status?.name || inv.statusName)?.toLowerCase() === 'pagado' || (inv.status?.name || inv.statusName)?.toLowerCase() === 'paid' ? 'paid' : 'pending'}
                     >
-                      {inv.statusName || 'Pendiente'}
+                      {inv.status?.name || inv.statusName || 'Pendiente'}
                     </span>
                   </div>
                 </div>
@@ -622,7 +622,7 @@ export function FacturacionPage() {
                     </p>
                     <p>ID Inspección: <span className="font-mono text-xs">{selectedInvoice.inspection_id}</span></p>
                     <p className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      Estado: <span className="font-bold text-primary" style={{ fontWeight: 'bold' }}>{selectedInvoice.statusName || 'Pendiente'}</span>
+                      Estado: <span className="font-bold text-primary" style={{ fontWeight: 'bold' }}>{selectedInvoice.status?.name || selectedInvoice.statusName || 'Pendiente'}</span>
                     </p>
                   </div>
                 </div>
@@ -687,14 +687,14 @@ export function FacturacionPage() {
                 <button
                   className="btn btn-primary"
                   onClick={() => {
-                    setReceptionPaymentStatus(selectedInvoice.statusName || '')
+                    setReceptionPaymentStatus(selectedInvoice.status?.name || selectedInvoice.statusName || '')
                     setShowReceptionDetail(selectedInvoice.inspection_id)
                   }}
                   style={{ fontSize: '0.85rem' }}
                 >
                   Ver Recepción
                 </button>
-                {selectedInvoice.statusName === 'Pagado' && (
+                {((selectedInvoice.status?.name || selectedInvoice.statusName)?.toLowerCase() === 'pagado' || (selectedInvoice.status?.name || selectedInvoice.statusName)?.toLowerCase() === 'paid') && (
                   <button
                     className="btn btn-primary"
                     onClick={handleDescargarDocumento}

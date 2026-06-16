@@ -28,6 +28,7 @@ export interface Factura {
   updatedAt: string
   deletedAt: string | null
   statusName?: string // added by controller if resolved, or resolved on frontend
+  status?: Status
 }
 
 export interface CreateInvoiceDTO {

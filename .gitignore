@@ -38,3 +38,8 @@ android/**/*.keystore
 
 # Agents directory (local skill assets)
 .agents/
+
+# Capacitor Android auto-generated configs
+android/app/capacitor.build.gradle
+android/capacitor.settings.gradle
+android/app/release/baselineProfiles/
